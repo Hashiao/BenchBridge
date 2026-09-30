@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <bit>
 #include <cmath>
+#include <cstring>
 #include <ctime>
 #include <iomanip>
 #include <sstream>
@@ -23,11 +24,11 @@ std::string quote(const std::string& text) {
     return s.str() + '"';
 }
 const char* unit(int kind) {
-    return kind <= MemoryCopy || kind == Aes256 || kind == Sha1 ? "MB/s" : kind <= Fp64 ? "GFLOPS" : kind <= Int64 ? "GIOPS" : "FPS";
+    return kind <= MemoryCopy || kind == Aes256 || kind == Sha1 ? "MB/s" : kind <= Fp64 ? "GFLOPS" : kind <= Int64 ? "GIOPS" : "MPix/s";
 }
 std::uint64_t units_per_item(int kind, std::uint32_t iterations) {
-    if (kind == Aes256) return static_cast<std::uint64_t>(iterations) * 16;
-    if (kind == Sha1) return static_cast<std::uint64_t>(iterations) * 64;
+    if (kind == Aes256) return 16;
+    if (kind == Sha1) return crypto_message_bytes;
     if (kind >= Julia) return 1;
     return static_cast<std::uint64_t>(iterations) * (kind == Fp64 || kind == Int64 ? 32 : 64);
 }
@@ -35,6 +36,12 @@ std::uint32_t pattern(std::uint32_t index, std::uint32_t seed) {
     auto x = index * 747796405u + seed * 2891336453u + 277803737u;
     x = ((x >> ((x >> 28u) + 4u)) ^ x) * 277803737u;
     return (x >> 22u) ^ x;
+}
+void fill_data(std::uint8_t* output, std::size_t bytes, std::size_t byte_offset) {
+    for (std::size_t i = 0; i < bytes; i += 4) {
+        const auto value = pattern(static_cast<std::uint32_t>((byte_offset + i) / 4), data_seed);
+        std::memcpy(output + i, &value, std::min<std::size_t>(4, bytes - i));
+    }
 }
 std::string Result::json() const {
     std::ostringstream s;
@@ -78,23 +85,7 @@ Words reference(int kind, std::uint32_t id, std::uint32_t iterations, std::uint3
             std::uint64_t sum = 0; for (const auto& v : x) sum += v[l];
             if (kind == Int64) { out[l * 2] = sum; out[l * 2 + 1] = sum >> 32; } else out[l] = sum;
         }
-    } else if (kind == Aes256 || kind == Sha1) {
-        const int bytes = kind == Aes256 ? 16 : 64;
-        for (std::uint32_t i = 0; i < iterations; ++i) {
-            std::uint8_t input[64]{}, encrypted[16]{};
-            for (int w = 0; w < bytes / 4; ++w) {
-                const auto value = pattern(id * 131u + i * 17u + w, seed);
-                for (int b = 0; b < 4; ++b) input[w * 4 + b] = value >> (24 - b * 8);
-            }
-            if (kind == Aes256) {
-                aes_block(input, encrypted);
-                for (int w = 0; w < 4; ++w) for (int b = 0; b < 4; ++b) out[w] ^= static_cast<std::uint32_t>(encrypted[w * 4 + b]) << (24 - b * 8);
-            } else {
-                std::uint32_t digest[5]; sha_message(input, 64, digest, false);
-                for (int w = 0; w < 5; ++w) out[w] ^= digest[w];
-            }
-        }
-    }
+    } else throw std::invalid_argument("COMPUTE_REFERENCE_KIND");
     return out;
 }
 

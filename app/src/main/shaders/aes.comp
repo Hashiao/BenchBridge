@@ -4,8 +4,8 @@
 #include "common/base.glsl"
 #include "common/aes_tables.glsl"
 uint xtime(uint a){return ((a<<1u)^((a&128u)!=0u?0x1bu:0u))&255u;}
-// 密钥在构建时展开，正式计时仅计算独立的 AES-256 数据块。
-// Expand the key at build time; timed work encrypts independent AES-256 blocks.
+// 密钥在构建时展开，输入来自计时前准备的消息缓冲区。
+// Expand the key at build time and load messages prepared before timing.
 uvec4 encrypt(uvec4 inputData){
     uint a[16];[[unroll]] for(int i=0;i<16;++i)a[i]=((inputData[i/4]^RK[i/4])>>uint(24-(i%4)*8))&255u;
     for(int round=1;round<=14;++round){
@@ -21,7 +21,16 @@ uvec4 encrypt(uvec4 inputData){
     uvec4 outData=uvec4(0);[[unroll]] for(int i=0;i<16;++i)outData[i/4]|=a[i]<<uint(24-(i%4)*8);return outData;
 }
 void main(){
-    uint id=gl_GlobalInvocationID.x;if(id>=p.count)return;uvec4 result=uvec4(0);
-    for(uint i=0;i<p.iterations;++i){uvec4 inputData;[[unroll]] for(int w=0;w<4;++w)inputData[w]=pattern(id*131u+i*17u+uint(w),p.seed);result^=encrypt(inputData);}
-    [[unroll]] for(int w=0;w<8;++w)outputData.values[id*8+uint(w)]=w<4?result[w]:0;
+    uint id=gl_GlobalInvocationID.x;if(id>=p.count)return;
+    uint block=p.base+id;if(block>=p.span)return;
+    uvec4 value;
+    [[unroll]] for(int w=0;w<4;++w){
+        uint x=inputData.values[block*4u+uint(w)];
+        value[w]=((x&255u)<<24u)|((x&65280u)<<8u)|((x>>8u)&65280u)|(x>>24u);
+    }
+    uvec4 result=encrypt(value);
+    [[unroll]] for(int w=0;w<4;++w){
+        uint x=result[w];
+        outputData.values[block*4u+uint(w)]=((x&255u)<<24u)|((x&65280u)<<8u)|((x>>8u)&65280u)|(x>>24u);
+    }
 }

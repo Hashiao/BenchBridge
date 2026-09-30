@@ -1,0 +1,35 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+#include "common/base.glsl"
+
+shared uvec4 partial[256];
+
+void main() {
+    uint id=gl_GlobalInvocationID.x;
+    if(p.kind==0u){
+        uvec4 sum=uvec4(0);
+        for(uint i=id;i<p.span;i+=p.count){
+            uint w=i*4u;
+            sum^=uvec4(inputData.values[w],inputData.values[w+1u],inputData.values[w+2u],inputData.values[w+3u]);
+        }
+        // 每组保留读数校验值，避免编译器删除未使用的读取。
+        // Retain one checksum per group so unused reads cannot be removed.
+        uint lane=gl_LocalInvocationID.x;
+        partial[lane]=sum;
+        barrier();
+        for(uint stride=gl_WorkGroupSize.x/2u;stride>0u;stride>>=1u){
+            if(lane<stride)partial[lane]^=partial[lane+stride];
+            barrier();
+        }
+        if(lane==0u){
+            uint w=gl_WorkGroupID.x*4u;
+            for(uint c=0u;c<4u;++c)outputData.values[w+c]=partial[0][c];
+        }
+    }else{
+        for(uint i=id;i<p.span;i+=p.count){
+            uint w=i*4u;
+            uvec4 value=p.kind==1u?uvec4(p.seed):uvec4(inputData.values[w],inputData.values[w+1u],inputData.values[w+2u],inputData.values[w+3u]);
+            for(uint c=0u;c<4u;++c)outputData.values[w+c]=value[c];
+        }
+    }
+}

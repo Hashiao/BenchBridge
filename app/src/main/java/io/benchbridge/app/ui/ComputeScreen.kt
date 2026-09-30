@@ -120,7 +120,7 @@ internal fun ComputeSettings(state:RamUiState,model:RamViewModel){
                 val allowed=state.computeCapabilities?.optJSONObject("cpu")?.optJSONArray("cpu_ids")?.length()?:state.capabilities?.optInt("allowed_cpus",1)?:1
                 listOf(0,1,2,4,8,16).filter { it==0||it<=allowed }.forEach { n -> FilterChip(config.threads==n,{model.configureCompute(config.copy(threads=n))},{Text(if(n==0)"自动"else"$n")}) }
             }
-            Text("内存测试大小",style=MaterialTheme.typography.labelLarge)
+            Text("内存与加密测试大小",style=MaterialTheme.typography.labelLarge)
             FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){
                 listOf(16,64,128,256).forEach { n -> FilterChip(config.memoryMiB==n,{model.configureCompute(config.copy(memoryMiB=n))},{Text("$n MiB")}) }
             }
@@ -143,7 +143,10 @@ internal fun ComputeDetails(report:JSONObject,onExport:(JSONObject)->Unit){
     val config=ComputeConfig.fromJson(report.getJSONObject("config").toString())
     LazyColumn(Modifier.fillMaxSize().testTag("compute_details_page"),contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
         item{ReportActions(report,onExport)}
-        item{SectionCard("本次测试"){Text(config.summary);Text("${report.optInt("completed_rounds")} / ${report.optInt("total_rounds")} 轮")}}
+        item{SectionCard("本次测试"){
+            Text(config.summary);Text("${report.optInt("completed_rounds")} / ${report.optInt("total_rounds")} 轮")
+            if(report.getJSONObject("config").optString("protocol")!="gpgpu-v2")Text("旧版测试记录",style=MaterialTheme.typography.bodySmall)
+        }}
         ComputeKind.entries.filter { it.code in config.kinds }.forEach { kind -> item{
             SectionCard(kind.title){
                 listOf("cpu","gpu").filter(config.targets::contains).forEach { target ->
@@ -153,7 +156,10 @@ internal fun ComputeDetails(report:JSONObject,onExport:(JSONObject)->Unit){
                     Text("${target.uppercase()}：${score?.let { "%.2f ${kind.unit}".format(Locale.US,it) }?:"—"}")
                     if(cell?.optString("state")=="UNSUPPORTED")Text("设备暂不支持该项目",style=MaterialTheme.typography.bodySmall)
                     else Text("已完成 ${samples.size} / ${config.rounds} 次",style=MaterialTheme.typography.bodySmall)
-                    samples.forEach { sample -> Text("第 ${sample.optInt("round")} 次：%.2f ${kind.unit}".format(Locale.US,ComputeResults.value(sample)),style=MaterialTheme.typography.bodySmall) }
+                    samples.forEach { sample ->
+                        val value=ComputeResults.value(sample)
+                        Text("第 ${sample.optInt("round")} 次："+if(value.isFinite())"%.2f ${kind.unit}".format(Locale.US,value)else"—",style=MaterialTheme.typography.bodySmall)
+                    }
                 }
             }
         }}

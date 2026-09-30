@@ -60,6 +60,14 @@ Some cases cancel app runs, terminate the app's worker process or turn off the d
 
 ## 已有验证范围 / Existing validation scope
 
+0.7.0 通过双 ABI 构建、Debug / Release Lint 和 9 项 GPGPU 用例，覆盖计算结果、内存与加密字节计数、配置工作集、取消、锁屏、历史换算、截图与导出。最后一次原生自检整理后，相关 3 项用例再次通过。ARM64 Release 内核在 AArch64 指令模拟中通过 AES 单块 / 八块及 SHA-1 的 0、3、55、56、63、64、65、65536 字节已知答案；反汇编确认 SHA1SU0/SU1 已生成。该检查执行实际编译的指令，不测量手机性能。
+
+Version 0.7.0 passed both ABI builds, Debug/Release Lint and nine GPGPU cases covering output validation, memory/cryptographic byte counts, configured working sets, cancellation, screen-off execution, legacy conversion, screenshots and export. Three affected cases passed again after final native self-test cleanup. Compiled ARM64 Release kernels passed AArch64 instruction-emulation checks for one/eight AES blocks and SHA-1 inputs of 0, 3, 55, 56, 63, 64, 65 and 65536 bytes; disassembly confirms SHA1SU0/SU1. These checks execute the compiled instructions and do not measure phone performance.
+
+签名 Release 默认流程处理 72 个计划轮次，完成全部 63 个受支持轮次；测试设备缺少 GPU FP64 / INT64，相关三项各三轮按能力跳过。通过系统文件选择器导出后，重新核对 `gpgpu-v2`、64 KiB 消息、CPU/GPU 工作集、连续时段分母、GPU 设备耗时及 MPix/s 像素计数。24 格成绩在正常尺寸及 360×640、130% 字体下完整显示，两列没有重叠。两种 ABI 的 RAM/ROM 原生库与 0.6.2 逐字节一致，已有 RAM/ROM 用户记录的摘要保持不变。
+
+The signed Release default workflow processed 72 planned rounds and completed all 63 supported rounds. The device lacks GPU FP64/INT64, so three operations with three rounds each were skipped by capability. The system-picker JSON export was checked for `gpgpu-v2`, 64 KiB messages, CPU/GPU working sets, continuous timing denominators, GPU device time and MPix/s pixel counts. All 24 cells fit at normal size and at 360×640 with 130% font scaling, with separate columns. RAM/ROM native libraries for both ABIs are byte-identical to 0.6.2, and existing RAM/ROM user records retain their hashes.
+
 0.6.2 的 142 条 SoC 资料通过整库字段与来源校验。新增 4 项 `SocCatalogTest`，与原有 6 项 `MemoryMatrixTest` 一起通过，覆盖中文与型号代号、共用代号消歧、冲突拒绝、未知核心数和运行时缓存优先。签名 Release 表格快测完成 16/16 轮，完整导出报告包含资料库修订号 `2026-09-30.2`。原生库和着色器与 0.6.1 完全一致；这些检查验证匹配与回退逻辑，不表示已对 142 款芯片逐一实机测试。
 
 The 142 SoC entries in 0.6.2 passed the catalog-wide field and source checks. Four new `SocCatalogTest` cases and all six existing `MemoryMatrixTest` cases passed, covering Chinese names, silicon codes, shared-code disambiguation, conflicting identifiers, unconfirmed core counts and runtime cache precedence. The signed Release matrix quick run completed 16/16 rounds; its full export contains catalog revision `2026-09-30.2`. Native libraries and shaders are byte-identical to 0.6.1. These checks validate matching and fallback behavior, not execution on 142 physical chip models.

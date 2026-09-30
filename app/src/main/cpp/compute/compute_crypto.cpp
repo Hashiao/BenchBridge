@@ -3,6 +3,7 @@
 #include <array>
 #include <bit>
 #include <cstring>
+#include <stdexcept>
 #if defined(__aarch64__)
 #include <arm_neon.h>
 #include <asm/hwcap.h>
@@ -46,34 +47,49 @@ alignas(16) constexpr auto keys = expand_key();
 std::uint32_t be32(const std::uint8_t* p) { return std::uint32_t(p[0]) << 24 | std::uint32_t(p[1]) << 16 | std::uint32_t(p[2]) << 8 | p[3]; }
 
 #if defined(__aarch64__)
-__attribute__((target("aes"), noinline)) void aes_hardware(const std::uint8_t* input, std::uint8_t* output, int count) {
-    uint8x16_t data[8];
-    for (int i = 0; i < count; ++i) data[i] = vld1q_u8(input + i*16);
+template<int Count> __attribute__((target("aes"), noinline)) void aes_hardware(const std::uint8_t* input, std::uint8_t* output) {
+    uint8x16_t data[Count];
+#pragma unroll
+    for (int i = 0; i < Count; ++i) data[i] = vld1q_u8(input + i*16);
     for (int round = 0; round < 13; ++round) {
         const auto key = vld1q_u8(keys.data()+round*16);
-        for (int i = 0; i < count; ++i) data[i] = vaesmcq_u8(vaeseq_u8(data[i],key));
+#pragma unroll
+        for (int i = 0; i < Count; ++i) data[i] = vaesmcq_u8(vaeseq_u8(data[i],key));
     }
-    for (int i = 0; i < count; ++i) vst1q_u8(output+i*16,veorq_u8(vaeseq_u8(data[i],vld1q_u8(keys.data()+208)),vld1q_u8(keys.data()+224)));
+#pragma unroll
+    for (int i = 0; i < Count; ++i) vst1q_u8(output+i*16,veorq_u8(vaeseq_u8(data[i],vld1q_u8(keys.data()+208)),vld1q_u8(keys.data()+224)));
 }
-__attribute__((target("sha2"), noinline)) void sha_compress_hardware(std::uint32_t* h, const std::uint32_t* w) {
+__attribute__((target("sha2"), noinline)) void sha_compress_hardware(std::uint32_t* h, const std::uint8_t* block) {
+    uint32x4_t w[4];
+    for (int i=0;i<4;++i) w[i]=vreinterpretq_u32_u8(vrev32q_u8(vld1q_u8(block+i*16)));
     auto abcd = vld1q_u32(h); auto e = h[4];
+#pragma unroll
     for (int group = 0; group < 20; ++group) {
         const std::uint32_t k = group < 5 ? 0x5a827999u : group < 10 ? 0x6ed9eba1u : group < 15 ? 0x8f1bbcdcu : 0xca62c1d6u;
-        auto input = vaddq_u32(vld1q_u32(w + group*4), vdupq_n_u32(k));
+        const int i=group&3;
+        auto input = vaddq_u32(w[i], vdupq_n_u32(k));
         const auto nextE = vsha1h_u32(vgetq_lane_u32(abcd,0));
         if (group < 5) abcd = vsha1cq_u32(abcd,e,input);
         else if (group < 10 || group >= 15) abcd = vsha1pq_u32(abcd,e,input);
         else abcd = vsha1mq_u32(abcd,e,input);
         e = nextE;
+        // 四组向量循环扩展消息，覆盖 W16 至 W79。
+        // Rotate four vectors through the hardware schedule for W16 through W79.
+        if(group<16)w[i]=vsha1su1q_u32(vsha1su0q_u32(w[i],w[(i+1)&3],w[(i+2)&3]),w[(i+3)&3]);
     }
     vst1q_u32(h,vaddq_u32(abcd,vld1q_u32(h))); h[4] += e;
 }
 #elif defined(__x86_64__)
-__attribute__((target("aes,sse2"), noinline)) void aes_hardware(const std::uint8_t* input, std::uint8_t* output, int count) {
-    __m128i data[8];
-    for (int i=0;i<count;++i) data[i]=_mm_xor_si128(_mm_loadu_si128(reinterpret_cast<const __m128i*>(input+i*16)),_mm_load_si128(reinterpret_cast<const __m128i*>(keys.data())));
-    for (int r=1;r<14;++r) for (int i=0;i<count;++i) data[i]=_mm_aesenc_si128(data[i],_mm_load_si128(reinterpret_cast<const __m128i*>(keys.data()+r*16)));
-    for (int i=0;i<count;++i) _mm_storeu_si128(reinterpret_cast<__m128i*>(output+i*16),_mm_aesenclast_si128(data[i],_mm_load_si128(reinterpret_cast<const __m128i*>(keys.data()+224))));
+template<int Count> __attribute__((target("aes,sse2"), noinline)) void aes_hardware(const std::uint8_t* input, std::uint8_t* output) {
+    __m128i data[Count];
+#pragma unroll
+    for (int i=0;i<Count;++i) data[i]=_mm_xor_si128(_mm_loadu_si128(reinterpret_cast<const __m128i*>(input+i*16)),_mm_load_si128(reinterpret_cast<const __m128i*>(keys.data())));
+    for (int r=1;r<14;++r) {
+#pragma unroll
+        for (int i=0;i<Count;++i) data[i]=_mm_aesenc_si128(data[i],_mm_load_si128(reinterpret_cast<const __m128i*>(keys.data()+r*16)));
+    }
+#pragma unroll
+    for (int i=0;i<Count;++i) _mm_storeu_si128(reinterpret_cast<__m128i*>(output+i*16),_mm_aesenclast_si128(data[i],_mm_load_si128(reinterpret_cast<const __m128i*>(keys.data()+224))));
 }
 #endif
 }
@@ -110,45 +126,47 @@ void aes_block(const std::uint8_t* input, std::uint8_t* output) {
     }
     std::copy_n(state,16,output);
 }
-void aes_fast_batch(std::uint32_t id, std::uint32_t count, std::uint32_t seed, Words& output) {
-    output.fill(0);
-    const bool accelerated=aes_accelerated();
-    for (std::uint32_t start=0;start<count;start+=8) {
-        alignas(16) std::uint8_t input[128], encrypted[128];
-        const int n=std::min(8u,count-start);
-        for (int block=0;block<n;++block) for (int w=0;w<4;++w) {
-            auto x=pattern(id*131u+(start+block)*17u+w,seed);
-            for (int b=0;b<4;++b) input[block*16+w*4+b]=x>>(24-b*8);
-        }
-        if (accelerated) aes_hardware(input,encrypted,n);
-        else for (int b=0;b<n;++b) aes_block(input+b*16,encrypted+b*16);
-        for (int b=0;b<n;++b) for (int w=0;w<4;++w) output[w]^=be32(encrypted+b*16+w*4);
+void aes_buffer(const std::uint8_t* input, std::uint8_t* output, std::size_t length, bool accelerated) {
+    if(length%16)throw std::invalid_argument("AES_BLOCK_LENGTH");
+    std::size_t offset=0;
+    if(accelerated){
+        for(;offset+128<=length;offset+=128)aes_hardware<8>(input+offset,output+offset);
+        for(;offset<length;offset+=16)aes_hardware<1>(input+offset,output+offset);
+    }else for(;offset<length;offset+=16)aes_block(input+offset,output+offset);
+    asm volatile("" : : "r"(output) : "memory");
+}
+namespace {
+void sha_compress_portable(std::uint32_t* h,const std::uint8_t* input){
+    std::uint32_t w[80];
+    for(int i=0;i<16;++i)w[i]=be32(input+i*4);
+    for(int i=16;i<80;++i)w[i]=std::rotl(w[i-3]^w[i-8]^w[i-14]^w[i-16],1);
+    auto a=h[0],b=h[1],c=h[2],d=h[3],e=h[4];
+    for(int i=0;i<80;++i){
+        const auto f=i<20?((b&c)|(~b&d)):i<40?(b^c^d):i<60?((b&c)|(b&d)|(c&d)):(b^c^d);
+        const auto k=i<20?0x5a827999u:i<40?0x6ed9eba1u:i<60?0x8f1bbcdcu:0xca62c1d6u;
+        const auto t=std::rotl(a,5)+f+e+k+w[i];e=d;d=c;c=std::rotl(b,30);b=a;a=t;
     }
+    h[0]+=a;h[1]+=b;h[2]+=c;h[3]+=d;h[4]+=e;
+}
 }
 void sha_message(const std::uint8_t* input, std::size_t length, std::uint32_t* h, bool accelerated) {
-    std::uint8_t padded[128]{};
-    std::copy_n(input,length,padded); padded[length]=0x80;
-    const int total=length<56?64:128;
-    const auto bits=static_cast<std::uint64_t>(length)*8;
-    for (int b=0;b<8;++b) padded[total-1-b]=bits>>(b*8);
     h[0]=0x67452301;h[1]=0xefcdab89;h[2]=0x98badcfe;h[3]=0x10325476;h[4]=0xc3d2e1f0;
-    for (int block=0;block<total;block+=64) {
-        std::uint32_t w[80];
-        for (int i=0;i<16;++i) w[i]=be32(padded+block+i*4);
-        for (int i=16;i<80;++i) w[i]=std::rotl(w[i-3]^w[i-8]^w[i-14]^w[i-16],1);
+    auto compress=[&](const std::uint8_t* block){
 #if defined(__aarch64__)
-        if (accelerated) { sha_compress_hardware(h,w);continue; }
+        if(accelerated){sha_compress_hardware(h,block);return;}
 #else
         (void)accelerated;
 #endif
-        auto a=h[0],b=h[1],c=h[2],d=h[3],e=h[4];
-        for (int i=0;i<80;++i) {
-            auto f=i<20?((b&c)|(~b&d)):i<40?(b^c^d):i<60?((b&c)|(b&d)|(c&d)):(b^c^d);
-            auto k=i<20?0x5a827999u:i<40?0x6ed9eba1u:i<60?0x8f1bbcdcu:0xca62c1d6u;
-            auto t=std::rotl(a,5)+f+e+k+w[i];e=d;d=c;c=std::rotl(b,30);b=a;a=t;
-        }
-        h[0]+=a;h[1]+=b;h[2]+=c;h[3]+=d;h[4]+=e;
-    }
+        sha_compress_portable(h,block);
+    };
+    std::size_t offset=0;
+    for(;offset+64<=length;offset+=64)compress(input+offset);
+    std::uint8_t padded[128]{};const auto remaining=length-offset;
+    if(remaining)std::copy_n(input+offset,remaining,padded);
+    padded[remaining]=0x80;const int total=remaining<56?64:128;
+    const auto bits=static_cast<std::uint64_t>(length)*8;
+    for(int b=0;b<8;++b)padded[total-1-b]=bits>>(b*8);
+    for(int block=0;block<total;block+=64)compress(padded+block);
 }
 bool crypto_self_test() {
     // FIPS 197 AES-256 与 FIPS 180 SHA-1 的已知答案。
@@ -157,11 +175,38 @@ bool crypto_self_test() {
     constexpr std::uint8_t cipher[16]={0x8e,0xa2,0xb7,0xca,0x51,0x67,0x45,0xbf,0xea,0xfc,0x49,0x90,0x4b,0x49,0x60,0x89};
     std::uint8_t out[16]; aes_block(plaintext,out);
     if (!std::equal(out,out+16,cipher)) return false;
-    if (aes_accelerated()) { aes_hardware(plaintext,out,1);if (!std::equal(out,out+16,cipher)) return false; }
+    if (aes_accelerated()) { aes_hardware<1>(plaintext,out);if (!std::equal(out,out+16,cipher)) return false; }
     constexpr std::uint32_t expected[5]={0xa9993e36,0x4706816a,0xba3e2571,0x7850c26c,0x9cd0d89d};
     std::uint32_t digest[5];sha_message(reinterpret_cast<const std::uint8_t*>("abc"),3,digest,false);
     if (!std::equal(digest,digest+5,expected)) return false;
     sha_message(reinterpret_cast<const std::uint8_t*>("abc"),3,digest,sha_accelerated());
-    return std::equal(digest,digest+5,expected);
+    if(!std::equal(digest,digest+5,expected))return false;
+    std::array<std::uint8_t,256> aesInput{},aesOutput{},aesReference{};
+    for(std::size_t i=0;i<aesInput.size();++i)aesInput[i]=static_cast<std::uint8_t>(i*17+11);
+    for(std::size_t i=0;i<aesInput.size();i+=16)aes_block(aesInput.data()+i,aesReference.data()+i);
+    for(std::size_t size:{16u,128u,144u,256u})for(bool accelerated:{false,aes_accelerated()}){
+        aesOutput.fill(0xcd);
+        aes_buffer(aesInput.data(),aesOutput.data(),size,accelerated);
+        if(!std::equal(aesOutput.begin(),aesOutput.begin()+size,aesReference.begin()))return false;
+    }
+    // 独立已知摘要覆盖填充边界和正式消息长度。
+    // Independent known digests cover padding boundaries and the measured message size.
+    struct Case{std::size_t length;std::array<std::uint32_t,5> digest;};
+    const Case cases[]={
+        {0,{0xda39a3ee,0x5e6b4b0d,0x3255bfef,0x95601890,0xafd80709}},
+        {55,{0xe33b5fe8,0x21e8bee6,0xa1a34f44,0xfe0857fe,0x8aaaeaa0}},
+        {56,{0x4064ac9f,0x344e3607,0xdeee0b06,0x28f596db,0xb4d30bce}},
+        {63,{0xa94b03ee,0x2fc2c1da,0x8904d8e5,0xfd0eac9b,0x8d432c3a}},
+        {64,{0xf41dc3f7,0xad3638ed,0x96d68bb1,0x58155139,0x845c8171}},
+        {65,{0xeec86c77,0x395b30bb,0xb7339692,0x538bac57,0x7ccea8a0}},
+        {crypto_message_bytes,{0x480a3dc7,0x7c7241dd,0xead3fb5b,0x089454ec,0xd0907e16}},
+    };
+    std::vector<std::uint8_t> message(crypto_message_bytes);
+    for(std::size_t i=0;i<message.size();++i)message[i]=static_cast<std::uint8_t>(i*17+11);
+    for(const auto& test:cases)for(bool accelerated:{false,sha_accelerated()}){
+        sha_message(message.data(),test.length,digest,accelerated);
+        if(!std::equal(digest,digest+5,test.digest.begin()))return false;
+    }
+    return true;
 }
 }

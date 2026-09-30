@@ -135,14 +135,6 @@ __attribute__((noinline)) void cpu_kernel(int kind, std::uint32_t id, std::uint3
             for(int a=0;a<16;++a)v[a]=v[a]*1664525ull+1013904223ull+a/2;
         }
         for(int l=0;l<2;++l){std::uint64_t sum=0;for(int a=0;a<8;++a)sum+=v[a*2+l];output[l*2]=sum;output[l*2+1]=sum>>32;}
-    } else if(kind==Aes256) aes_fast_batch(id,iterations,seed,output);
-    else if(kind==Sha1) {
-        const bool accelerated=sha_accelerated();
-        for(std::uint32_t i=0;i<iterations;++i){
-            std::uint8_t input[64];std::uint32_t digest[5];
-            for(int w=0;w<16;++w){auto x=pattern(id*131u+i*17u+w,seed);for(int b=0;b<4;++b)input[w*4+b]=x>>(24-b*8);}
-            sha_message(input,64,digest,accelerated);for(int w=0;w<5;++w)output[w]^=digest[w];
-        }
     }
     asm volatile("" : : "r"(output.data()) : "memory");
 }

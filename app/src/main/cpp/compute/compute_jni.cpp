@@ -32,11 +32,11 @@ extern "C" JNIEXPORT jlong JNICALL Java_io_benchbridge_app_compute_ComputeNative
 extern "C" JNIEXPORT void JNICALL Java_io_benchbridge_app_compute_ComputeNative_cancel(JNIEnv*,jobject,jlong handle){if(auto s=find(handle))s->cancelled=true;}
 extern "C" JNIEXPORT void JNICALL Java_io_benchbridge_app_compute_ComputeNative_release(JNIEnv*,jobject,jlong handle){std::lock_guard lock(registryMutex);if(sessions.contains(handle)){sessions[handle]->cancelled=true;sessions.erase(handle);}}
 extern "C" JNIEXPORT void JNICALL Java_io_benchbridge_app_compute_ComputeNative_releaseGpu(JNIEnv*,jobject,jlong handle){if(auto s=find(handle)){std::lock_guard lock(s->call);s->gpu.reset();}}
-extern "C" JNIEXPORT jstring JNICALL Java_io_benchbridge_app_compute_ComputeNative_runCpu(JNIEnv* env,jobject,jlong handle,jint kind,jintArray ids,jint warmup,jint duration,jint width,jint height){
+extern "C" JNIEXPORT jstring JNICALL Java_io_benchbridge_app_compute_ComputeNative_runCpu(JNIEnv* env,jobject,jlong handle,jint kind,jintArray ids,jint warmup,jint duration,jint width,jint height,jint memory){
     auto s=find(handle);std::string out;
     try{if(!s||!ids)throw std::runtime_error("SESSION_MISSING");std::unique_lock lock(s->call,std::try_to_lock);if(!lock.owns_lock())throw std::runtime_error("COMPUTE_BUSY");
         auto n=env->GetArrayLength(ids);if(n<1||n>16)throw std::runtime_error("CPU_COUNT_INVALID");std::vector<int> cpus(n);env->GetIntArrayRegion(ids,0,n,cpus.data());
-        out=bbcompute::cpu_round(kind,cpus,warmup,duration,width,height,s->cancelled);
+        out=bbcompute::cpu_round(kind,cpus,warmup,duration,width,height,memory,s->cancelled);
     }catch(const std::exception& e){out=failure(e.what(),s&&s->cancelled.load());}catch(...){out=failure("COMPUTE_NATIVE_FAILED");}
     return env->NewStringUTF(out.c_str());}
 extern "C" JNIEXPORT jstring JNICALL Java_io_benchbridge_app_compute_ComputeNative_runGpu(JNIEnv* env,jobject,jlong handle,jint kind,jint memory,jint warmup,jint duration,jint width,jint height){

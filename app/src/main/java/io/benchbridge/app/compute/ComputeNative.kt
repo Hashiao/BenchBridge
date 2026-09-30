@@ -13,6 +13,6 @@ object ComputeNative {
     external fun cancel(handle: Long)
     external fun release(handle: Long)
     external fun releaseGpu(handle: Long)
-    external fun runCpu(handle: Long, kind: Int, cpus: IntArray, warmupMs: Int, durationMs: Int, width: Int, height: Int): String
+    external fun runCpu(handle: Long, kind: Int, cpus: IntArray, warmupMs: Int, durationMs: Int, width: Int, height: Int, memoryMiB: Int = 64): String
     external fun runGpu(handle: Long, kind: Int, memoryMiB: Int, warmupMs: Int, durationMs: Int, width: Int, height: Int): String
 }

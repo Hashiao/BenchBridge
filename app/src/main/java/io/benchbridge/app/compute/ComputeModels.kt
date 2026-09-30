@@ -7,7 +7,7 @@ enum class ComputeKind(val code: Int, val title: String, val unit: String) {
     READ(0,"内存读取","MB/s"), WRITE(1,"内存写入","MB/s"), COPY(2,"内存拷贝","MB/s"),
     FP32(3,"FP32 浮点","GFLOPS"), FP64(4,"FP64 浮点","GFLOPS"),
     INT24(5,"INT24 整数","GIOPS"), INT32(6,"INT32 整数","GIOPS"), INT64(7,"INT64 整数","GIOPS"),
-    AES(8,"AES-256","MB/s"), SHA(9,"SHA-1","MB/s"), JULIA(10,"Julia","FPS"), MANDEL(11,"Mandel","FPS")
+    AES(8,"AES-256","MB/s"), SHA(9,"SHA-1","MB/s"), JULIA(10,"Julia","MPix/s"), MANDEL(11,"Mandel","MPix/s")
 }
 
 data class ComputeConfig(val kinds: List<Int> = ComputeKind.entries.map { it.code },
@@ -17,9 +17,9 @@ data class ComputeConfig(val kinds: List<Int> = ComputeKind.entries.map { it.cod
     val totalRounds: Int get() = kinds.size * targets.size * rounds
     val summary: String get() = "${targets.joinToString(" + ") { it.uppercase() }} · $rounds 次 · ${durationMs / 1000.0} 秒"
     val estimatedBytes: Long get() {
-        val memorySelected=kinds.any { it<=2 }
+        val memorySelected=kinds.any { it<=2 || it==8 || it==9 }
         val gpu=if("gpu" in targets)(if(memorySelected)memoryMiB else 4)*3L*1048576 else 0L
-        val cpuMemory=if("cpu" in targets&&memorySelected)memoryMiB*1048576L else 0L
+        val cpuMemory=if("cpu" in targets&&memorySelected)memoryMiB*1048576L+memoryMiB*320L else 0L
         val cpuFrames=if("cpu" in targets&&kinds.any { it>=10 })imageSize.toLong()*imageSize*4*(if(threads==0)16 else threads) else 0L
         return maxOf(gpu,cpuMemory,cpuFrames)+96L*1048576
     }
@@ -31,8 +31,9 @@ data class ComputeConfig(val kinds: List<Int> = ComputeKind.entries.map { it.cod
     }
     fun toJson() = JSONObject().put("kinds",JSONArray(kinds)).put("targets",JSONArray(targets)).put("rounds",rounds)
         .put("duration_ms",durationMs).put("warmup_ms",warmupMs).put("memory_mib",memoryMiB).put("cpu_threads",threads)
-        .put("image_size",imageSize).put("protocol","gpgpu-v1").put("fractal_iterations",128)
-        .put("aes_mode","independent-blocks").put("aes_key_bits",256).put("sha1_message_bytes",64)
+        .put("image_size",imageSize).put("protocol","gpgpu-v2").put("fractal_iterations",128)
+        .put("aes_mode","ECB-no-padding").put("aes_key_bits",256).put("aes_message_bytes",65536)
+        .put("sha1_message_bytes",65536).put("timer_scope","measurement-window")
     companion object {
         fun quick() = ComputeConfig(rounds=1,durationMs=150,warmupMs=25,memoryMiB=16,imageSize=256)
         fun fromJson(text: String): ComputeConfig {
@@ -53,11 +54,21 @@ object ComputeResults {
         .orEmpty().filter { it.optInt("kind")==kind && it.optString("target")==target && it.optString("status")=="COMPLETED" &&
             it.optBoolean("verified") && it.optLong("work_units")>0 && it.optLong("elapsed_ns")>0 }
     fun value(sample:JSONObject):Double {
-        val factor=when(sample.getString("unit")){"MB/s"->1000.0;"FPS"->1e9;else->1.0}
+        // 历史 FPS 使用当轮图像尺寸换算，原始记录保持不变。
+        // Convert legacy FPS using the recorded dimensions without rewriting saved results.
+        val factor=when(sample.getString("unit")){
+            "MB/s","MPix/s"->1000.0
+            "FPS"->{
+                val width=sample.optInt("width");val height=sample.optInt("height")
+                if(width<=0||height<=0)return Double.NaN
+                width.toDouble()*height*1000.0
+            }
+            else->1.0
+        }
         return sample.getLong("work_units").toDouble()/sample.getLong("elapsed_ns")*factor
     }
     fun median(report:JSONObject,kind:Int,target:String):Double? {
-        val values=samples(report,kind,target).map(::value).sorted();if(values.isEmpty())return null
+        val values=samples(report,kind,target).map(::value).filter(Double::isFinite).sorted();if(values.isEmpty())return null
         return if(values.size%2==1)values[values.size/2]else(values[values.size/2-1]+values[values.size/2])/2
     }
 }

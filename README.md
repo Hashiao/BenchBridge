@@ -8,9 +8,9 @@ Android CPU、GPU、内存与存储基准测试工具，使用 Kotlin / Jetpack 
 
 An Android CPU, GPU, memory and storage benchmark with a Kotlin / Jetpack Compose interface, C++20 kernels and Vulkan compute shaders.
 
-本仓库公开当前 0.6.2 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
+本仓库公开当前 0.7.0 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
 
-This repository contains the current 0.6.2 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+This repository contains the current 0.7.0 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
 
 ## 功能 / Features
 
@@ -18,8 +18,8 @@ This repository contains the current 0.6.2 implementation. The app interface is 
   **Cache and RAM:** four rows for L1D, L2, L3 and RAM, with sequential read, sequential write, latency and copy columns. Thread counts and core selections are calibrated automatically. A separate RAM quick profile retains random read and write tests.
 - **存储：**顺序和随机读写，可配置文件大小、块大小、队列深度、线程数与缓存模式。
   **Storage:** sequential and random I/O with configurable file size, block size, queue depth, thread count and cache mode.
-- **GPGPU：**独立分页，12 项 CPU / GPU 测试，包含内存传输、FP32 / FP64、整数运算、AES-256、SHA-1 与分形计算。成绩、单位和操作按钮同屏展示。
-  **GPGPU:** a separate page with twelve CPU/GPU tests for memory transfers, FP32/FP64, integer arithmetic, AES-256, SHA-1 and fractal computation. Scores, units and controls fit on one screen.
+- **GPGPU：**独立分页，12 项 CPU / GPU 测试，包含各自内存读写、FP32 / FP64、整数运算、大块 AES-256 / SHA-1 与分形图像处理。成绩、单位和操作按钮同屏展示。
+  **GPGPU:** a separate page with twelve CPU/GPU tests for memory access, FP32/FP64, integer arithmetic, bulk AES-256/SHA-1 and fractal image processing. Scores, units and controls fit on one screen.
 - **结果：**一屏成绩表、截图分享、历史记录、成绩文本与完整 JSON 导出。
   **Results:** a single-screen result board, screenshot sharing, history, score summaries and full JSON export.
 - **运行控制：**前台服务、屏幕常亮、锁屏续跑、取消及临时文件回收。
