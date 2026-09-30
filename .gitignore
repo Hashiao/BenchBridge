@@ -1,0 +1,54 @@
+# 构建输出与工具缓存 / Build outputs and tool caches
+.gradle/
+.kotlin/
+**/build/
+**/.cxx/
+**/.externalNativeBuild/
+captures/
+releases/
+*.apk
+*.aab
+*.ap_
+*.hprof
+*.log
+
+# 本机配置、签名与凭据 / Machine settings, signing material and credentials
+.local/
+local.properties
+local.*.properties
+keystore.properties
+signing.properties
+release-signing.properties
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+.env
+.env.*
+!.env.example
+
+# 编辑器与操作系统文件 / Editor and operating-system files
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# 本机开发与验收记录；公开文档另行维护 / Local development records; public docs are maintained separately
+/VERIFICATION.md
+/docs/ENVIRONMENT*.md
+/docs/RAM_README.md
+/docs/RAM_METHOD.md
+/docs/RAM_VERIFICATION.md
+/docs/STORAGE_METHOD.md
+/docs/STORAGE_VERIFICATION.md
+/docs/PARAMETER_AUDIT.md
+/docs/PARAMETER_VERIFICATION.md
+/docs/RELEASE_TESTING.md
+/docs/RELEASE_*.md
