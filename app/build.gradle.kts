@@ -20,9 +20,10 @@ android {
         applicationId = "io.benchbridge.app"
         minSdk = 29
         targetSdk = 37
-        versionCode = 6
-        versionName = "0.5.0"
+        versionCode = 7
+        versionName = "0.6.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        shaders { glslcArgs += listOf("-O", "--target-env=vulkan1.0") }
 
         ndk {
             abiFilters += listOf("arm64-v8a", "x86_64")
@@ -75,6 +76,7 @@ android {
         compose = true
         buildConfig = true
         aidl = true
+        shaders = true
     }
 
     compileOptions {
@@ -118,6 +120,9 @@ val releaseDropDirectory = providers.gradleProperty("releaseDropDir")
 val assembledReleaseApk = layout.buildDirectory.file("outputs/apk/release/app-release.apk")
 val releaseHasSigning = android.buildTypes.getByName("release").signingConfig != null
 tasks.matching { it.name == "assembleRelease" }.configureEach {
+    // 同次构建包含 Lint 时，检查通过后再执行交付。
+    // When Lint is requested in the same build, finish it before delivery.
+    mustRunAfter("lintDebug", "lintRelease")
     doLast {
         // 仅在组装成功后复制；构建失败时保留上一份交付文件。
         // Copy only after successful assembly; keep the previous delivery if the build fails.

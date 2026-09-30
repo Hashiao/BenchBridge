@@ -10,7 +10,7 @@ import java.util.UUID
 import org.json.JSONObject
 
 class RunStore(context: Context, family: String = "ram_results") {
-    init { require(family in setOf("ram_results", "storage_results")) }
+    init { require(family in setOf("ram_results", "storage_results", "compute_results")) }
     private val root = File(context.filesDir, family).apply {
         check(isDirectory || mkdirs()) { "无法创建结果目录" }
     }

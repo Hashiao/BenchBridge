@@ -1,0 +1,27 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+#extension GL_EXT_control_flow_attributes : require
+#include "common/base.glsl"
+#include "common/aes_tables.glsl"
+uint xtime(uint a){return ((a<<1u)^((a&128u)!=0u?0x1bu:0u))&255u;}
+// 密钥在构建时展开，正式计时仅计算独立的 AES-256 数据块。
+// Expand the key at build time; timed work encrypts independent AES-256 blocks.
+uvec4 encrypt(uvec4 inputData){
+    uint a[16];[[unroll]] for(int i=0;i<16;++i)a[i]=((inputData[i/4]^RK[i/4])>>uint(24-(i%4)*8))&255u;
+    for(int round=1;round<=14;++round){
+        uint s[16];[[unroll]] for(int c=0;c<4;++c) [[unroll]] for(int r=0;r<4;++r)s[c*4+r]=SB[a[((c+r)%4)*4+r]];
+        [[unroll]] for(int c=0;c<4;++c){
+            uint x=s[c*4],y=s[c*4+1],z=s[c*4+2],w=s[c*4+3];
+            if(round<14){a[c*4]=xtime(x)^xtime(y)^y^z^w;a[c*4+1]=x^xtime(y)^xtime(z)^z^w;
+                a[c*4+2]=x^y^xtime(z)^xtime(w)^w;a[c*4+3]=xtime(x)^x^y^z^xtime(w);}
+            else {a[c*4]=x;a[c*4+1]=y;a[c*4+2]=z;a[c*4+3]=w;}
+        }
+        [[unroll]] for(int i=0;i<16;++i)a[i]^=(RK[round*4+i/4]>>uint(24-(i%4)*8))&255u;
+    }
+    uvec4 outData=uvec4(0);[[unroll]] for(int i=0;i<16;++i)outData[i/4]|=a[i]<<uint(24-(i%4)*8);return outData;
+}
+void main(){
+    uint id=gl_GlobalInvocationID.x;if(id>=p.count)return;uvec4 result=uvec4(0);
+    for(uint i=0;i<p.iterations;++i){uvec4 inputData;[[unroll]] for(int w=0;w<4;++w)inputData[w]=pattern(id*131u+i*17u+uint(w),p.seed);result^=encrypt(inputData);}
+    [[unroll]] for(int w=0;w<8;++w)outputData.values[id*8+uint(w)]=w<4?result[w]:0;
+}

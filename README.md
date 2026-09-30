@@ -4,13 +4,13 @@
 
 [全部版本与更新记录 / All releases and changes](https://github.com/Hashiao/BenchBridge/releases)
 
-Android 内存与存储基准测试工具，使用 Kotlin / Jetpack Compose 构建界面，使用 C++20 执行测量。
+Android CPU、GPU、内存与存储基准测试工具，使用 Kotlin / Jetpack Compose 构建界面，使用 C++20 和 Vulkan 计算着色器执行测量。
 
-An Android memory and storage benchmark with a Kotlin / Jetpack Compose interface and C++20 measurement kernels.
+An Android CPU, GPU, memory and storage benchmark with a Kotlin / Jetpack Compose interface, C++20 kernels and Vulkan compute shaders.
 
-本仓库公开当前 0.5.0 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
+本仓库公开当前 0.6.0 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
 
-This repository contains the current 0.5.0 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+This repository contains the current 0.6.0 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
 
 ## 功能 / Features
 
@@ -18,6 +18,8 @@ This repository contains the current 0.5.0 implementation. The app interface is 
   **Cache and RAM:** four rows for L1D, L2, L3 and RAM, with sequential read, sequential write, latency and copy columns. Thread counts and core selections are calibrated automatically. A separate RAM quick profile retains random read and write tests.
 - **存储：**顺序和随机读写，可配置文件大小、块大小、队列深度、线程数与缓存模式。
   **Storage:** sequential and random I/O with configurable file size, block size, queue depth, thread count and cache mode.
+- **GPGPU：**独立分页，12 项 CPU / GPU 测试，包含内存传输、FP32 / FP64、整数运算、AES-256、SHA-1 与分形计算。成绩、单位和操作按钮同屏展示。
+  **GPGPU:** a separate page with twelve CPU/GPU tests for memory transfers, FP32/FP64, integer arithmetic, AES-256, SHA-1 and fractal computation. Scores, units and controls fit on one screen.
 - **结果：**一屏成绩表、截图分享、历史记录、成绩文本与完整 JSON 导出。
   **Results:** a single-screen result board, screenshot sharing, history, score summaries and full JSON export.
 - **运行控制：**前台服务、屏幕常亮、锁屏续跑、取消及临时文件回收。
@@ -63,6 +65,10 @@ The minimum runtime is Android 10 (API 29). Supported ABIs are `arm64-v8a` and `
 
 Open the repository root in Android Studio, install the SDK components listed above, sync Gradle, and run `app`. Android Studio writes the local SDK path to `local.properties`.
 
+GPU 着色器还需在 `local.properties` 中设置 `glslc.dir`，指向 NDK 中含 `glslc` 的目录，配置示例见 [BUILDING.md](docs/BUILDING.md)。Windows 构建脚本会补充缺失项，保留已有设置。
+
+GPU shaders also require `glslc.dir` in `local.properties`, pointing to the NDK directory containing `glslc`. See [BUILDING.md](docs/BUILDING.md) for examples. The Windows build script fills in a missing setting and preserves existing overrides.
+
 命令行构建 / Command-line build:
 
 ```sh
@@ -103,6 +109,8 @@ Tests reuse one internal file and track cumulative writes separately from file s
 | 路径 / Path | 内容 / Contents |
 |---|---|
 | `app/src/main/cpp` | C++ 测量内核 / C++ measurement kernels |
+| `app/src/main/shaders` | GPU 计算着色器 / GPU compute shaders |
+| `app/src/main/java/io/benchbridge/app/compute` | GPGPU 配置、运行与报告 / GPGPU configuration, execution and reports |
 | `app/src/main/java/io/benchbridge/app/ram` | 工作进程、RAM 配置及报告 / Worker service, RAM configuration and reports |
 | `app/src/main/java/io/benchbridge/app/hardware` | 拓扑探测及内部芯片匹配 / Topology discovery and internal SoC matching |
 | `app/src/main/assets/soc_catalog.json` | 带来源的芯片资料 / Sourced SoC metadata |
@@ -113,6 +121,8 @@ Tests reuse one internal file and track cumulative writes separately from file s
 测量口径、单位和限制见 [测量说明](docs/BENCHMARKS.md)，构建与设备检查见 [测试说明](docs/TESTING.md)。
 
 See [measurement notes](docs/BENCHMARKS.md) for counting rules, units and limitations, and [testing notes](docs/TESTING.md) for build and device checks.
+
+GPGPU 的计算口径与运行方式见 [GPGPU.md](docs/GPGPU.md)。 / See [GPGPU.md](docs/GPGPU.md) for compute counting rules and execution.
 
 ## 贡献与许可 / Contributing and license
 

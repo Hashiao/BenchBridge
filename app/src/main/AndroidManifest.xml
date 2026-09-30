@@ -17,6 +17,7 @@
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/share_paths" />
         </provider>
         <service android:name=".storage.StorageProbeService" android:exported="false" android:process=":probe" />
+        <service android:name=".compute.ComputeProbeService" android:exported="false" android:process=":gpu_probe" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -31,7 +32,7 @@
             android:process=":bench"
             android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="User-started, time-bounded native RAM and storage benchmarks, with a notification stop action." />
+                android:value="User-started, time-bounded memory, storage and compute benchmarks, with a notification stop action." />
         </service>
     </application>
 </manifest>

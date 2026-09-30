@@ -31,6 +31,17 @@ if (-not (Test-Path -LiteralPath (Join-Path $SdkPath 'platform-tools\adb.exe')))
     throw "Android SDK not found: $SdkPath"
 }
 
+# AGP 9 需要显式指定着色器编译器；保留已有的本机覆盖设置。
+# AGP 9 requires an explicit shader compiler path; preserve existing local overrides.
+$benchLocalLines = @()
+if (Test-Path -LiteralPath $benchSdkProperties) { $benchLocalLines = @(Get-Content -LiteralPath $benchSdkProperties -Encoding UTF8) }
+if (-not ($benchLocalLines -match '^glslc\.dir=')) {
+    $benchShaderDirectory = Join-Path $SdkPath 'ndk\28.2.13676358\shader-tools\windows-x86_64'
+    if (-not (Test-Path -LiteralPath (Join-Path $benchShaderDirectory 'glslc.exe'))) { throw 'Install the pinned NDK shader tools first.' }
+    $benchLocalLines += 'glslc.dir=' + $benchShaderDirectory.Replace('\', '/').Replace(':', '\:')
+    [IO.File]::WriteAllLines($benchSdkProperties, $benchLocalLines, [Text.UTF8Encoding]::new($false))
+}
+
 New-Item -ItemType Directory -Path $benchLocalRoot -Force | Out-Null
 $benchPreviousEnvironment = @{}
 foreach ($benchName in @('JAVA_HOME', 'ANDROID_HOME', 'ANDROID_USER_HOME', 'GRADLE_USER_HOME')) {

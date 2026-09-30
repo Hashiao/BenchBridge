@@ -60,6 +60,18 @@ Some cases cancel app runs, terminate the app's worker process or turn off the d
 
 ## 已有验证范围 / Existing validation scope
 
+0.6.0 增加 7 个 GPGPU 用例，覆盖 CPU 运算和密码学已知答案、GPU 输出与 CPU 参考值交叉验证、取消、互斥、锁屏、历史、截图及导出。加上原有用例，44 个不同测试最终通过。一次旧 ROM 编辑器检查读到了点击前的选中状态，改为等待选中状态后，该组 5 个参数用例复测通过。
+
+Version 0.6.0 adds seven GPGPU cases covering CPU arithmetic and cryptographic known answers, GPU/reference comparisons, cancellation, mutual exclusion, screen-off execution, history, screenshots and export. Together with existing coverage, 44 distinct cases passed their final runs. One existing storage-editor check observed selection before the click was committed; waiting for the selected state resolved it, and all five parameter cases passed again.
+
+签名 Release 默认 GPGPU 流程处理 72/72 个计划轮次，完成 63 个有效轮次：CPU 12 项、GPU 9 项各 3 轮。该验收设备不提供 GPU FP64 / INT64，因此 FP64、INT64、Mandel 三项 GPU 成绩按能力标记为不支持。完整 JSON 已通过系统文件选择器导出并重新核对计数。24 个结果位置及单位在 360×640、130% 字体下可完整显示，主界面没有驱动或实现说明。
+
+The signed Release default GPGPU run processed all 72 planned rounds and produced 63 valid rounds: three each for twelve CPU and nine GPU operations. The validation device does not expose GPU FP64/INT64, so GPU FP64, INT64 and Mandel were marked unsupported. Full JSON was exported through the system file picker and its counts rechecked. All 24 result positions and units fit at 360×640 with 130% font scaling; the main page contains no driver or implementation commentary.
+
+两种 ABI 的原有 RAM / ROM 原生库均与 0.5.0 交付文件逐字节一致，已有用户记录摘要也保持一致。新增计算库完成 ARM64 / x86_64 构建、签名与 16 KiB 对齐检查；8 个 SPIR-V 着色器均已打包。GPU 运行验证使用 API 37 的虚拟设备，ARM64 手机仍需实机验收。
+
+The original RAM/ROM libraries remain byte-identical to the 0.5.0 delivery on both ABIs, and existing user-record hashes are unchanged. The new compute library passed ARM64/x86_64 builds, signing and 16 KiB alignment checks; all eight SPIR-V modules are packaged. GPU execution was validated on an API 37 virtual device; ARM64 phones still require device acceptance.
+
 0.5.0 的本机验收在 API 37、x86_64、4 KiB 页环境中完成，37 个不同用例通过。新增用例覆盖缓存共享域预算、型号变体匹配、绑核小工作集计数、准备阶段取消、校准取消、16 格成绩与执行计划的一致性。签名 Release 默认缓存 / RAM 完成 56/56 轮，ROM 完成 24/24 轮，完整 JSON 导出通过。
 
 Local validation of 0.5.0 used API 37, x86_64 and 4 KiB pages, with 37 distinct cases passing. New cases cover shared-cache budgets, variant matching, pinned small-working-set counts, cancellation during setup and calibration, and consistency between all sixteen cells and their plans. Signed Release defaults completed 56/56 cache/RAM rounds and 24/24 storage rounds, with complete JSON export verified.

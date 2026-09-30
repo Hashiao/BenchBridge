@@ -3,18 +3,29 @@ package io.benchbridge.app.ui
 import io.benchbridge.app.BenchmarkFormat
 import io.benchbridge.app.ram.*
 import io.benchbridge.app.storage.*
+import io.benchbridge.app.compute.*
 import java.util.Locale
 import org.json.JSONObject
 
 /** 剪贴板仅包含成绩摘要，避免超过 Binder 容量。 / Copy score summaries to stay within Binder transaction limits. */
 internal fun resultText(report: JSONObject): String = buildString {
     val disk = report.optString("kind") == "storage_benchmark"
-    appendLine("BenchBridge ${report.optString("app_version").take(80)} · ${if (disk) "ROM" else "RAM"}")
+    val compute=report.optString("kind")=="compute_benchmark"
+    appendLine("BenchBridge ${report.optString("app_version").take(80)} · ${if(compute)"GPGPU"else if (disk) "ROM" else "RAM"}")
     report.optJSONObject("device")?.let {
         appendLine("${it.optString("manufacturer").take(128)} ${it.optString("model").take(256)} · API ${it.optInt("api")}")
     }
     appendLine("${RamResults.stateLabel(report.optString("state"))} · ${report.optInt("completed_rounds")} / ${report.optInt("total_rounds")} 轮")
-    if (disk) {
+    if(compute){
+        val config=ComputeConfig.fromJson(report.getJSONObject("config").toString());appendLine(config.summary)
+        ComputeKind.entries.filter { it.code in config.kinds }.forEach { kind ->
+            appendLine(kind.title)
+            listOf("cpu","gpu").filter(config.targets::contains).forEach { target ->
+                val score=ComputeResults.median(report,kind.code,target)?.let { "%.2f ${kind.unit}".format(Locale.US,it) }?:"—"
+                appendLine("${target.uppercase()}：$score · ${ComputeResults.samples(report,kind.code,target).size}/${config.rounds}次")
+            }
+        }
+    }else if (disk) {
         val config = StorageConfig.fromJson(report.getJSONObject("config").toString())
         appendLine(config.summary)
         config.cases.forEach { case ->

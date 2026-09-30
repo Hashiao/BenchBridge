@@ -157,6 +157,9 @@ class ParameterAlignmentTest {
         assertEquals("diskmark-nvme-v1", model.state.value.storageConfig.presetId)
         assertTrue(node("storage_nvme").isChecked)
         node("storage_edit_rnd4k-q32t16", true).click()
+        // 等待选中状态提交后再读取编辑器，避免读取上一帧。
+        // Wait for the selected state before inspecting the editor, avoiding a stale frame.
+        assertTrue(device.wait(Until.hasObject(By.res("storage_edit_rnd4k-q32t16").checked(true)), 5000))
         assertTrue(node("storage_block_4", true).isChecked)
         assertTrue(node("storage_queue_32", true).isChecked)
         assertTrue(node("storage_threads_16", true).isChecked)

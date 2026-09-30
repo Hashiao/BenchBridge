@@ -1,0 +1,14 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+#extension GL_EXT_control_flow_attributes : require
+#include "common/base.glsl"
+void main() {
+    uint id=gl_GlobalInvocationID.x;if(id>=p.count)return;
+    uvec4 v[8];[[unroll]] for(int a=0;a<8;++a) [[unroll]] for(int l=0;l<4;++l)v[a][l]=pattern(id+uint(a*17+l*3),p.seed);
+    for(uint i=0;i<p.iterations;++i) [[unroll]] for(int a=0;a<8;++a){
+        if(p.kind==5)v[a]&=uvec4(0xffffffu);
+        v[a]=v[a]*1664525u+uvec4(1013904223u+uint(a));
+    }
+    uvec4 sum=v[0];[[unroll]] for(int a=1;a<8;++a)sum+=v[a];
+    [[unroll]] for(int w=0;w<8;++w)outputData.values[id*8+uint(w)]=w<4?sum[w]:0;
+}

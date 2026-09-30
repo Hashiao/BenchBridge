@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.benchbridge.app.storage.StorageConfig
 import io.benchbridge.app.storage.StorageCase
+import io.benchbridge.app.compute.ComputeConfig
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -24,14 +25,17 @@ data class RamUiState(
     val storageReport: JSONObject? = null, val activeFamily: String = "ram",
     val selectedHistory: JSONObject? = null, val starting: Boolean = false,
     val cancelling: Boolean = false, val error: String? = null, val notice: String? = null,
+    val computeConfig:ComputeConfig=ComputeConfig(),val computeReport:JSONObject?=null,
+    val computeCapabilities:JSONObject?=null,
 ) {
-    val running: Boolean get() = starting || report?.optString("state") == "RUNNING" || storageReport?.optString("state") == "RUNNING"
-    val activeReport: JSONObject? get() = if (activeFamily == "storage") storageReport else report
+    val running: Boolean get() = starting || report?.optString("state") == "RUNNING" || storageReport?.optString("state") == "RUNNING" || computeReport?.optString("state")=="RUNNING"
+    val activeReport: JSONObject? get() = when(activeFamily){"storage"->storageReport;"compute"->computeReport;else->report}
 }
 
 class RamViewModel(application: Application) : AndroidViewModel(application) {
     private val store = RunStore(application)
     private val storageStore = RunStore(application, "storage_results")
+    private val computeStore = RunStore(application,"compute_results")
     private val client = RunnerClient(application)
     private val mutableState = MutableStateFlow(RamUiState())
     val state = mutableState.asStateFlow()
@@ -84,8 +88,17 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun start() = startFamily("ram")
     fun startStorage() = startFamily("storage")
+    fun startCompute() = startFamily("compute")
+    fun configureCompute(config:ComputeConfig){
+        val old=mutableState.value;if(old.running)return
+        mutableState.value=old.copy(computeConfig=config,computeReport=if(old.computeConfig==config)old.computeReport else null,error=null)
+    }
+    private fun resultStore(family:String)=when(family){"storage"->storageStore;"compute"->computeStore;else->store}
     private fun updateReport(report: JSONObject?, family: String) {
-        mutableState.value = if (family == "storage") mutableState.value.copy(storageReport = report,
+        mutableState.value = if(family=="compute")mutableState.value.copy(computeReport=report,
+            computeCapabilities=report?.optJSONObject("capabilities")?:mutableState.value.computeCapabilities,
+            computeConfig=report?.optJSONObject("config")?.let { ComputeConfig.fromJson(it.toString()) }?:mutableState.value.computeConfig)
+        else if (family == "storage") mutableState.value.copy(storageReport = report,
             storageConfig = report?.optJSONObject("config")?.let { StorageConfig.fromJson(it.toString()) } ?: mutableState.value.storageConfig)
         else mutableState.value.copy(report = report,
             config = report?.optJSONObject("config")?.let { RamConfig.fromJson(it.toString()) } ?: mutableState.value.config)
@@ -93,7 +106,8 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
     private fun startFamily(family: String, resumed: JSONObject? = null) {
         if (mutableState.value.running) return
         val json = if (resumed != null) JSONObject() else try {
-            if (family == "storage") mutableState.value.storageConfig.also { it.validate() }.toJson()
+            if(family=="compute")mutableState.value.computeConfig.also { it.validate() }.toJson()
+            else if (family == "storage") mutableState.value.storageConfig.also { it.validate() }.toJson()
             else mutableState.value.config.also { it.validate() }.toJson()
         } catch (error: Exception) { mutableState.value = mutableState.value.copy(error = error.message); return }
         pendingCancel = null; cancelAt = 0
@@ -104,7 +118,7 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val response = resumed ?: withContext(Dispatchers.IO) {
                     val runner = client.service()
-                    JSONObject(if (family == "storage") runner.startStorage(json.toString()) else runner.startRam(json.toString()))
+                    JSONObject(when(family){"compute"->runner.startCompute(json.toString());"storage"->runner.startStorage(json.toString());else->runner.startRam(json.toString())})
                 }
                 check(response.optBoolean("accepted")) { response.optString("error", "工作进程未接受任务") }
                 val runId = response.getString("run_id"); id = runId
@@ -117,7 +131,7 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
                     val report = withContext(Dispatchers.IO) {
                         val snapshot = JSONObject(client.service().snapshot(runId))
                         if (snapshot.optBoolean("full_report_in_storage") && snapshot.optString("state") in RamResults.terminalStates)
-                            (if (family == "storage") storageStore else store).read(runId) ?: snapshot else snapshot
+                            resultStore(family).read(runId) ?: snapshot else snapshot
                     }
                     check(report.has("state")) { report.optString("error", "无法读取运行状态") }
                     updateReport(report, family)
@@ -131,10 +145,9 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
-                val resultStore = if (family == "storage") storageStore else store
-                val saved = id?.let { runId -> withContext(Dispatchers.IO) { runCatching { resultStore.read(runId) }.getOrNull() } }
+                val saved = id?.let { runId -> withContext(Dispatchers.IO) { runCatching { resultStore(family).read(runId) }.getOrNull() } }
                 val interrupted = (saved ?: mutableState.value.activeReport)?.let { JSONObject(it.toString()).apply {
-                    put("state", "INTERRUPTED"); put("error", "PROCESS_DIED：工作进程连接中断")
+                    if(optString("state") !in RamResults.terminalStates){put("state", "INTERRUPTED"); put("error", "PROCESS_DIED：工作进程连接中断")}
                 } }
                 updateReport(interrupted, family)
                 mutableState.value = mutableState.value.copy(error = "运行未完成：${error.message}")
@@ -174,7 +187,7 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun refreshHistory() {
         viewModelScope.launch {
-            val history = withContext(Dispatchers.IO) { (store.list() + storageStore.list()).sortedByDescending { it.optLong("started_at_ms") }.take(200) }
+            val history = withContext(Dispatchers.IO) { (store.list() + storageStore.list() + computeStore.list()).sortedByDescending { it.optLong("started_at_ms") }.take(200) }
             mutableState.value = mutableState.value.copy(history = history)
         }
     }

@@ -1,0 +1,26 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+#include "common/base.glsl"
+uint rol(uint x,uint n){return (x<<n)|(x>>(32u-n));}
+void compress(inout uvec4 h,inout uint he,uint w[16]){
+    uint a=h.x,b=h.y,c=h.z,d=h.w,e=he;
+    for(int t=0;t<80;++t){
+        if(t>=16)w[t&15]=rol(w[(t-3)&15]^w[(t-8)&15]^w[(t-14)&15]^w[t&15],1u);
+        uint f=t<20?((b&c)|(~b&d)):t<40?(b^c^d):t<60?((b&c)|(b&d)|(c&d)):(b^c^d);
+        uint k=t<20?0x5a827999u:t<40?0x6ed9eba1u:t<60?0x8f1bbcdcu:0xca62c1d6u;
+        uint next=rol(a,5u)+f+e+k+w[t&15];e=d;d=c;c=rol(b,30u);b=a;a=next;
+    }
+    h+=uvec4(a,b,c,d);he+=e;
+}
+void main(){
+    uint id=gl_GlobalInvocationID.x;if(id>=p.count)return;uvec4 result=uvec4(0);uint fifth=0;
+    // 每条 64 字节消息包含完整填充与两个压缩块。
+    // Each 64-byte message includes complete padding and both compression blocks.
+    for(uint i=0;i<p.iterations;++i){
+        uint w[16];for(int n=0;n<16;++n)w[n]=pattern(id*131u+i*17u+uint(n),p.seed);
+        uvec4 h=uvec4(0x67452301u,0xefcdab89u,0x98badcfeu,0x10325476u);uint he=0xc3d2e1f0u;
+        compress(h,he,w);for(int n=0;n<16;++n)w[n]=0;w[0]=0x80000000u;w[15]=512u;compress(h,he,w);
+        result^=h;fifth^=he;
+    }
+    for(int w=0;w<8;++w)outputData.values[id*8+uint(w)]=w<4?result[w]:w==4?fifth:0;
+}

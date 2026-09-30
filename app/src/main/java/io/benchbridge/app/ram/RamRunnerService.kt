@@ -13,6 +13,7 @@ import io.benchbridge.app.diagnostics.DeviceInformation
 import io.benchbridge.app.diagnostics.NativeProbe
 import io.benchbridge.app.storage.StorageCoordinator
 import io.benchbridge.app.hardware.CpuTopology
+import io.benchbridge.app.compute.ComputeCoordinator
 import java.security.MessageDigest
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -26,6 +27,7 @@ class RamRunnerService : Service() {
     private lateinit var store: RunStore
     private lateinit var power: PowerManager
     private lateinit var storage: StorageCoordinator
+    private lateinit var compute: ComputeCoordinator
     private lateinit var resources: BenchmarkRunResources
     private var thermalListener: PowerManager.OnThermalStatusChangedListener? = null
     @Volatile private var current: Run? = null
@@ -45,10 +47,12 @@ class RamRunnerService : Service() {
         resources = BenchmarkRunResources(this)
         storage = StorageCoordinator(this, executor, ::thermalStatus,
             onRunStarting = { resources.start("ROM") }, onRunFinished = { resources.finish() })
+        compute = ComputeCoordinator(this,executor,::thermalStatus,{resources.start("GPGPU")},{resources.finish()})
         thermalListener = PowerManager.OnThermalStatusChangedListener { status ->
             if (status >= PowerManager.THERMAL_STATUS_SEVERE) {
                 requestCancel(current?.id.orEmpty(), "RUN_THERMAL：设备热状态过高")
                 storage.activeId?.let { storage.cancel(it, "RUN_THERMAL：设备需要降温") }
+                compute.activeId?.let { compute.cancel(it,"设备需要降温") }
             }
         }.also { power.addThermalStatusListener(it) }
     }
@@ -67,25 +71,32 @@ class RamRunnerService : Service() {
             put("wake_lock_held", resources.wakeHeld)
             put("foreground_run", resources.active)
             val ramActive = current?.takeUnless { it.finished }
-            put("active_run_id", ramActive?.id ?: storage.activeId ?: "")
-            put("active_family", if (ramActive != null) "ram" else if (storage.activeId != null) "storage" else "")
+            put("active_run_id", ramActive?.id ?: storage.activeId ?: compute.activeId ?: "")
+            put("active_family", if (ramActive != null) "ram" else if (storage.activeId != null) "storage" else if(compute.activeId!=null)"compute"else "")
             put("native", JSONObject(NativeProbe.inspect().rawJson))
         }
     }
 
     private val binder = object : IRamRunner.Stub() {
+        override fun computeCapabilities():String=compute.capabilities().toString()
+        override fun startCompute(configJson:String):String=synchronized(lock){
+            val active=current?.takeUnless { it.finished }?.id?:storage.activeId?:compute.activeId
+            if(active!=null)JSONObject().put("accepted",false).put("error","BUSY：已有测试正在运行").put("run_id",active).toString()
+            else compute.start(configJson)
+        }
         override fun storageCapabilities(): String = storage.capabilities().toString()
         override fun startStorage(configJson: String): String = synchronized(lock) {
-            val active = current?.takeUnless { it.finished }?.id ?: storage.activeId
+            val active = current?.takeUnless { it.finished }?.id ?: storage.activeId ?: compute.activeId
             if (active != null) JSONObject().put("accepted", false).put("error", "BUSY：已有测试正在运行").put("run_id", active).toString()
             else storage.start(configJson)
         }
         override fun cleanupStorage(runId: String): String = synchronized(lock) {
-            if (current?.finished == false || storage.activeId != null) JSONObject().put("state", "PENDING").put("error", "BUSY").toString()
+            if (current?.finished == false || storage.activeId != null || compute.activeId != null) JSONObject().put("state", "PENDING").put("error", "BUSY").toString()
             else storage.retryCleanup(runId)
         }
         override fun capabilities(): String = capabilityReport().toString()
         override fun startRam(configJson: String): String = synchronized(lock) {
+            compute.activeId?.let { return@synchronized JSONObject().put("accepted",false).put("error","BUSY：已有计算测试正在运行").put("run_id",it).toString() }
             storage.activeId?.let {
                 return@synchronized JSONObject().put("accepted", false).put("error", "BUSY：已有存储测试正在运行").put("run_id", it).toString()
             }
@@ -146,7 +157,7 @@ class RamRunnerService : Service() {
         }
         override fun snapshot(runId: String): String {
             val run = current?.takeIf { it.id == runId }
-                ?: return storage.snapshot(runId) ?: store.read(runId)?.toString() ?: JSONObject().put("error", "RUN_NOT_FOUND").toString()
+                ?: return storage.snapshot(runId) ?: compute.snapshot(runId) ?: store.read(runId)?.toString() ?: JSONObject().put("error", "RUN_NOT_FOUND").toString()
             val result = JSONObject(run.snapshotText)
             if (!run.finished) {
                 val nativePhase = RamNative.phase(run.handle)
@@ -159,6 +170,7 @@ class RamRunnerService : Service() {
         override fun cancel(runId: String, reason: String) {
             requestCancel(runId, reason.take(160))
             storage.cancel(runId, reason.take(160))
+            compute.cancel(runId,reason.take(160))
         }
     }
 
@@ -269,6 +281,7 @@ class RamRunnerService : Service() {
         if (intent?.action == BenchmarkRunResources.ACTION_STOP) {
             requestCancel(current?.id.orEmpty(), "RUN_CANCELLED：通知栏停止")
             storage.activeId?.let { storage.cancel(it, "RUN_CANCELLED：通知栏停止") }
+            compute.activeId?.let { compute.cancel(it,"用户停止") }
             if (!resources.active) stopSelf(startId)
         }
         return START_NOT_STICKY
@@ -281,6 +294,7 @@ class RamRunnerService : Service() {
     override fun onDestroy() {
         requestCancel(current?.id.orEmpty(), "RUN_SERVICE_STOPPED")
         storage.activeId?.let { storage.cancel(it, "RUN_SERVICE_STOPPED") }
+        compute.activeId?.let { compute.cancel(it,"RUN_SERVICE_STOPPED") }
         resources.finish()
         thermalListener?.let { power.removeThermalStatusListener(it) }
         executor.shutdown()

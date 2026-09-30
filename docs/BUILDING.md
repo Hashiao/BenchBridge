@@ -10,6 +10,19 @@ Use the JDK, SDK, NDK and CMake versions listed in the README. Open the reposito
 
 `local.properties`, Gradle caches and IDE settings are not committed. Configure any required proxy in the IDE or user-level Gradle settings, rather than changing the repository's default network configuration.
 
+AGP 9 的着色器构建需要显式指定编译器。NDK 已包含 `glslc`；在本机 `local.properties` 中添加对应目录，例如：
+
+AGP 9 requires an explicit shader compiler directory. The NDK includes `glslc`; add the matching directory to local `local.properties`, for example:
+
+```properties
+# Windows 示例 / Windows example
+glslc.dir=C\:/Android/Sdk/ndk/28.2.13676358/shader-tools/windows-x86_64
+```
+
+Linux 和 macOS 使用对应的 `linux-x86_64` / `darwin-x86_64` 目录。着色器源码位于 `app/src/main/shaders`，构建时生成 SPIR-V 并打包到 APK；无需在手机上额外安装编译器。
+
+On Linux and macOS, use the corresponding `linux-x86_64` / `darwin-x86_64` directory. Sources in `app/src/main/shaders` are compiled to SPIR-V and packaged in the APK. No additional compiler is installed on the phone.
+
 ```sh
 ./gradlew :app:assembleDebug :app:lintDebug
 ```

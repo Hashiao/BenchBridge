@@ -1,6 +1,8 @@
 package io.benchbridge.app.ram;
 
 interface IRamRunner {
+    String startCompute(String configJson);
+    String computeCapabilities();
     String startStorage(String configJson);
     String storageCapabilities();
     String cleanupStorage(String runId);

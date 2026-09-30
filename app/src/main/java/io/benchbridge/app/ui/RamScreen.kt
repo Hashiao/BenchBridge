@@ -41,6 +41,7 @@ import io.benchbridge.app.diagnostics.DeviceInformation
 import io.benchbridge.app.diagnostics.DiagnosticsViewModel
 import io.benchbridge.app.ram.*
 import io.benchbridge.app.storage.StorageConfig
+import io.benchbridge.app.compute.ComputeConfig
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -58,17 +59,17 @@ fun BenchBridgeApp(state: RamUiState, model: RamViewModel) {
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         val family = pendingStart
         pendingStart = null
-        if (family == "storage") model.startStorage() else if (family == "ram") model.start()
+        if (family == "compute") model.startCompute() else if (family == "storage") model.startStorage() else if (family == "ram") model.start()
     }
     val startBenchmark: () -> Unit = {
-        val family = if (tab == 1) "storage" else "ram"
+        val family = when(tab){1->"storage";4->"compute";else->"ram"}
         val preferences = context.getSharedPreferences("permissions", Context.MODE_PRIVATE)
         if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
             && !preferences.getBoolean("notifications_asked", false)) {
             pendingStart = family
             preferences.edit { putBoolean("notifications_asked", true) }
             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-        } else if (family == "storage") model.startStorage() else model.start()
+        } else if (family == "compute") model.startCompute() else if (family == "storage") model.startStorage() else model.start()
     }
     val scope = rememberCoroutineScope()
     var pendingExport by rememberSaveable { mutableStateOf("") }
@@ -83,7 +84,7 @@ fun BenchBridgeApp(state: RamUiState, model: RamViewModel) {
             preparingExport = true
             try {
                 pendingExport = model.prepareExport(report)
-                val family = if (report.optString("kind") == "storage_benchmark") "ROM" else "RAM"
+                val family = when(report.optString("kind")){"compute_benchmark"->"GPGPU";"storage_benchmark"->"ROM";else->"RAM"}
                 export.launch("BenchBridge_${family}_${report.getString("run_id").take(8)}.json")
             } catch (error: Exception) {
                 if (pendingExport.isNotEmpty()) model.exportPrepared(null, pendingExport)
@@ -93,11 +94,11 @@ fun BenchBridgeApp(state: RamUiState, model: RamViewModel) {
         }
     }
     LaunchedEffect(state.notice) { state.notice?.let { snackbar.showSnackbar(it); model.dismissNotice() } }
-    LaunchedEffect(state.running) { if (state.running) { settingsTab = -1; details = false; tab = if (state.activeFamily == "storage") 1 else 0 } }
+    LaunchedEffect(state.running) { if (state.running) { settingsTab = -1; details = false; tab = when(state.activeFamily){"compute"->4;"storage"->1;else->0} } }
     BackHandler(settingsTab >= 0 || details || tab == 2 && state.selectedHistory != null) {
         when { settingsTab >= 0 -> settingsTab = -1; details -> details = false; else -> model.selectHistory(null) }
     }
-    val displayed = when (tab) { 0 -> state.report; 1 -> state.storageReport; 2 -> state.selectedHistory; else -> null }
+    val displayed = when (tab) { 0 -> state.report; 1 -> state.storageReport; 2 -> state.selectedHistory; 4->state.computeReport; else -> null }
     val share: () -> Unit = {
         if (!sharing && !state.running) scope.launch {
             sharing = true
@@ -107,7 +108,7 @@ fun BenchBridgeApp(state: RamUiState, model: RamViewModel) {
     }
     Scaffold(modifier = Modifier.semantics { testTagsAsResourceId = true }, snackbarHost = { SnackbarHost(snackbar) }, topBar = {
         if (settingsTab >= 0 || details) Row(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(if (details) "测试详情" else if (settingsTab == 0) "RAM 设置" else "ROM 设置", Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+            Text(if (details) "测试详情" else when(settingsTab){0->"RAM 设置";4->"GPGPU 设置";else->"ROM 设置"}, Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
             TextButton(onClick = { settingsTab = -1; details = false }, modifier = Modifier.testTag("settings_done")) { Text("完成") }
         }
     }, bottomBar = {
@@ -117,26 +118,26 @@ fun BenchBridgeApp(state: RamUiState, model: RamViewModel) {
                 Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
                     Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(if (state.cancelling) "正在停止…" else "${if (state.activeFamily == "storage") "ROM" else "RAM"} 测试中", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                        Text(if (state.cancelling) "正在停止…" else "${when(state.activeFamily){"compute"->"GPGPU";"storage"->"ROM";else->"RAM"}} 测试中", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                         TextButton(onClick = { model.cancel() }, enabled = !state.cancelling,
                             modifier = Modifier.testTag("ram_stop")) { Text("停止") }
                     }
                 }
-            } else if (tab in 0..1 || displayed != null) {
+            } else if (tab in listOf(0,1,4) || displayed != null) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     if (displayed != null) FilledTonalButton(onClick = share, enabled = !sharing, modifier = Modifier.weight(1f).testTag("share_screenshot"),
                         contentPadding = PaddingValues(vertical = 14.dp)) { Text("分享截图") }
-                    if (tab in 0..1) Button(onClick = startBenchmark,
-                        enabled = if (tab == 1) state.storageConfig.cases.isNotEmpty() else state.config.kinds.isNotEmpty(),
-                        modifier = Modifier.weight(1f).testTag(if (tab == 1) "storage_start" else "ram_start"),
+                    if (tab in listOf(0,1,4)) Button(onClick = startBenchmark,
+                        enabled = when(tab){4->state.computeConfig.kinds.isNotEmpty()&&state.computeConfig.targets.isNotEmpty();1->state.storageConfig.cases.isNotEmpty();else->state.config.kinds.isNotEmpty()},
+                        modifier = Modifier.weight(1f).testTag(when(tab){4->"compute_start";1->"storage_start";else->"ram_start"}),
                         contentPadding = PaddingValues(vertical = 14.dp)) { Text(if (displayed == null) "开始测试" else "重新测试") }
                 }
             }
             NavigationBar {
-                listOf("RAM", "ROM", "历史", "设备").forEachIndexed { index, title ->
+                listOf(0 to "RAM",1 to "ROM",4 to "GPGPU",2 to "历史",3 to "设备").forEach { (index,title) ->
                     NavigationBarItem(selected = tab == index, enabled = !state.running || index == tab,
                         onClick = { tab = index; if (index == 2) model.refreshHistory() },
-                        icon = { Icon(painterResource(listOf(R.drawable.ic_memory, R.drawable.ic_storage, R.drawable.ic_history, R.drawable.ic_device)[index]), null) },
+                        icon = { Icon(painterResource(listOf(R.drawable.ic_memory, R.drawable.ic_storage, R.drawable.ic_history, R.drawable.ic_device,R.drawable.ic_compute)[index]), null) },
                         label = { Text(title) }, modifier = Modifier.testTag("tab_$index"))
                 }
             }
@@ -146,11 +147,14 @@ fun BenchBridgeApp(state: RamUiState, model: RamViewModel) {
             when {
                 settingsTab == 0 -> RamSettingsPage(state, model)
                 settingsTab == 1 -> StorageSettingsPage(state, model)
+                settingsTab == 4 -> ComputeSettings(state,model)
                 details && displayed != null -> DetailedReportPage(displayed, model, exportReport)
+                tab == 4 -> ComputeDashboard(displayed,state.computeConfig,state.running,{settingsTab=4},displayed?.let { {details=true} },error=state.error)
                 tab == 0 || tab == 1 -> ResultDashboard(tab == 1, displayed, state.config, state.storageConfig, state.running, state.error,
                     onSettings = { settingsTab = tab }, onDetails = displayed?.let { { details = true } })
-                tab == 2 && state.selectedHistory != null -> ResultDashboard(state.selectedHistory.optString("kind") == "storage_benchmark",
-                    state.selectedHistory, state.config, state.storageConfig, false, null, null, { details = true }, { model.selectHistory(null) })
+                tab == 2 && state.selectedHistory != null -> if(state.selectedHistory.optString("kind")=="compute_benchmark")
+                    ComputeDashboard(state.selectedHistory,state.computeConfig,false,null,{details=true},{model.selectHistory(null)})
+                else ResultDashboard(state.selectedHistory.optString("kind") == "storage_benchmark",state.selectedHistory, state.config, state.storageConfig, false, null, null, { details = true }, { model.selectHistory(null) })
                 tab == 2 -> HistoryPage(state, model, exportReport)
                 else -> {
                     val diagnostics: DiagnosticsViewModel = viewModel()
@@ -164,6 +168,7 @@ fun BenchBridgeApp(state: RamUiState, model: RamViewModel) {
 
 @Composable
 private fun DetailedReportPage(report: JSONObject, model: RamViewModel, onExport: (JSONObject) -> Unit) {
+    if(report.optString("kind")=="compute_benchmark"){ComputeDetails(report,onExport);return}
     LazyColumn(Modifier.fillMaxSize().testTag("details_page"), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { ReportActions(report, onExport) }
         if (report.optString("kind") == "storage_benchmark") {
@@ -262,10 +267,11 @@ private fun HistoryPage(state: RamUiState, model: RamViewModel, onExport: (JSONO
                 Card(onClick = { model.selectHistory(report) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
                     Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         val disk = report.optString("kind") == "storage_benchmark"
-                        Text("${if (disk) "ROM" else "RAM"} · ${RamResults.stateLabel(report.optString("state"))}", style = MaterialTheme.typography.titleMedium)
+                        val compute=report.optString("kind")=="compute_benchmark"
+                        Text("${if(compute)"GPGPU"else if (disk) "ROM" else "RAM"} · ${RamResults.stateLabel(report.optString("state"))}", style = MaterialTheme.typography.titleMedium)
                         Text(SimpleDateFormat("MM-dd HH:mm:ss", locale).format(Date(report.optLong("started_at_ms"))), style = MaterialTheme.typography.bodySmall)
                         val config = report.getJSONObject("config")
-                        Text(if (disk) StorageConfig.fromJson(config.toString()).summary
+                        Text(if(compute)ComputeConfig.fromJson(config.toString()).summary else if (disk) StorageConfig.fromJson(config.toString()).summary
                             else RamConfig.fromJson(config.toString()).summary, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
