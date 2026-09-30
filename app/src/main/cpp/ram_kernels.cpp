@@ -9,6 +9,92 @@
 
 #define BB_NOINLINE __attribute__((noinline))
 
+// 每一遍都保留实际访存；编译器屏障不生成缓存刷新指令。
+// Retain memory accesses on every pass; the compiler barrier does not flush caches.
+extern "C" BB_NOINLINE std::uint64_t bb_cached_read(const std::uint64_t* data, std::size_t words, std::size_t passes) {
+    std::uint64_t tail = 0;
+#if defined(__aarch64__)
+    uint64x2_t a = vdupq_n_u64(0), b = a, c = a, d = a;
+    for (std::size_t pass = 0; pass < passes; ++pass) {
+        asm volatile("" : : "r"(data) : "memory");
+        std::size_t i = 0;
+        for (; i + 8 <= words; i += 8) {
+            a = vaddq_u64(a, vld1q_u64(data + i)); b = vaddq_u64(b, vld1q_u64(data + i + 2));
+            c = vaddq_u64(c, vld1q_u64(data + i + 4)); d = vaddq_u64(d, vld1q_u64(data + i + 6));
+        }
+        for (; i < words; ++i) tail += data[i];
+    }
+    return vaddvq_u64(vaddq_u64(vaddq_u64(a, b), vaddq_u64(c, d))) + tail;
+#else
+    __m128i a = _mm_setzero_si128(), b = a, c = a, d = a;
+    for (std::size_t pass = 0; pass < passes; ++pass) {
+        asm volatile("" : : "r"(data) : "memory");
+        std::size_t i = 0;
+        for (; i + 8 <= words; i += 8) {
+            a = _mm_add_epi64(a, _mm_loadu_si128(reinterpret_cast<const __m128i*>(data + i)));
+            b = _mm_add_epi64(b, _mm_loadu_si128(reinterpret_cast<const __m128i*>(data + i + 2)));
+            c = _mm_add_epi64(c, _mm_loadu_si128(reinterpret_cast<const __m128i*>(data + i + 4)));
+            d = _mm_add_epi64(d, _mm_loadu_si128(reinterpret_cast<const __m128i*>(data + i + 6)));
+        }
+        for (; i < words; ++i) tail += data[i];
+    }
+    alignas(16) std::uint64_t lanes[2];
+    _mm_store_si128(reinterpret_cast<__m128i*>(lanes), _mm_add_epi64(_mm_add_epi64(a, b), _mm_add_epi64(c, d)));
+    return lanes[0] + lanes[1] + tail;
+#endif
+}
+
+extern "C" BB_NOINLINE void bb_cached_write(std::uint64_t* data, std::size_t words, std::uint64_t value, std::size_t passes) {
+#if defined(__aarch64__)
+    const auto vector = vdupq_n_u64(value);
+#else
+    const auto vector = _mm_set1_epi64x(static_cast<long long>(value));
+#endif
+    for (std::size_t pass = 0; pass < passes; ++pass) {
+        asm volatile("" : : "r"(data) : "memory");
+        std::size_t i = 0;
+        for (; i + 8 <= words; i += 8) {
+#if defined(__aarch64__)
+            vst1q_u64(data + i, vector); vst1q_u64(data + i + 2, vector);
+            vst1q_u64(data + i + 4, vector); vst1q_u64(data + i + 6, vector);
+#else
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(data + i), vector);
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(data + i + 2), vector);
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(data + i + 4), vector);
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(data + i + 6), vector);
+#endif
+        }
+        for (; i < words; ++i) data[i] = value;
+    }
+    asm volatile("" : : "r"(data) : "memory");
+}
+
+extern "C" BB_NOINLINE void bb_cached_copy(std::uint64_t* destination, const std::uint64_t* source, std::size_t words, std::size_t passes) {
+    for (std::size_t pass = 0; pass < passes; ++pass) {
+        asm volatile("" : : "r"(source), "r"(destination) : "memory");
+        std::size_t i = 0;
+        for (; i + 8 <= words; i += 8) {
+#if defined(__aarch64__)
+            const auto a = vld1q_u64(source + i), b = vld1q_u64(source + i + 2);
+            const auto c = vld1q_u64(source + i + 4), d = vld1q_u64(source + i + 6);
+            vst1q_u64(destination + i, a); vst1q_u64(destination + i + 2, b);
+            vst1q_u64(destination + i + 4, c); vst1q_u64(destination + i + 6, d);
+#else
+            const auto a = _mm_loadu_si128(reinterpret_cast<const __m128i*>(source + i));
+            const auto b = _mm_loadu_si128(reinterpret_cast<const __m128i*>(source + i + 2));
+            const auto c = _mm_loadu_si128(reinterpret_cast<const __m128i*>(source + i + 4));
+            const auto d = _mm_loadu_si128(reinterpret_cast<const __m128i*>(source + i + 6));
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(destination + i), a);
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(destination + i + 2), b);
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(destination + i + 4), c);
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(destination + i + 6), d);
+#endif
+        }
+        for (; i < words; ++i) destination[i] = source[i];
+    }
+    asm volatile("" : : "r"(destination) : "memory");
+}
+
 extern "C" BB_NOINLINE std::uint64_t bb_seq_read(const std::uint64_t* data, std::size_t words) {
     asm volatile("" ::: "memory");
     std::size_t i = 0;

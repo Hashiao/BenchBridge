@@ -173,8 +173,10 @@ private fun DetailedReportPage(report: JSONObject, model: RamViewModel, onExport
             item { RunProgress(report, false) }
             item { SectionCard("本次参数") { Text(RamConfig.fromJson(report.getJSONObject("config").toString()).summary,
                 style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("ram_result_config")) } }
-            val kinds = report.getJSONObject("config").getJSONArray("kinds")
-            (0 until kinds.length()).forEach { index -> item { ResultCard(report, RamKind.entries.first { it.code == kinds.getInt(index) }) } }
+            val config = RamConfig.fromJson(report.getJSONObject("config").toString())
+            (if (config.cacheMatrix) MemoryPlanner.levels else listOf("RAM")).forEach { level ->
+                config.kinds.forEach { code -> item { ResultCard(report, RamKind.entries.first { it.code == code }, level) } }
+            }
         }
     }
 }
@@ -194,10 +196,22 @@ internal fun RunProgress(report: JSONObject, running: Boolean) {
 }
 
 @Composable
-private fun ResultCard(report: JSONObject, kind: RamKind) {
-    var expanded by rememberSaveable(report.optString("run_id"), kind.code) { mutableStateOf(false) }
-    val stats = RamResults.statistics(report, kind.code)
-    SectionCard(if (kind == RamKind.COPY) "复制 · 读写合计" else kind.title) {
+private fun ResultCard(report: JSONObject, kind: RamKind, level: String = "RAM") {
+    var expanded by rememberSaveable(report.optString("run_id"), level, kind.code) { mutableStateOf(false) }
+    val stats = RamResults.statistics(report, kind.code, level)
+    val cell = RamResults.cell(report, level, kind.code)
+    SectionCard("$level · " + if (kind == RamKind.COPY) "复制 · 读写合计" else kind.title) {
+        cell?.optJSONObject("plan")?.let { plan ->
+            Text("T${plan.optInt("threads")} · CPU ${plan.optJSONArray("cpu_ids")} · 总工作集 ${BenchmarkFormat.bytes(plan.optLong("working_set_bytes"))}", style = MaterialTheme.typography.bodySmall)
+            Text("每线程 ${plan.optJSONArray("per_thread_working_set_bytes")} B · ${BenchmarkFormat.duration(plan.optInt("duration_ms"))} × ${plan.optInt("rounds")}", style = MaterialTheme.typography.bodySmall)
+            if (kind == RamKind.LATENCY) Text("节点间隔 ${plan.optInt("node_stride_bytes")} B", style = MaterialTheme.typography.bodySmall)
+        }
+        cell?.takeIf { it.has("reason") }?.let { Text(it.optString("reason"), style = MaterialTheme.typography.bodySmall) }
+        cell?.optJSONObject("calibration")?.let { calibration ->
+            val candidates = calibration.optJSONArray("candidates")
+            Text("校准 ${candidates?.length() ?: 0} 个组合 · 每组合 2–3 次 × ${calibration.optInt("trial_ms")} ms", style = MaterialTheme.typography.bodySmall)
+            Text("绑核、工作集及各次校准结果保存在导出 JSON 中。", style = MaterialTheme.typography.bodySmall)
+        }
         Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stats?.let { "%.2f".format(Locale.US, it.median * if (kind == RamKind.LATENCY) 1 else 1000) } ?: "—", style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary, modifier = Modifier.testTag("result_${kind.code}"))
@@ -207,15 +221,16 @@ private fun ResultCard(report: JSONObject, kind: RamKind) {
             Text("${it.count} 个有效轮次的中位数" + (it.cvPercent?.let { cv -> " · CV %.1f%%".format(Locale.US, cv) } ?: ""), style = MaterialTheme.typography.bodySmall)
             TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "收起原始轮次" else "查看原始轮次") }
             if (expanded) {
-                Text(kind.explanation, style = MaterialTheme.typography.bodySmall)
+                Text(if (kind == RamKind.LATENCY && cell != null) "单线程依赖指针链，随机遍历每条缓存行。" else kind.explanation, style = MaterialTheme.typography.bodySmall)
                 if (kind == RamKind.COPY) Text("单向复制量：%.2f MB/s".format(Locale.US, it.median * 500), style = MaterialTheme.typography.bodySmall)
                 val scale = if (kind == RamKind.LATENCY) 1 else 1000
                 val unit = if (kind == RamKind.LATENCY) "ns" else "MB/s"
                 Text("最小 / 最大：%.2f / %.2f $unit".format(Locale.US, it.minimum * scale, it.maximum * scale), style = MaterialTheme.typography.bodySmall)
-                RamResults.validRounds(report, kind.code).forEach { sample ->
+                RamResults.validRounds(report, kind.code, level).forEach { sample ->
                 HorizontalDivider()
                 Text("第 ${sample.getInt("round")} 轮 · ${sample.getInt("threads")} 线程 · ${BenchmarkFormat.bytes(sample.getLong("working_set_bytes"))}", style = MaterialTheme.typography.labelLarge)
                 Text("${sample.getLong("operations")} 次访问 · ${sample.getLong("payload_bytes")} B\n${sample.getLong("elapsed_ns")} ns · 校验通过", style = MaterialTheme.typography.bodySmall)
+                if (cell != null) Text("实际 CPU ${sample.optJSONArray("observed_start_cpus")} → ${sample.optJSONArray("observed_end_cpus")}", style = MaterialTheme.typography.bodySmall)
                 }
             }
         }

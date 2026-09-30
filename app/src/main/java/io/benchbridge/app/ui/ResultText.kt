@@ -29,12 +29,18 @@ internal fun resultText(report: JSONObject): String = buildString {
     } else {
         val config = RamConfig.fromJson(report.getJSONObject("config").toString())
         appendLine("每轮 ${BenchmarkFormat.duration(config.durationMs)} · 中位数")
+        (if (config.cacheMatrix) MemoryPlanner.levels else listOf("RAM")).forEach { level ->
         config.kinds.forEach { code ->
             val kind = RamKind.entries.first { it.code == code }
-            val stats = RamResults.statistics(report, code)
+            val stats = RamResults.statistics(report, code, level)
             val score = stats?.let { "%.2f %s".format(Locale.US, it.median * if (code == 5) 1 else 1000, if (code == 5) "ns" else "MB/s") } ?: "—"
-            appendLine("${kind.title}${if (code == 2) "（读写合计）" else ""}：$score")
-            appendLine("${BenchmarkFormat.bytes(config.bytes(code))} · T${config.threads(code)} · ${stats?.count ?: 0} / ${config.rounds(code)} 次")
+            appendLine("$level ${kind.title}${if (code == 2) "（读写合计）" else ""}：$score")
+            val cell = RamResults.cell(report, level, code)
+            val plan = cell?.optJSONObject("plan")
+            if (plan != null) appendLine("${BenchmarkFormat.bytes(plan.optLong("working_set_bytes"))} · T${plan.optInt("threads")} · CPU${plan.optJSONArray("cpu_ids")} · ${stats?.count ?: 0}/${config.rounds(code)}次")
+            else if (!config.cacheMatrix) appendLine("${BenchmarkFormat.bytes(config.bytes(code))} · T${config.threads(code)} · ${stats?.count ?: 0} / ${config.rounds(code)} 次")
+            else appendLine(cell?.optString("reason").orEmpty())
+        }
         }
     }
     if (!report.isNull("error")) appendLine(report.optString("error").take(1000))

@@ -1,0 +1,882 @@
+{
+  "schema": 1,
+  "revision": "2026-09-30.1",
+  "unknown_policy": "null means unconfirmed, never zero or absent hardware",
+  "socs": [
+    {
+      "id": "sm8350",
+      "vendor": "Qualcomm",
+      "name": "Snapdragon 888",
+      "aliases": [
+        "sm8350",
+        "sm8350-AB",
+        "Snapdragon 888"
+      ],
+      "identity_source": "https://docs.qualcomm.com/nav/home/QNN_general_overview.html?product=924033590759186372",
+      "cpu_count": 8,
+      "cpu_groups": [],
+      "cpu_l3": null,
+      "system_cache": null,
+      "gpu": {
+        "name": "Adreno 660",
+        "shader_cores": null,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://github.com/torvalds/linux/blob/master/arch/arm64/boot/dts/qcom/sm8350.dtsi"
+      },
+      "checked_at": "2026-09-30"
+    },
+    {
+      "id": "sm8450",
+      "vendor": "Qualcomm",
+      "name": "Snapdragon 8 Gen 1",
+      "aliases": [
+        "sm8450",
+        "sm8450-AB",
+        "Snapdragon 8 Gen 1"
+      ],
+      "identity_source": "https://docs.qualcomm.com/nav/home/QNN_general_overview.html?product=924033590759186372",
+      "cpu_count": 8,
+      "cpu_groups": [],
+      "cpu_l3": null,
+      "system_cache": null,
+      "gpu": {
+        "name": "Adreno 730",
+        "shader_cores": null,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://github.com/torvalds/linux/blob/master/arch/arm64/boot/dts/qcom/sm8450.dtsi"
+      },
+      "checked_at": "2026-09-30"
+    },
+    {
+      "id": "sm8550",
+      "vendor": "Qualcomm",
+      "name": "Snapdragon 8 Gen 2",
+      "aliases": [
+        "sm8550",
+        "sm8550-AB",
+        "Snapdragon 8 Gen 2"
+      ],
+      "identity_source": "https://docs.qualcomm.com/nav/home/QNN_general_overview.html?product=924033590759186372",
+      "cpu_count": 8,
+      "cpu_groups": [],
+      "cpu_l3": null,
+      "system_cache": null,
+      "gpu": {
+        "name": "Adreno 740",
+        "shader_cores": null,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://github.com/torvalds/linux/blob/master/arch/arm64/boot/dts/qcom/sm8550.dtsi"
+      },
+      "checked_at": "2026-09-30"
+    },
+    {
+      "id": "sm8650",
+      "vendor": "Qualcomm",
+      "name": "Snapdragon 8 Gen 3",
+      "aliases": [
+        "SM8650",
+        "SM8650-AB",
+        "SM8650-AC",
+        "SM8650-AA",
+        "Snapdragon 8 Gen 3"
+      ],
+      "identity_source": "https://docs.qualcomm.com/nav/home/QNN_general_overview.html?product=924033590759186372",
+      "cpu_count": 8,
+      "cpu_groups": [
+        {
+          "core": "X4",
+          "count": 1,
+          "midr_part": "d82",
+          "frequency_rank_mapping": true,
+          "l1d_bytes": 65536,
+          "l2_bytes": 2097152,
+          "l2_scope": "private",
+          "cache_line_bytes": 64,
+          "cache_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/boot/dts/qcom/sm8650.dtsi",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        },
+        {
+          "core": "A720",
+          "count": 5,
+          "midr_part": "d81",
+          "frequency_rank_mapping": true,
+          "l1d_bytes": 65536,
+          "l2_bytes": 524288,
+          "l2_scope": "private",
+          "cache_line_bytes": 64,
+          "cache_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/boot/dts/qcom/sm8650.dtsi",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        },
+        {
+          "core": "A520",
+          "count": 2,
+          "midr_part": "d80",
+          "frequency_rank_mapping": true,
+          "l1d_bytes": 65536,
+          "l2_bytes": 524288,
+          "l2_scope": "cluster",
+          "cache_line_bytes": 64,
+          "cache_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/boot/dts/qcom/sm8650.dtsi",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        }
+      ],
+      "cpu_l3": {
+        "bytes": 12582912,
+        "scope": "soc",
+        "line_bytes": 64,
+        "source": "https://github.com/torvalds/linux/blob/master/arch/arm64/boot/dts/qcom/sm8650.dtsi"
+      },
+      "system_cache": null,
+      "gpu": {
+        "name": "Adreno 750",
+        "shader_cores": null,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://github.com/torvalds/linux/blob/master/arch/arm64/boot/dts/qcom/sm8650.dtsi"
+      },
+      "checked_at": "2026-09-30"
+    },
+    {
+      "id": "sm8750",
+      "vendor": "Qualcomm",
+      "name": "Snapdragon 8 Elite",
+      "aliases": [
+        "SM8750",
+        "SM8750-AB",
+        "SM8750-AC",
+        "Snapdragon 8 Elite"
+      ],
+      "identity_source": "https://www.qualcomm.com/smartphones/products/8-series/snapdragon-8-elite-mobile-platform",
+      "cpu_count": 8,
+      "cpu_groups": [
+        {
+          "core": "Oryon Prime",
+          "count": 2,
+          "midr_part": "",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": null,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": null,
+          "cache_source": null,
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        },
+        {
+          "core": "Oryon Performance",
+          "count": 6,
+          "midr_part": "",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": null,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": null,
+          "cache_source": null,
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        }
+      ],
+      "cpu_l3": null,
+      "system_cache": null,
+      "gpu": {
+        "name": "Adreno",
+        "shader_cores": null,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://www.qualcomm.com/smartphones/products/8-series/snapdragon-8-elite-mobile-platform"
+      },
+      "checked_at": "2026-09-30"
+    },
+    {
+      "id": "sm8750-3-ab",
+      "vendor": "Qualcomm",
+      "name": "Snapdragon 8 Elite (7-core)",
+      "aliases": [
+        "SM8750-3-AB",
+        "Snapdragon 8 Elite (7-core)"
+      ],
+      "identity_source": "https://www.qualcomm.com/smartphones/products/8-series/snapdragon-8-elite-mobile-platform",
+      "cpu_count": 7,
+      "cpu_groups": [],
+      "cpu_l3": null,
+      "system_cache": null,
+      "gpu": {
+        "name": "Adreno",
+        "shader_cores": null,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://www.qualcomm.com/smartphones/products/8-series/snapdragon-8-elite-mobile-platform"
+      },
+      "checked_at": "2026-09-30"
+    },
+    {
+      "id": "sm8850",
+      "vendor": "Qualcomm",
+      "name": "Snapdragon 8 Elite Gen 5",
+      "aliases": [
+        "SM8850",
+        "SM8850-AC",
+        "SM8850-1-AD",
+        "Snapdragon 8 Elite Gen 5"
+      ],
+      "identity_source": "https://www.qualcomm.com/content/dam/qcomm-martech/dm-assets/documents/Snapdragon-8-Elite-Gen-5-product-brief.pdf",
+      "cpu_count": 8,
+      "cpu_groups": [],
+      "cpu_l3": null,
+      "system_cache": null,
+      "gpu": {
+        "name": "Adreno",
+        "shader_cores": null,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://www.qualcomm.com/content/dam/qcomm-martech/dm-assets/documents/Snapdragon-8-Elite-Gen-5-product-brief.pdf"
+      },
+      "checked_at": "2026-09-30"
+    },
+    {
+      "id": "dimensity-8200",
+      "vendor": "MediaTek",
+      "name": "Dimensity 8200",
+      "aliases": [
+        "Dimensity 8200"
+      ],
+      "identity_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-8200",
+      "cpu_count": 8,
+      "cpu_groups": [
+        {
+          "core": "A78",
+          "count": 4,
+          "midr_part": "",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": null,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": null,
+          "cache_source": null,
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        },
+        {
+          "core": "A55",
+          "count": 4,
+          "midr_part": "",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": null,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": null,
+          "cache_source": null,
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        }
+      ],
+      "cpu_l3": {
+        "bytes": 4194304,
+        "scope": "soc",
+        "line_bytes": 64,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-8200"
+      },
+      "system_cache": null,
+      "gpu": {
+        "name": "Mali-G610",
+        "shader_cores": 6,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-8200"
+      },
+      "checked_at": "2026-09-30"
+    },
+    {
+      "id": "dimensity-8300",
+      "vendor": "MediaTek",
+      "name": "Dimensity 8300",
+      "aliases": [
+        "Dimensity 8300"
+      ],
+      "identity_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-8300",
+      "cpu_count": 8,
+      "cpu_groups": [
+        {
+          "core": "A715",
+          "count": 4,
+          "midr_part": "",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": null,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": null,
+          "cache_source": null,
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        },
+        {
+          "core": "A510",
+          "count": 4,
+          "midr_part": "",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": null,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": null,
+          "cache_source": null,
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        }
+      ],
+      "cpu_l3": {
+        "bytes": 4194304,
+        "scope": "soc",
+        "line_bytes": 64,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-8300"
+      },
+      "system_cache": null,
+      "gpu": {
+        "name": "Mali-G615",
+        "shader_cores": 6,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-8300"
+      },
+      "checked_at": "2026-09-30"
+    },
+    {
+      "id": "dimensity-8400",
+      "vendor": "MediaTek",
+      "name": "Dimensity 8400",
+      "aliases": [
+        "Dimensity 8400"
+      ],
+      "identity_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-8400",
+      "cpu_count": 8,
+      "cpu_groups": [
+        {
+          "core": "A725",
+          "count": 1,
+          "midr_part": "d87",
+          "frequency_rank_mapping": true,
+          "l1d_bytes": null,
+          "l2_bytes": 1048576,
+          "l2_scope": "private",
+          "cache_line_bytes": 64,
+          "cache_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-8400",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        },
+        {
+          "core": "A725",
+          "count": 3,
+          "midr_part": "d87",
+          "frequency_rank_mapping": true,
+          "l1d_bytes": null,
+          "l2_bytes": 524288,
+          "l2_scope": "private",
+          "cache_line_bytes": 64,
+          "cache_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-8400",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        },
+        {
+          "core": "A725",
+          "count": 4,
+          "midr_part": "d87",
+          "frequency_rank_mapping": true,
+          "l1d_bytes": null,
+          "l2_bytes": 262144,
+          "l2_scope": "private",
+          "cache_line_bytes": 64,
+          "cache_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-8400",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        }
+      ],
+      "cpu_l3": {
+        "bytes": 6291456,
+        "scope": "soc",
+        "line_bytes": 64,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-8400"
+      },
+      "system_cache": {
+        "bytes": 5242880,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-8400"
+      },
+      "gpu": {
+        "name": "Mali-G720",
+        "shader_cores": 7,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-8400"
+      },
+      "checked_at": "2026-09-30"
+    },
+    {
+      "id": "dimensity-9000",
+      "vendor": "MediaTek",
+      "name": "Dimensity 9000",
+      "aliases": [
+        "Dimensity 9000"
+      ],
+      "identity_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9000",
+      "cpu_count": 8,
+      "cpu_groups": [
+        {
+          "core": "X2",
+          "count": 1,
+          "midr_part": "",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": null,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": null,
+          "cache_source": null,
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        },
+        {
+          "core": "A710",
+          "count": 3,
+          "midr_part": "",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": null,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": null,
+          "cache_source": null,
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        },
+        {
+          "core": "A510",
+          "count": 4,
+          "midr_part": "",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": null,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": null,
+          "cache_source": null,
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        }
+      ],
+      "cpu_l3": {
+        "bytes": 8388608,
+        "scope": "soc",
+        "line_bytes": 64,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9000"
+      },
+      "system_cache": {
+        "bytes": 6291456,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9000"
+      },
+      "gpu": {
+        "name": "Mali-G710",
+        "shader_cores": 10,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9000"
+      },
+      "checked_at": "2026-09-30"
+    },
+    {
+      "id": "dimensity-9200",
+      "vendor": "MediaTek",
+      "name": "Dimensity 9200",
+      "aliases": [
+        "Dimensity 9200"
+      ],
+      "identity_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9200",
+      "cpu_count": 8,
+      "cpu_groups": [
+        {
+          "core": "X3",
+          "count": 1,
+          "midr_part": "",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": null,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": null,
+          "cache_source": null,
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        },
+        {
+          "core": "A715",
+          "count": 3,
+          "midr_part": "",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": null,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": null,
+          "cache_source": null,
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        },
+        {
+          "core": "A510",
+          "count": 4,
+          "midr_part": "",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": null,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": null,
+          "cache_source": null,
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        }
+      ],
+      "cpu_l3": null,
+      "system_cache": null,
+      "gpu": {
+        "name": "Immortalis-G715",
+        "shader_cores": null,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9200"
+      },
+      "checked_at": "2026-09-30"
+    },
+    {
+      "id": "dimensity-9300",
+      "vendor": "MediaTek",
+      "name": "Dimensity 9300",
+      "aliases": [
+        "MT6989",
+        "Dimensity 9300"
+      ],
+      "identity_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9300",
+      "cpu_count": 8,
+      "cpu_groups": [
+        {
+          "core": "X4",
+          "count": 4,
+          "midr_part": "d82",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": 65536,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": 64,
+          "cache_source": "https://documentation-service.arm.com/static/6473ef18bae17b773b05d1e8",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        },
+        {
+          "core": "A720",
+          "count": 4,
+          "midr_part": "d81",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": null,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": null,
+          "cache_source": null,
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        }
+      ],
+      "cpu_l3": null,
+      "system_cache": null,
+      "gpu": {
+        "name": "Immortalis-G720",
+        "shader_cores": 12,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9300"
+      },
+      "checked_at": "2026-09-30",
+      "alias_sources": {
+        "MT6989": "https://developers.google.com/edge/litert/next/mediatek"
+      }
+    },
+    {
+      "id": "dimensity-9400",
+      "vendor": "MediaTek",
+      "name": "Dimensity 9400",
+      "aliases": [
+        "MT6991",
+        "Dimensity 9400"
+      ],
+      "identity_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9400",
+      "cpu_count": 8,
+      "cpu_groups": [
+        {
+          "core": "X925",
+          "count": 1,
+          "midr_part": "d85",
+          "frequency_rank_mapping": true,
+          "l1d_bytes": 65536,
+          "l2_bytes": 2097152,
+          "l2_scope": "private",
+          "cache_line_bytes": 64,
+          "cache_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9400",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h",
+          "l1_source": "https://documentation-service.arm.com/static/68374ea93f2acc596c2d9d93"
+        },
+        {
+          "core": "X4",
+          "count": 3,
+          "midr_part": "d82",
+          "frequency_rank_mapping": true,
+          "l1d_bytes": 65536,
+          "l2_bytes": 1048576,
+          "l2_scope": "private",
+          "cache_line_bytes": 64,
+          "cache_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9400",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h",
+          "l1_source": "https://documentation-service.arm.com/static/6473ef18bae17b773b05d1e8"
+        },
+        {
+          "core": "A720",
+          "count": 4,
+          "midr_part": "d81",
+          "frequency_rank_mapping": true,
+          "l1d_bytes": null,
+          "l2_bytes": 524288,
+          "l2_scope": "private",
+          "cache_line_bytes": 64,
+          "cache_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9400",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        }
+      ],
+      "cpu_l3": {
+        "bytes": 12582912,
+        "scope": "soc",
+        "line_bytes": 64,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9400"
+      },
+      "system_cache": {
+        "bytes": 10485760,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9400"
+      },
+      "gpu": {
+        "name": "Immortalis-G925",
+        "shader_cores": 12,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9400"
+      },
+      "checked_at": "2026-09-30",
+      "alias_sources": {
+        "MT6991": "https://developers.google.com/edge/litert/next/mediatek"
+      },
+      "family_note": "MT6991 covers related clock variants; cache fallback requires the same validated core topology."
+    },
+    {
+      "id": "dimensity-9400-plus",
+      "vendor": "MediaTek",
+      "name": "Dimensity 9400+",
+      "aliases": [
+        "Dimensity 9400+"
+      ],
+      "identity_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9400-plus",
+      "cpu_count": 8,
+      "cpu_groups": [
+        {
+          "core": "X925",
+          "count": 1,
+          "midr_part": "d85",
+          "frequency_rank_mapping": true,
+          "l1d_bytes": 65536,
+          "l2_bytes": 2097152,
+          "l2_scope": "private",
+          "cache_line_bytes": 64,
+          "cache_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9400-plus",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h",
+          "l1_source": "https://documentation-service.arm.com/static/68374ea93f2acc596c2d9d93"
+        },
+        {
+          "core": "X4",
+          "count": 3,
+          "midr_part": "d82",
+          "frequency_rank_mapping": true,
+          "l1d_bytes": 65536,
+          "l2_bytes": 1048576,
+          "l2_scope": "private",
+          "cache_line_bytes": 64,
+          "cache_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9400-plus",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h",
+          "l1_source": "https://documentation-service.arm.com/static/6473ef18bae17b773b05d1e8"
+        },
+        {
+          "core": "A720",
+          "count": 4,
+          "midr_part": "d81",
+          "frequency_rank_mapping": true,
+          "l1d_bytes": null,
+          "l2_bytes": 524288,
+          "l2_scope": "private",
+          "cache_line_bytes": 64,
+          "cache_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9400-plus",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        }
+      ],
+      "cpu_l3": {
+        "bytes": 12582912,
+        "scope": "soc",
+        "line_bytes": 64,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9400-plus"
+      },
+      "system_cache": {
+        "bytes": 10485760,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9400-plus"
+      },
+      "gpu": {
+        "name": "Immortalis-G925",
+        "shader_cores": 12,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9400-plus"
+      },
+      "checked_at": "2026-09-30"
+    },
+    {
+      "id": "dimensity-9500",
+      "vendor": "MediaTek",
+      "name": "Dimensity 9500",
+      "aliases": [
+        "Dimensity 9500"
+      ],
+      "identity_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9500",
+      "cpu_count": 8,
+      "cpu_groups": [
+        {
+          "core": "C1-Ultra",
+          "count": 1,
+          "midr_part": "",
+          "frequency_rank_mapping": true,
+          "l1d_bytes": null,
+          "l2_bytes": 2097152,
+          "l2_scope": "private",
+          "cache_line_bytes": 64,
+          "cache_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9500",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        },
+        {
+          "core": "C1-Premium",
+          "count": 3,
+          "midr_part": "",
+          "frequency_rank_mapping": true,
+          "l1d_bytes": null,
+          "l2_bytes": 1048576,
+          "l2_scope": "private",
+          "cache_line_bytes": 64,
+          "cache_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9500",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        },
+        {
+          "core": "C1-Pro",
+          "count": 4,
+          "midr_part": "",
+          "frequency_rank_mapping": true,
+          "l1d_bytes": null,
+          "l2_bytes": 524288,
+          "l2_scope": "private",
+          "cache_line_bytes": 64,
+          "cache_source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9500",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        }
+      ],
+      "cpu_l3": {
+        "bytes": 16777216,
+        "scope": "soc",
+        "line_bytes": 64,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9500"
+      },
+      "system_cache": {
+        "bytes": 10485760,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9500"
+      },
+      "gpu": {
+        "name": "Mali-G1 Ultra",
+        "shader_cores": 12,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://www.mediatek.com/products/smartphones/mediatek-dimensity-9500"
+      },
+      "checked_at": "2026-09-30"
+    },
+    {
+      "id": "xring-o1",
+      "vendor": "Xiaomi",
+      "name": "XRING O1",
+      "aliases": [
+        "XRing O1",
+        "XRING O1 Mobile Platform",
+        "XRING O1"
+      ],
+      "identity_source": "https://ir.mi.com/static-files/f1dab4f8-8a84-4f23-a972-29012f08ace8",
+      "cpu_count": 10,
+      "cpu_groups": [
+        {
+          "core": "X925",
+          "count": 2,
+          "midr_part": "d85",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": 65536,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": 64,
+          "cache_source": "https://documentation-service.arm.com/static/68374ea93f2acc596c2d9d93",
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        },
+        {
+          "core": "A725",
+          "count": 6,
+          "midr_part": "d87",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": null,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": null,
+          "cache_source": null,
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        },
+        {
+          "core": "A520",
+          "count": 2,
+          "midr_part": "d80",
+          "frequency_rank_mapping": false,
+          "l1d_bytes": null,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": null,
+          "cache_source": null,
+          "identity_source": "https://github.com/torvalds/linux/blob/master/arch/arm64/include/asm/cputype.h"
+        }
+      ],
+      "cpu_l3": null,
+      "system_cache": null,
+      "gpu": {
+        "name": "Immortalis-G925",
+        "shader_cores": 16,
+        "slices": null,
+        "alus": null,
+        "cache_bytes": null,
+        "gmem_bytes": null,
+        "source": "https://ir.mi.com/static-files/f1dab4f8-8a84-4f23-a972-29012f08ace8"
+      },
+      "checked_at": "2026-09-30",
+      "topology_source": "https://github.com/MiCode/Xiaomi_Kernel_OpenSource/blob/0b426219a9a24b56c1593ebc84edb8a3f3b897b0/xring-dts/O1/soc/O1_cpu.dtsi"
+    }
+  ]
+}

@@ -122,7 +122,7 @@ class ParameterAlignmentTest {
         assertNull("Changing the plan must not relabel old scores", model.state.value.storageReport)
         val config = model.state.value.storageConfig
         assertEquals(1024, config.fileMiB)
-        assertEquals(5, config.rounds)
+        assertEquals(3, config.rounds)
         assertEquals(5000, config.durationMs); assertEquals(5000, config.warmupMs); assertEquals(5000, config.intervalMs)
         assertEquals(listOf(1024, 1024, 4, 4), config.cases.map { it.blockKiB })
         assertEquals(listOf(8, 1, 32, 1), config.cases.map { it.queue })
@@ -190,7 +190,7 @@ class ParameterAlignmentTest {
 
     @Test fun latencyOnlySummaryAndHistoryUseLatencyPlan() = runBlocking {
         scenario.scenario.onActivity {
-            model.configure(RamConfig.aida64().copy(kinds = listOf(5), workingSetMiB = 16, latencySetMiB = 2,
+            model.configure(RamConfig.aida64().copy(cacheMatrix = false, kinds = listOf(5), workingSetMiB = 16, latencySetMiB = 2,
                 rounds = 3, latencyRounds = 2, durationMs = 75, warmupMs = 0, cooldownMs = 0))
             model.start()
         }
@@ -213,7 +213,7 @@ class ParameterAlignmentTest {
     }
 
     @Test fun workerResolvesAutoThreadsAndRecordsRequestedVersusEffectivePlan() = runBlocking {
-        val requested = RamConfig.aida64(16).copy(kinds = listOf(0), workingSetMiB = 4,
+        val requested = RamConfig.aida64(16).copy(cacheMatrix = false, kinds = listOf(0), workingSetMiB = 4,
             warmupMs = 0, durationMs = 75, rounds = 1, cooldownMs = 0)
         val reply = JSONObject(client.service().startRam(requested.toJson().toString()))
         assertTrue(reply.toString(), reply.getBoolean("accepted"))

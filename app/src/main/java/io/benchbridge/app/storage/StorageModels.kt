@@ -31,7 +31,7 @@ data class StorageConfig(
     val cases: List<StorageCase> = StorageCase.standard(),
     val directions: List<String> = listOf("read", "write"),
     val fileMiB: Int = 1024,
-    val rounds: Int = 5,
+    val rounds: Int = 3,
     val warmupMs: Int = 5000,
     val durationMs: Int = 5000,
     val intervalMs: Int = 5000,

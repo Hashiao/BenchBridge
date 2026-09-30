@@ -60,9 +60,17 @@ Some cases cancel app runs, terminate the app's worker process or turn off the d
 
 ## 已有验证范围 / Existing validation scope
 
-0.4.0 的本机验收在 API 37、x86_64、4 KiB 页环境中完成，31 个不同回归用例最终通过。Release 默认 RAM 完成 14/14 轮，默认 ROM 完成 40/40 轮。ARM64 已完成构建及 ELF 对齐检查，目标手机的缓存拓扑和性能仍需实机验证。
+0.5.0 的本机验收在 API 37、x86_64、4 KiB 页环境中完成，37 个不同用例通过。新增用例覆盖缓存共享域预算、型号变体匹配、绑核小工作集计数、准备阶段取消、校准取消、16 格成绩与执行计划的一致性。签名 Release 默认缓存 / RAM 完成 56/56 轮，ROM 完成 24/24 轮，完整 JSON 导出通过。
 
-Local validation of 0.4.0 used API 37, x86_64 and 4 KiB pages, with 31 distinct regression cases passing their final runs. Release defaults completed 14/14 RAM rounds and 40/40 storage rounds. ARM64 builds and ELF alignment were checked; target-phone cache topology and performance still require device validation.
+Local validation of 0.5.0 used API 37, x86_64 and 4 KiB pages, with 37 distinct cases passing. New cases cover shared-cache budgets, variant matching, pinned small-working-set counts, cancellation during setup and calibration, and consistency between all sixteen cells and their plans. Signed Release defaults completed 56/56 cache/RAM rounds and 24/24 storage rounds, with complete JSON export verified.
+
+ARM64 与 x86_64 均已完成构建、16 KiB ELF / APK 对齐及优化后内核反汇编检查。Lint 无错误，有一项固定 Gradle 版本的更新提示。目标手机的绑核权限、缓存拓扑与性能仍需实机验收。
+
+Both ARM64 and x86_64 passed build, 16 KiB ELF/APK alignment and optimized-kernel disassembly checks. Lint reported no errors and one update notice for the pinned Gradle version. Target-phone affinity permissions, cache topology and performance still require device validation.
+
+成绩页另在 360×640 逻辑尺寸、130% 系统字体下检查；RAM 的 16 个成绩及各格线程 / 工作集均可见，MB/s 与 GB/s 均通过，ROM 四行结果可完整截图。测试后恢复显示设置。
+
+The result board was also checked at a 360×640 logical size with 130% system font scaling. All sixteen RAM scores and per-cell thread/working-set summaries remained visible in both MB/s and GB/s; all four storage rows fit in one screenshot. Display settings were restored afterward.
 
 私有验收日志、设备报告与截图不包含在公开仓库中。上述记录描述一次验收范围，不代表所有平台均已通过测试。
 

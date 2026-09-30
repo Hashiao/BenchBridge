@@ -86,7 +86,7 @@ class DashboardLifecycleTest {
         @Suppress("UNREACHABLE_CODE") error("unreachable")
     }
     @Test fun defaultBoardsShowEveryRowWithoutExposingSettings() {
-        assertBoard(listOf(0, 1, 2, 5).map { "ram_row_$it" })
+        assertBoard(listOf("L1", "L2", "L3", "RAM").map { "matrix_row_$it" })
         assertFalse(device.hasObject(By.res("ram_aida")))
         assertTrue(device.hasObject(By.res("ram_start")))
         tap("tab_1")

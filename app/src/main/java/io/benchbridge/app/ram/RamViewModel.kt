@@ -116,8 +116,8 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     val report = withContext(Dispatchers.IO) {
                         val snapshot = JSONObject(client.service().snapshot(runId))
-                        if (family == "storage" && snapshot.optBoolean("full_report_in_storage") && snapshot.optString("state") in RamResults.terminalStates)
-                            storageStore.read(runId) ?: snapshot else snapshot
+                        if (snapshot.optBoolean("full_report_in_storage") && snapshot.optString("state") in RamResults.terminalStates)
+                            (if (family == "storage") storageStore else store).read(runId) ?: snapshot else snapshot
                     }
                     check(report.has("state")) { report.optString("error", "无法读取运行状态") }
                     updateReport(report, family)

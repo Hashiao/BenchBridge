@@ -8,6 +8,11 @@ extern "C" {
 std::uint64_t bb_seq_read(const std::uint64_t* data, std::size_t words);
 void bb_seq_write(std::uint64_t* data, std::size_t words, std::uint64_t value);
 void bb_copy(std::uint64_t* destination, const std::uint64_t* source, std::size_t words);
+// 小工作集在同一次调用中重复访问，减少计时器与函数边界开销。
+// Repeat small working sets within one call to reduce timer and call-boundary overhead.
+std::uint64_t bb_cached_read(const std::uint64_t* data, std::size_t words, std::size_t passes);
+void bb_cached_write(std::uint64_t* data, std::size_t words, std::uint64_t value, std::size_t passes);
+void bb_cached_copy(std::uint64_t* destination, const std::uint64_t* source, std::size_t words, std::size_t passes);
 std::uint64_t bb_random_read(const std::uint64_t* data, const std::uint32_t* indices, std::size_t words);
 void bb_random_write(std::uint64_t* data, const std::uint32_t* indices, std::size_t words, std::uint64_t value);
 // 沿有效指针链执行 hops 次依赖读取，并返回最终节点。

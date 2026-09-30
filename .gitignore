@@ -11,6 +11,8 @@ releases/
 *.ap_
 *.hprof
 *.log
+__pycache__/
+*.py[cod]
 
 # 本机配置、签名与凭据 / Machine settings, signing material and credentials
 .local/

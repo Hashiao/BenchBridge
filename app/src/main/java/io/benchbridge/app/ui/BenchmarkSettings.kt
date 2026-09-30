@@ -23,11 +23,12 @@ internal fun RamSettingsPage(state: RamUiState, model: RamViewModel) {
         item {
             SectionCard("测试配置") {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(preset == "aida64-style-v1", { model.configure(RamConfig.aida64(allowed)) }, { Text("AIDA64 四项") }, modifier = Modifier.testTag("ram_aida"))
-                    FilterChip(preset == "ram-quick-dev-v1", { model.configure(RamConfig.quick()) }, { Text("快速测试") }, modifier = Modifier.testTag("ram_quick"))
+                    FilterChip(preset == "aida64-style-v1", { model.configure(RamConfig.aida64(allowed)) }, { Text("缓存与内存") }, modifier = Modifier.testTag("ram_aida"))
+                    FilterChip(preset == "cache-matrix-quick-v1", { model.configure(RamConfig.matrixQuick().resolveThreads(allowed)) }, { Text("表格快测") }, modifier = Modifier.testTag("ram_matrix_quick"))
+                    FilterChip(preset == "ram-quick-dev-v1", { model.configure(RamConfig.quick()) }, { Text("RAM 六项快测") }, modifier = Modifier.testTag("ram_quick"))
                 }
                 if (config.hasBandwidth) {
-                    Text("带宽 · 总工作集", style = MaterialTheme.typography.labelLarge)
+                    Text("${if (config.cacheMatrix) "RAM " else ""}带宽 · 总工作集", style = MaterialTheme.typography.labelLarge)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         (listOf(16, 64, 128, 256, 512) + config.workingSetMiB).distinct().sorted().forEach { mib ->
                             FilterChip(config.workingSetMiB == mib, { edit(config.copy(workingSetMiB = mib)) }, { Text(BenchmarkFormat.mib(mib)) },
@@ -37,7 +38,7 @@ internal fun RamSettingsPage(state: RamUiState, model: RamViewModel) {
                     Text("带宽 · 线程数", style = MaterialTheme.typography.labelLarge)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(config.automaticThreads, { edit(config.copy(automaticThreads = true)) },
-                            { Text("自动 (${allowed.coerceIn(1, 16)})") }, modifier = Modifier.testTag("ram_threads_auto"))
+                            { Text(if (config.cacheMatrix) "自动校准" else "自动 (${allowed.coerceIn(1, 16)})") }, modifier = Modifier.testTag("ram_threads_auto"))
                         (listOf(1, 2, 4, 8, 16).filter { it <= allowed } + minOf(allowed, 16) + config.threads).distinct().sorted().forEach { count ->
                             FilterChip(!config.automaticThreads && config.threads == count, { edit(config.copy(threads = count, automaticThreads = false)) },
                                 { Text("$count 线程") }, modifier = Modifier.testTag("ram_threads_$count"))
@@ -53,7 +54,7 @@ internal fun RamSettingsPage(state: RamUiState, model: RamViewModel) {
                 }
                 if (config.hasLatency) {
                     HorizontalDivider()
-                    Text("延迟 · 总工作集（固定 1 线程）", style = MaterialTheme.typography.labelLarge)
+                    Text("${if (config.cacheMatrix) "RAM " else ""}延迟 · 总工作集（固定 1 线程）", style = MaterialTheme.typography.labelLarge)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         (listOf(8, 32, 64, 128, 256) + config.latencySetMiB).distinct().sorted().forEach { mib ->
                             FilterChip(config.latencySetMiB == mib, { edit(config.copy(latencySetMiB = mib)) }, { Text(BenchmarkFormat.mib(mib)) },
@@ -69,7 +70,7 @@ internal fun RamSettingsPage(state: RamUiState, model: RamViewModel) {
                     }
                 }
                 HorizontalDivider()
-                Text("每轮测量时间", style = MaterialTheme.typography.labelLarge)
+                Text("${if (config.cacheMatrix) "RAM " else ""}每轮测量时间", style = MaterialTheme.typography.labelLarge)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     (listOf(1000, 3000, 5000) + config.durationMs).distinct().sorted().forEach { duration ->
                         FilterChip(config.durationMs == duration, { edit(config.copy(durationMs = duration)) }, { Text(BenchmarkFormat.duration(duration)) },
@@ -84,7 +85,7 @@ internal fun RamSettingsPage(state: RamUiState, model: RamViewModel) {
                 }
                 HorizontalDivider()
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    RamKind.entries.forEach { kind ->
+                    RamKind.entries.filter { !config.cacheMatrix || it.code in MemoryPlanner.columns }.forEach { kind ->
                         FilterChip(kind.code in config.kinds, {
                             edit(config.copy(kinds = if (kind.code in config.kinds) config.kinds - kind.code else (config.kinds + kind.code).sorted()))
                         }, { Text(kind.title) })

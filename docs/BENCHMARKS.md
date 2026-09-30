@@ -18,17 +18,29 @@ This document describes the current counting rules, timing boundaries and interp
 
 Copy counts both the read and write sides. In JSON, `payload_bytes` is the copied amount and `logical_bytes` is twice that amount. MB/s and GB/s are decimal units; working-set sizes use MiB.
 
-总工作集分成不重叠的线程区域；增加线程不会增加总工作集。默认带宽工作集为 512 MiB，延迟工作集为 256 MiB。带宽线程按进程可用 CPU 数选择，最多 16 个；延迟始终使用一个线程。当前使用系统默认调度，没有显式核心绑定或线程数性能校准。
+默认表格测量 L1 数据缓存、L2、L3 与 RAM。CPU 及缓存共享域优先读取 `/sys/devices/system/cpu`，缺失规格仅在 SoC 身份、核心数及核心组得到核对后从内部资料库补充。无法可靠规划的项目不分配假定容量，不生成成绩；原因保存在对应单元格的 `reason` 字段。
 
-The total working set is divided into disjoint thread regions; adding threads does not increase the total allocation. Default working sets are 512 MiB for bandwidth and 256 MiB for latency. Bandwidth uses up to 16 CPUs available to the process; latency uses one thread. Scheduling remains OS-managed, without explicit core affinity or performance-based thread calibration.
+The default matrix measures L1 data cache, L2, L3 and RAM. CPU topology and cache sharing domains come first from `/sys/devices/system/cpu`. The internal catalog fills gaps only after checking SoC identity, core count and core groups. A cell without a reliable plan receives no assumed cache capacity or score; its `reason` field records the limitation.
 
-延迟指针链的节点间隔为 128 B，每个节点属于同一个随机闭环。该间隔是算法参数，不代表被测 CPU 的缓存行大小。当前实现不划分 L1、L2、L3 成绩。
+每个 L1 共享域使用其容量的 50%，L2 / L3 使用 75%，再分配给参与该域的线程。L2 / L3 的每线程工作集须至少为已确认下一级容量的两倍。拷贝工作集包括源和目标。RAM 默认申请带宽 512 MiB、延迟 256 MiB；规划时至少覆盖所选末级缓存域的两倍容量，可能扩大工作集。所有候选计划独立检查内存预算，界面与 JSON 显示实际分配值。
 
-Latency nodes are spaced 128 bytes apart and form one randomized cycle. This spacing is an algorithm parameter, not a claim about the CPU's cache-line size. The current implementation does not produce separate L1, L2 or L3 scores.
+Each L1 sharing domain uses 50% of its capacity; L2 and L3 use 75%, divided among participating workers. Each L2/L3 worker must cover at least twice the confirmed capacity of the preceding level. Copy footprints include both source and destination. RAM requests 512 MiB for bandwidth and 256 MiB for latency by default, then expands if needed to cover twice each selected last-level domain. Every candidate receives a separate memory-budget check. The interface and JSON record the actual allocation.
+
+带宽候选包括 1、2、4、8、16 线程、全部可用核心、物理核心代表及同类核心组；只比较有效组合，最多 12 组。固定线程模式保持指定线程数，只校准核心组合。延迟候选始终为单核单线程。每个组合短测 2 次，差异超过 15% 时补第 3 次；仍波动超过 30% 的组合排除。按中位数选择带宽最高或延迟最低者，3% 内近似相同时优先较少线程。每个表格单元格独立校准，完整过程保存在 `cells[].calibration`。
+
+Bandwidth candidates include 1, 2, 4, 8 and 16 threads, all available cores, physical-core representatives and homogeneous groups. Up to twelve valid combinations are compared. Fixed-thread mode preserves the requested count and calibrates only core selection. Latency always uses one thread on one core. Each candidate has two short trials, with a third when the first two differ by over 15%. Candidates still varying by over 30% are excluded. Selection uses median bandwidth or latency; ties within 3% favor fewer threads. Each cell calibrates independently, with full records in `cells[].calibration`.
+
+工作线程在首次触页前绑定到单个 CPU，并核对亲和掩码及正式测量前后的实际 CPU。小工作集在内核内重复遍历，编译器屏障保留每一遍访存。表格延迟以已确认的缓存行大小建立随机闭环；RAM 无缓存行资料时使用 64 B 并记录实际间隔。原有六项 RAM 快测继续使用系统调度和 128 B 延迟节点，旧报告按原口径读取。
+
+Workers bind to one CPU before first touch. Affinity masks and observed CPUs before and after measurement are checked. Small working sets repeat inside the kernel, with compiler barriers preserving accesses on every pass. Matrix latency uses a randomized cycle at the confirmed cache-line spacing; RAM uses a recorded 64-byte spacing if line metadata is unavailable. The legacy six-operation RAM quick profile retains OS scheduling and 128-byte latency nodes. Old reports retain their original interpretation.
 
 默认预热 1 秒、正式测量 3 秒；带宽每项重复 3 次，延迟重复 5 次，轮间隔 2 秒。主值为有效轮次的中位数，另保留各轮、最小值、最大值与变异系数。
 
 Defaults are a one-second warmup, three seconds of measurement, three repetitions per bandwidth operation, five latency repetitions, and two seconds between rounds. The displayed score is the median of valid rounds; individual rounds, extrema and the coefficient of variation are retained.
+
+上述时长用于 RAM；缓存每轮预热最多 250 ms、正式测量最多 1 秒、间隔最多 200 ms，重复次数相同。默认校准每次 150 ms，预热最多 80 ms。正式轮次独立于校准，完整表格共 56 轮。表格快测缩短时长与次数，主要用于检查流程。
+
+Those timings apply to RAM. Cache rounds cap warmup at 250 ms, measurement at one second and rest at 200 ms, retaining the same repetition counts. Default calibration trials last 150 ms with up to 80 ms warmup. Scored rounds are independent of calibration; a complete default matrix has 56 rounds. The matrix quick profile shortens timings and counts for functional checks.
 
 分配、触页、建链、线程创建和校验位于正式计时之外。工作线程使用共同起点，计时截至最后一个线程完成当前批次。写入屏障确保缓存写入顺序，不等同于将数据全部刷新到 DRAM。
 
@@ -36,9 +48,9 @@ Allocation, page touching, chain construction, thread creation and validation ar
 
 ## 存储 / Storage
 
-默认配置为 1 GiB 文件、每项每方向 5 轮、每轮 5 秒；每个方向和项目首轮预热 5 秒，项目之间间隔 5 秒。该组合保留了 CrystalDiskMark 8.x 的常用设置；9.x 的默认次数变化尚未应用到本版本。
+默认配置为 1 GiB 文件、每项每方向 3 轮、每轮 5 秒；每个方向和项目首轮预热 5 秒，项目之间间隔 5 秒。次数对齐 CrystalDiskMark 9.x，四项双方向共 24 轮。
 
-The default plan uses a 1 GiB file, five rounds per case and direction, and five seconds per round. Each case and direction has a five-second initial warmup, with five seconds between cases. This profile retains the common CrystalDiskMark 8.x settings; the 9.x default-count change has not been applied in this version.
+The default plan uses a 1 GiB file, three rounds per case and direction, and five seconds per round. Each case and direction has a five-second initial warmup, with five seconds between cases. The count follows CrystalDiskMark 9.x, for 24 rounds across four cases and two directions.
 
 测试始终复用同一个完整初始化的文件。初始化、预热和正式写入均计入累计写入量，但不增加文件长度。数据源为按文件偏移重复的 64 MiB SplitMix64 数据池。
 

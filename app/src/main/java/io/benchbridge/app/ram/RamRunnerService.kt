@@ -12,6 +12,7 @@ import io.benchbridge.app.BuildConfig
 import io.benchbridge.app.diagnostics.DeviceInformation
 import io.benchbridge.app.diagnostics.NativeProbe
 import io.benchbridge.app.storage.StorageCoordinator
+import io.benchbridge.app.hardware.CpuTopology
 import java.security.MessageDigest
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -109,7 +110,7 @@ class RamRunnerService : Service() {
                 if (DeviceInformation().appearsToBeEmulator) flags += "emulator_functional_test"
                 if (thermalStatus() == -1) flags += "thermal_status_unknown"
                 val report = JSONObject().apply {
-                    put("schema_version", 1); put("kind", "ram_benchmark"); put("run_id", id)
+                    put("schema_version", if (config.cacheMatrix) 2 else 1); put("kind", "ram_benchmark"); put("run_id", id)
                     put("state", "RUNNING"); put("phase", "PREPARING")
                     put("started_at_ms", System.currentTimeMillis()); put("app_version", BuildConfig.VERSION_NAME)
                     put("config", configuration); put("requested_config", requested.toJson())
@@ -119,7 +120,7 @@ class RamRunnerService : Service() {
                             .put("threads", config.threads(kind)).put("rounds", config.rounds(kind))
                     }))
                     put("quality_flags", JSONArray(flags)); put("rounds", JSONArray())
-                    put("completed_rounds", 0); put("total_rounds", config.totalRounds)
+                    put("completed_rounds", 0); put("processed_rounds", 0); put("total_rounds", config.totalRounds)
                     put("device", JSONObject().put("manufacturer", Build.MANUFACTURER).put("model", Build.MODEL)
                         .put("api", Build.VERSION.SDK_INT).put("android", Build.VERSION.RELEASE)
                         .put("fingerprint", Build.FINGERPRINT))
@@ -150,7 +151,7 @@ class RamRunnerService : Service() {
             if (!run.finished) {
                 val nativePhase = RamNative.phase(run.handle)
                 val name = listOf("", "PREPARING", "WARMING", "MEASURING", "VALIDATING").getOrElse(nativePhase) { "" }
-                if (name.isNotEmpty()) result.put("phase", name)
+                if (name.isNotEmpty() && result.optString("phase") != "CALIBRATING") result.put("phase", name)
                 result.put("cancel_requested", run.cancelled.get())
             }
             return result.toString()
@@ -172,13 +173,35 @@ class RamRunnerService : Service() {
     private fun publish(run: Run, persist: Boolean = false) {
         if (persist) store.save(run.report)
         if (run.report.optString("state") in RamResults.terminalStates) run.finished = true
-        run.snapshotText = run.report.toString()
+        val text = run.report.toString()
+        if (text.length <= 240000) run.snapshotText = text
+        else {
+            // 大型校准记录保留在磁盘，Binder 仅传界面需要的摘要。
+            // Keep full calibration records on disk and send only UI summaries through Binder.
+            val compact = JSONObject(text)
+            compact.optJSONArray("cells")?.let { cells ->
+                for (i in 0 until cells.length()) cells.getJSONObject(i).remove("calibration")
+            }
+            compact.put("full_report_in_storage", true)
+            run.snapshotText = compact.toString()
+        }
     }
 
     private fun executeRun(run: Run) {
         var completed = 0
         var failed = false
         try {
+            if (run.config.cacheMatrix) {
+                val topology = CpuTopology.collect(this, JSONObject(RamNative.capabilities()))
+                val state = MemoryMatrixRunner(this, run.config, run.report, run.handle, topology,
+                    run.report.getJSONObject("capabilities").getLong("memory_budget_bytes"),
+                    cancelled = { run.cancelled.get() }, thermal = ::thermalStatus,
+                    cancel = { requestCancel(run.id, it) }, publish = { publish(run, it) }).execute()
+                completed = run.report.optInt("completed_rounds")
+                run.report.put("state", state)
+                if (run.cancelled.get()) run.report.put("error", run.reason)
+                return
+            }
             outer@ for (kind in run.config.kinds) {
                 for (round in 1..run.config.rounds(kind)) {
                     if (run.cancelled.get()) break@outer

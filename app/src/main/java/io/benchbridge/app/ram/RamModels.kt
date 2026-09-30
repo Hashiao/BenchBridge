@@ -26,23 +26,28 @@ data class RamConfig(
     val cooldownMs: Int = 200,
     val presetId: String = "ram-quick-dev-v1",
     val automaticThreads: Boolean = false,
+    val cacheMatrix: Boolean = false,
+    val calibrationMs: Int = 150,
 ) {
     val hasBandwidth: Boolean get() = kinds.any { it != RamKind.LATENCY.code }
     val hasLatency: Boolean get() = RamKind.LATENCY.code in kinds
     fun resolveThreads(allowedCpus: Int): RamConfig = if (automaticThreads) copy(threads = allowedCpus.coerceIn(1, 16)) else this
     fun sameParameters(other: RamConfig): Boolean = copy(presetId = "") == other.copy(presetId = "")
     fun recognizedPresetId(): String = when {
+        sameParameters(matrixQuick().copy(threads = threads)) -> "cache-matrix-quick-v1"
         sameParameters(aida64(threads)) -> "aida64-style-v1"
         sameParameters(quick()) -> "ram-quick-dev-v1"
         else -> "ram-custom-v1"
     }
     fun normalized(): RamConfig = copy(presetId = recognizedPresetId())
     val summary: String get() = buildList {
-        if (hasBandwidth) add("带宽：${BenchmarkFormat.mib(workingSetMiB)} · $threads 线程 · $rounds 次")
-        if (hasLatency) add("延迟：${BenchmarkFormat.mib(latencySetMiB)} · 1 线程 · $latencyRounds 次")
-        add("每次 ${BenchmarkFormat.duration(durationMs)} · 预热 ${BenchmarkFormat.duration(warmupMs)} · 间隔 ${BenchmarkFormat.duration(cooldownMs)}")
+        if (cacheMatrix) add("L1 / L2 / L3 / RAM · ${if (automaticThreads) "线程与核心自动校准" else "带宽 $threads 线程"}")
+        if (hasBandwidth) add("${if (cacheMatrix) "RAM " else ""}带宽：${BenchmarkFormat.mib(workingSetMiB)} · ${if (automaticThreads && cacheMatrix) "自动线程" else "$threads 线程"} · $rounds 次")
+        if (hasLatency) add("${if (cacheMatrix) "RAM " else ""}延迟：${BenchmarkFormat.mib(latencySetMiB)} · 1 线程 · $latencyRounds 次")
+        add("${if (cacheMatrix) "RAM " else ""}每次 ${BenchmarkFormat.duration(durationMs)} · 预热 ${BenchmarkFormat.duration(warmupMs)} · 间隔 ${BenchmarkFormat.duration(cooldownMs)}")
+        if (cacheMatrix) add("缓存每次 ${BenchmarkFormat.duration(minOf(durationMs, 1000))}；工作集按共享域分配。RAM 工作集至少为末级缓存的两倍，实际值见成绩。")
     }.joinToString("\n")
-    val totalRounds: Int get() = kinds.sumOf { if (it == RamKind.LATENCY.code) latencyRounds else rounds }
+    val totalRounds: Int get() = kinds.sumOf { if (it == RamKind.LATENCY.code) latencyRounds else rounds } * if (cacheMatrix) 4 else 1
     fun bytes(kind: Int): Long = (if (kind == RamKind.LATENCY.code) latencySetMiB else workingSetMiB) * 1048576L
     fun threads(kind: Int): Int = if (kind == RamKind.LATENCY.code) 1 else threads
     fun rounds(kind: Int): Int = if (kind == RamKind.LATENCY.code) latencyRounds else rounds
@@ -63,6 +68,8 @@ data class RamConfig(
         require(durationMs in 50..30000 && warmupMs in 0..10000) { "测量或预热时长无效" }
         require(rounds in 1..10 && latencyRounds in 1..10) { "重复次数必须为 1–10" }
         require(cooldownMs in 0..30000 && presetId.length in 1..64) { "预设参数无效" }
+        require(calibrationMs in 50..1000) { "校准时长无效" }
+        require(!cacheMatrix || kinds.all { it in listOf(0, 1, 2, 5) }) { "缓存表支持读取、写入、延迟和拷贝" }
     }
 
     fun toJson(): JSONObject = JSONObject().apply {
@@ -79,11 +86,17 @@ data class RamConfig(
         put("preset_id", presetId)
         put("seed", 0xB16B00B5L)
         put("latency_threads", 1)
+        put("cache_matrix", cacheMatrix)
+        put("calibration_ms", calibrationMs)
+        if (cacheMatrix) put("cache_duration_ms", minOf(durationMs, 1000)).put("cache_warmup_ms", minOf(warmupMs, 250))
     }
 
     companion object {
         fun aida64(allowedCpus: Int = 1) = standard().copy(kinds = listOf(0, 1, 2, 5),
-            threads = allowedCpus.coerceIn(1, 16), automaticThreads = true, presetId = "aida64-style-v1")
+            threads = allowedCpus.coerceIn(1, 16), automaticThreads = true, cacheMatrix = true, presetId = "aida64-style-v1")
+        fun matrixQuick() = RamConfig(kinds = listOf(0, 1, 2, 5), workingSetMiB = 16, latencySetMiB = 8,
+            warmupMs = 25, durationMs = 150, rounds = 1, latencyRounds = 1, cooldownMs = 0,
+            automaticThreads = true, cacheMatrix = true, calibrationMs = 50, presetId = "cache-matrix-quick-v1")
         fun quick() = RamConfig()
         fun standard() = RamConfig(workingSetMiB = 512, latencySetMiB = 256,
             warmupMs = 1000, durationMs = 3000, rounds = 3, latencyRounds = 5,
@@ -103,6 +116,7 @@ data class RamConfig(
                 rounds = json.getInt("rounds"), latencyRounds = json.getInt("latency_rounds"),
                 cooldownMs = json.getInt("cooldown_ms"), presetId = json.getString("preset_id"),
                 automaticThreads = json.optString("thread_mode", if (json.optString("preset_id") == "aida64-style-v1") "auto" else "fixed") == "auto",
+                cacheMatrix = json.optBoolean("cache_matrix", false), calibrationMs = json.optInt("calibration_ms", 150),
             ).also { it.validate() }
         }
     }
@@ -112,10 +126,14 @@ data class RamStatistics(val median: Double, val minimum: Double, val maximum: D
 
 object RamResults {
     val terminalStates = setOf("COMPLETED", "PARTIAL", "CANCELLED", "FAILED", "INTERRUPTED")
-    fun validRounds(report: JSONObject, kind: Int): List<JSONObject> {
+    fun cell(report: JSONObject, level: String, kind: Int): JSONObject? {
+        val cells = report.optJSONArray("cells") ?: return null
+        return (0 until cells.length()).map { cells.getJSONObject(it) }.firstOrNull { it.optString("level") == level && it.optInt("kind", -1) == kind }
+    }
+    fun validRounds(report: JSONObject, kind: Int, level: String = "RAM"): List<JSONObject> {
         val rounds = report.optJSONArray("rounds") ?: return emptyList()
         return (0 until rounds.length()).map { rounds.getJSONObject(it) }.filter {
-            it.optInt("kind", -1) == kind && it.optString("status") == "COMPLETED" &&
+            it.optInt("kind", -1) == kind && it.optString("level", "RAM") == level && it.optString("status") == "COMPLETED" &&
                 it.optBoolean("verified") && it.optLong("elapsed_ns") > 0 && it.optLong("operations") > 0
         }
     }
@@ -126,8 +144,8 @@ object RamResults {
         // Bytes divided by nanoseconds is numerically equal to decimal GB/s.
         round.getLong("logical_bytes").toDouble() / round.getLong("elapsed_ns")
     }
-    fun statistics(report: JSONObject, kind: Int): RamStatistics? {
-        val values = validRounds(report, kind).map(::value).sorted()
+    fun statistics(report: JSONObject, kind: Int, level: String = "RAM"): RamStatistics? {
+        val values = validRounds(report, kind, level).map(::value).sorted()
         if (values.isEmpty()) return null
         val median = if (values.size % 2 == 1) values[values.size / 2]
             else (values[values.size / 2 - 1] + values[values.size / 2]) / 2
@@ -151,6 +169,7 @@ object RamResults {
         "VALIDATING" -> "校验数据"
         "COOLING" -> "轮间休息"
         "PERSISTING" -> "保存结果"
+        "CALIBRATING" -> "校准线程与核心"
         else -> "准备测试"
     }
 }
