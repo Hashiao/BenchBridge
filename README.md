@@ -8,9 +8,9 @@ Android CPU、GPU、内存与存储基准测试工具，使用 Kotlin / Jetpack 
 
 An Android CPU, GPU, memory and storage benchmark with a Kotlin / Jetpack Compose interface, C++20 kernels and Vulkan compute shaders.
 
-本仓库公开当前 0.6.1 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
+本仓库公开当前 0.6.2 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
 
-This repository contains the current 0.6.1 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+This repository contains the current 0.6.2 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
 
 ## 功能 / Features
 
@@ -35,9 +35,9 @@ Bandwidth calibration compares available core combinations and thread counts, up
 
 The storage profile follows CrystalDiskMark 9.x: a 1 GiB file, three measurements per case and direction, five seconds per measurement, and Direct I/O. Historical reports retain their original parameters.
 
-内部 [SoC 资料库](docs/SOC_CATALOG.md) 收录高通、天玑和玄戒的已核实信息，优先使用设备运行时拓扑。资料库不在界面展示，也不产生理论跑分。
+内部 [SoC 资料库](docs/SOC_CATALOG.md) 包含 142 个条目，覆盖 2020 年以来常见安卓平台，包括骁龙 4 / 6 / 7 系、天玑、Helio、Exynos、展锐、麒麟、Tensor 及玄戒；另收录玄戒 O3、骁龙 8EE6 和 8E6。设备运行时拓扑优先，未确认字段保留空值。资料库不在界面展示，也不产生理论跑分。
 
-The internal [SoC catalog](docs/SOC_CATALOG.md) contains verified Qualcomm, Dimensity and XRING metadata. Runtime topology takes precedence. The catalog is not displayed in the interface and does not generate theoretical scores.
+The internal [SoC catalog](docs/SOC_CATALOG.md) has 142 entries for common Android platforms used since 2020, including Snapdragon 4/6/7 series, Dimensity, Helio, Exynos, UNISOC, Kirin, Tensor and XRING. XRING O3, Snapdragon 8EE6 and 8E6 are also included. Runtime topology takes precedence, and unconfirmed fields remain null. The catalog is not displayed in the interface and does not generate theoretical scores.
 
 AIDA64 和 CrystalDiskMark 是测量项目与参数的参考。本项目独立实现 Android 测量内核，与两者没有隶属关系，不保证跨软件分数等价。
 

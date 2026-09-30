@@ -60,6 +60,10 @@ Some cases cancel app runs, terminate the app's worker process or turn off the d
 
 ## 已有验证范围 / Existing validation scope
 
+0.6.2 的 142 条 SoC 资料通过整库字段与来源校验。新增 4 项 `SocCatalogTest`，与原有 6 项 `MemoryMatrixTest` 一起通过，覆盖中文与型号代号、共用代号消歧、冲突拒绝、未知核心数和运行时缓存优先。签名 Release 表格快测完成 16/16 轮，完整导出报告包含资料库修订号 `2026-09-30.2`。原生库和着色器与 0.6.1 完全一致；这些检查验证匹配与回退逻辑，不表示已对 142 款芯片逐一实机测试。
+
+The 142 SoC entries in 0.6.2 passed the catalog-wide field and source checks. Four new `SocCatalogTest` cases and all six existing `MemoryMatrixTest` cases passed, covering Chinese names, silicon codes, shared-code disambiguation, conflicting identifiers, unconfirmed core counts and runtime cache precedence. The signed Release matrix quick run completed 16/16 rounds; its full export contains catalog revision `2026-09-30.2`. Native libraries and shaders are byte-identical to 0.6.1. These checks validate matching and fallback behavior, not execution on 142 physical chip models.
+
 0.6.1 调整 GPGPU 成绩字号及 CPU / GPU 列间距，并增加列分隔线。两项已有界面用例通过，覆盖完整快速测试、截图、导出及配置和历史保持。签名 Release 完成快速测试；正常尺寸和 360×640、130% 字体下，24 格成绩均可见，两列文字区域不相交。原生库和着色器与 0.6.0 逐字节一致。
 
 Version 0.6.1 reduces GPGPU score sizes, separates the CPU/GPU columns and adds a vertical divider. Two existing interface cases passed, covering the complete quick run, screenshots, export, and preservation of settings and history. The signed Release completed a quick run. All 24 score cells remain visible at the normal display size and at 360×640 with 130% font scaling, with no overlap between column text bounds. Native libraries and shaders are byte-identical to 0.6.0.

@@ -82,6 +82,8 @@ data class CpuTopology(val cores: List<CpuCore>, val caches: List<CpuCache>, val
         /** 只补充缺失字段，并验证变体核心数及核心组匹配。 / Fill gaps only after validating variant count and core-group mapping. */
         internal fun withCatalog(topology: CpuTopology): CpuTopology {
             val soc = topology.soc ?: return topology
+            if (soc.isNull("cpu_count"))
+                return topology.copy(notes = topology.notes + "CATALOG_CORE_COUNT_UNCONFIRMED")
             if (soc.optInt("cpu_count") != topology.cores.size)
                 return topology.copy(notes = topology.notes + "CATALOG_CORE_COUNT_MISMATCH")
             val caches = topology.caches.toMutableList()
