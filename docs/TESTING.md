@@ -60,6 +60,10 @@ Some cases cancel app runs, terminate the app's worker process or turn off the d
 
 ## 已有验证范围 / Existing validation scope
 
+0.6.1 调整 GPGPU 成绩字号及 CPU / GPU 列间距，并增加列分隔线。两项已有界面用例通过，覆盖完整快速测试、截图、导出及配置和历史保持。签名 Release 完成快速测试；正常尺寸和 360×640、130% 字体下，24 格成绩均可见，两列文字区域不相交。原生库和着色器与 0.6.0 逐字节一致。
+
+Version 0.6.1 reduces GPGPU score sizes, separates the CPU/GPU columns and adds a vertical divider. Two existing interface cases passed, covering the complete quick run, screenshots, export, and preservation of settings and history. The signed Release completed a quick run. All 24 score cells remain visible at the normal display size and at 360×640 with 130% font scaling, with no overlap between column text bounds. Native libraries and shaders are byte-identical to 0.6.0.
+
 0.6.0 增加 7 个 GPGPU 用例，覆盖 CPU 运算和密码学已知答案、GPU 输出与 CPU 参考值交叉验证、取消、互斥、锁屏、历史、截图及导出。加上原有用例，44 个不同测试最终通过。一次旧 ROM 编辑器检查读到了点击前的选中状态，改为等待选中状态后，该组 5 个参数用例复测通过。
 
 Version 0.6.0 adds seven GPGPU cases covering CPU arithmetic and cryptographic known answers, GPU/reference comparisons, cancellation, mutual exclusion, screen-off execution, history, screenshots and export. Together with existing coverage, 44 distinct cases passed their final runs. One existing storage-editor check observed selection before the click was committed; waiting for the selected state resolved it, and all five parameter cases passed again.

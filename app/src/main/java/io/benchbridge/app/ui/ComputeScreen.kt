@@ -54,10 +54,11 @@ internal fun ComputeDashboard(report:JSONObject?,config:ComputeConfig,running:Bo
                 modifier=Modifier.testTag("compute_state_$status"))
             Surface(Modifier.fillMaxWidth().weight(1f).testTag("compute_board"),shape=RoundedCornerShape(16.dp),color=MaterialTheme.colorScheme.surfaceContainerLow){
                 Column(Modifier.fillMaxSize().padding(horizontal=10.dp,vertical=if(compact)3.dp else 7.dp)){
-                    Row(Modifier.fillMaxWidth().padding(bottom=3.dp)){
+                    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(bottom=3.dp)){
                         Text("项目",Modifier.weight(1.25f),fontSize=11.sp)
-                        Text("CPU",Modifier.weight(1f),fontSize=12.sp,textAlign=TextAlign.End,fontWeight=FontWeight.SemiBold)
-                        Text("GPU",Modifier.weight(1f),fontSize=12.sp,textAlign=TextAlign.End,fontWeight=FontWeight.SemiBold)
+                        Text("CPU",Modifier.weight(1f).padding(start=6.dp,end=10.dp),fontSize=12.sp,textAlign=TextAlign.End,fontWeight=FontWeight.SemiBold)
+                        VerticalDivider(color=MaterialTheme.colorScheme.outlineVariant)
+                        Text("GPU",Modifier.weight(1f).padding(start=10.dp,end=4.dp),fontSize=12.sp,textAlign=TextAlign.End,fontWeight=FontWeight.SemiBold)
                     }
                     ComputeKind.entries.forEach { kind ->
                         HorizontalDivider(color=MaterialTheme.colorScheme.outlineVariant)
@@ -68,12 +69,14 @@ internal fun ComputeDashboard(report:JSONObject?,config:ComputeConfig,running:Bo
                                 else {Text(kind.title,fontSize=11.sp,lineHeight=14.sp,maxLines=1);Text(kind.unit,fontSize=8.sp,lineHeight=11.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)}
                             }
                             listOf("cpu","gpu").forEach { target ->
+                                if(target=="gpu")VerticalDivider(color=MaterialTheme.colorScheme.outlineVariant)
                                 val score=report?.let { ComputeResults.median(it,kind.code,target) }
-                                Box(Modifier.weight(1f).fillMaxHeight().padding(start=6.dp),contentAlignment=Alignment.CenterEnd){
+                                val columnPadding=if(target=="cpu")PaddingValues(start=6.dp,end=10.dp)else PaddingValues(start=10.dp,end=4.dp)
+                                Box(Modifier.weight(1f).fillMaxHeight().padding(columnPadding),contentAlignment=Alignment.CenterEnd){
                                     BasicText(score?.let { "%.2f".format(Locale.US,it) }?:"—",Modifier.fillMaxWidth().testTag("compute_${target}_${kind.code}"),maxLines=1,
-                                        style=MaterialTheme.typography.titleMedium.copy(fontWeight=FontWeight.Bold,textAlign=TextAlign.End,lineHeight=TextUnit.Unspecified,
+                                        style=MaterialTheme.typography.titleMedium.copy(fontWeight=FontWeight.SemiBold,textAlign=TextAlign.End,lineHeight=TextUnit.Unspecified,
                                             color=if(score==null)MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary),
-                                        autoSize=TextAutoSize.StepBased(8.sp,if(compact)17.sp else 21.sp))
+                                        autoSize=TextAutoSize.StepBased(8.sp,if(compact)14.sp else 17.sp))
                                 }
                             }
                         }
