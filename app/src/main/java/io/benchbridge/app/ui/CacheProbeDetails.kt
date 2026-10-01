@@ -179,6 +179,9 @@ internal fun CacheTopologyDetails(report: JSONObject) {
                 objects(analysis?.optJSONArray("transitions")).forEachIndexed { index,e->
                     Text("转换 ${index+1}：${sizeLabel(e.getLong("lower_bytes"))}–${sizeLabel(e.getLong("upper_bytes"))} · %.2f → %.2f ns".format(Locale.US,e.getDouble("before_ns"),e.getDouble("after_ns")),style=MaterialTheme.typography.bodySmall)
                 }
+                objects(analysis?.optJSONArray("unresolved_intervals")).forEach { e->
+                    Text("${sizeLabel(e.getLong("lower_bytes"))}–${sizeLabel(e.getLong("upper_bytes"))}："+if(e.optString("reason")=="insufficient_contiguous_points")"连续有效点不足，不能定位边界"else"重复测量不一致或缺测，不能定位边界",style=MaterialTheme.typography.bodySmall)
+                }
             }
         }
         Text("结论描述实测访问层次，不将曲线转换直接等同于 L1/L2/L3 容量。系统页大小、TLB、预取和频率均可影响曲线。参考线仅代表系统或资料库容量。",style=MaterialTheme.typography.bodySmall)
@@ -193,8 +196,8 @@ internal fun ColumnScope.CacheCurveBoard(report: JSONObject?, config: RamConfig,
     if(!config.curveIncludeRam) {
         objects(report?.optJSONObject("cache_probe")?.optJSONArray("groups")).take(4).forEach { g->
             val a=g.optJSONObject("analysis")
-            Text("CPU ${g.optInt("cpu_id")}："+if(a?.optString("status")=="COMPLETE")
-                "${a.optJSONArray("regions")?.length()} 个延迟区间 · ${a.optJSONArray("transitions")?.length()} 处转换"
+            Text("CPU ${g.optInt("cpu_id")}："+if(a?.optString("status") in listOf("COMPLETE","PARTIAL"))
+                "${a?.optJSONArray("regions")?.length()} 个延迟区间 · ${a?.optJSONArray("transitions")?.length()} 处转换"+if(a?.optString("status")=="PARTIAL")" · 部分范围受干扰"else""
                 else if(report?.optString("state")=="RUNNING")"扫描与验证中"
                 else "${g.optInt("stable_points")} / ${g.optJSONArray("planned_sizes")?.length()?:0} 点通过验证，不能确定完整层次",
                 fontSize=if(compact)8.sp else 10.sp,lineHeight=if(compact)11.sp else 14.sp,maxLines=2)

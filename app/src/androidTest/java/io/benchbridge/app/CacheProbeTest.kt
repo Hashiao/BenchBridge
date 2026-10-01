@@ -64,7 +64,13 @@ class CacheProbeTest {
         assertEquals(4,analysis.getJSONArray("regions").length());assertEquals(3,analysis.getJSONArray("transitions").length())
         assertEquals(original,points.map { it.toJson().toString() })
         val incomplete=LatencyAnalysis.analyze(points.filterIndexed { i,_->i!=10 },grid)
-        assertEquals("INCOMPLETE",incomplete.getString("status"));assertEquals(0,incomplete.getJSONArray("transitions").length())
+        assertEquals("PARTIAL",incomplete.getString("status"));assertEquals(3,incomplete.getJSONArray("transitions").length())
+        assertEquals(grid[10],incomplete.getJSONArray("unresolved_intervals").getJSONObject(0).getLong("lower_bytes"))
+        val gap=grid.indexOf(1048576L)
+        val missingStep=LatencyAnalysis.analyze(points.filterIndexed { i,_->i !in gap-1..gap+1 },grid)
+        val remaining=missingStep.getJSONArray("transitions")
+        assertEquals(2,remaining.length())
+        for(i in 0 until remaining.length())assertFalse(1048576L in remaining.getJSONObject(i).getLong("lower_bytes")..remaining.getJSONObject(i).getLong("upper_bytes"))
     }
 
     @Test fun smoothTrendAndAnIsolatedSpikeDoNotInventMultipleCacheLevels() {
@@ -73,6 +79,23 @@ class CacheProbeTest {
         assertEquals(1,LatencyAnalysis.analyze(ramp,grid).getJSONArray("regions").length())
         val spike=grid.mapIndexed { i,b->CacheProbe.Point(b,if(i==40)2.0 else 1.0,true) }
         assertEquals(0,LatencyAnalysis.analyze(spike,grid).getJSONArray("transitions").length())
+    }
+
+    @Test fun observedFullSweepKeepsVerifiedRegionsWithoutBridgingInterference() {
+        val fixture=JSONObject(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.assets
+            .open("cache_curve_observed.json").bufferedReader().use { it.readText() })
+        val groups=fixture.getJSONArray("groups")
+        for(i in 0 until groups.length()) {
+            val group=groups.getJSONObject(i);val data=group.getJSONArray("points");val grid=group.getJSONArray("planned_sizes")
+            val points=(0 until data.length()).map { n->val p=data.getJSONObject(n);CacheProbe.Point(p.getLong("working_set_bytes"),p.getDouble("latency_ns"),p.getBoolean("stable")) }
+            val analysis=LatencyAnalysis.analyze(points,(0 until grid.length()).map { grid.getLong(it) })
+            assertEquals("PARTIAL",analysis.getString("status"));assertTrue(analysis.getJSONArray("regions").length()>0)
+            val edges=analysis.getJSONArray("transitions");assertTrue(edges.length()>0)
+            for(j in 0 until edges.length()) {
+                val e=edges.getJSONObject(j)
+                assertTrue(points.filter { it.bytes in e.getLong("lower_bytes")..e.getLong("upper_bytes") }.all { it.stable })
+            }
+        }
     }
 
     @Test fun bidirectionalAgreementRejectsDriftAndRetainsMedianRatherThanFastest() {
@@ -111,7 +134,10 @@ class CacheProbeTest {
         val old=config.toJson().apply { remove("cache_curve");remove("cache_probe_method") }.toString()
         assertEquals(16,RamConfig.fromJson(old).totalRounds)
         val v09=config.toJson().apply { remove("curve_include_ram");remove("curve_steps");remove("curve_max_mib") }
+        v09.put("cache_probe_method","latency-step-sweep-v2")
         assertEquals(4,RamConfig.fromJson(v09.toString()).totalRounds)
+        assertFalse(RamConfig.fromJson(v09.toString()).summary.contains("正反两遍"))
+        assertEquals("latency-step-sweep-v2",RamConfig.fromJson(v09.toString()).toJson().getString("cache_probe_method"))
         assertEquals(4,config.copy(curveIncludeRam=true).totalRounds)
     }
 

@@ -14,8 +14,8 @@ This repository contains the current 0.10.0 implementation. The app interface is
 
 ## 功能 / Features
 
-- **缓存与 RAM：**不同核心组在同一坐标叠加工作集大小—延迟曲线，默认 4 KiB–128 MiB、每倍容量 8 个间隔、正反扫描和自动补测。完整验证后列出多个延迟区间与转换结论。RAM 读写等测试可选，旧版历史保持原协议。
-  **Cache and RAM:** overlay core-group size/latency curves on shared axes, normally covering 4 KiB–128 MiB with eight intervals per octave, reverse sweeps and automatic rechecks. Report multiple regions and transitions after full validation. RAM tests are optional; historical reports retain their original protocol.
+- **缓存与 RAM：**不同核心组在同一坐标叠加工作集大小—延迟曲线，默认 4 KiB–128 MiB、每倍容量 8 个间隔、正反扫描和自动补测。对连续通过验证的区间给出多个转换结论，另列无法定位的范围。RAM 读写等测试可选，旧版历史保持原协议。
+  **Cache and RAM:** overlay core-group size/latency curves on shared axes, normally covering 4 KiB–128 MiB with eight intervals per octave, reverse sweeps and automatic rechecks. Report transitions within contiguous validated regions and separately list unresolved ranges. RAM tests are optional; historical reports retain their original protocol.
 - **存储：**顺序和随机读写，可配置文件大小、块大小、队列深度、线程数与缓存模式。
   **Storage:** sequential and random I/O with configurable file size, block size, queue depth, thread count and cache mode.
 - **GPGPU：**独立分页，12 项 CPU / GPU 测试，包含各自内存读写、FP32 / FP64、整数运算、大块 AES-256 / SHA-1 与分形图像处理。成绩、单位和操作按钮同屏展示。

@@ -13,9 +13,29 @@ object LatencyAnalysis {
         val sorted=points.filter { it.stable && it.latency>0 }.sortedBy { it.bytes }
         val coverage=if(expected.isEmpty())0.0 else sorted.count { it.bytes in expected }.toDouble()/expected.size
         val output=JSONObject().put("method","penalized-log-linear-segments-v1").put("coverage",coverage)
-            .put("transitions",JSONArray()).put("regions",JSONArray())
-        if(sorted.size<8 || coverage<1.0 || sorted.first().bytes!=expected.firstOrNull() || sorted.last().bytes!=expected.lastOrNull())
+            .put("transitions",JSONArray()).put("regions",JSONArray()).put("unresolved_intervals",JSONArray())
+        if(sorted.size<8)
             return output.put("status","INCOMPLETE").put("summary","完整曲线尚未通过验证（${sorted.size}/${expected.size} 个稳定点），本次不能确定访问层次。")
+        if(coverage<1.0) {
+            // 仅分析连续有效片段，缺口两侧绝不拼接成阶跃。 / Analyze contiguous valid spans without inferring transitions across gaps.
+            val valid=sorted.associateBy { it.bytes };val regions=output.getJSONArray("regions");val edges=output.getJSONArray("transitions")
+            var start=0
+            while(start<expected.size) {
+                val accepted=valid.containsKey(expected[start]);var end=start+1
+                while(end<expected.size && valid.containsKey(expected[end])==accepted)end++
+                if(accepted && end-start>=8) {
+                    val grid=expected.subList(start,end);val part=analyze(grid.map { valid.getValue(it) },grid)
+                    val r=part.getJSONArray("regions");val e=part.getJSONArray("transitions")
+                    for(i in 0 until r.length())regions.put(r.getJSONObject(i).put("index",regions.length()+1))
+                    for(i in 0 until e.length())edges.put(e.getJSONObject(i))
+                } else {
+                    output.getJSONArray("unresolved_intervals").put(JSONObject().put("lower_bytes",expected[start]).put("upper_bytes",expected[end-1])
+                        .put("reason",if(accepted)"insufficient_contiguous_points"else"inconsistent_or_missing_measurement"))
+                }
+                start=end
+            }
+            return output.put("status","PARTIAL").put("summary","${sorted.size}/${expected.size} 点通过验证；已测得 ${regions.length()} 个连续延迟区间、${edges.length()} 处转换，${output.getJSONArray("unresolved_intervals").length()} 个范围无法定位边界。")
+        }
         val n=sorted.size;val y=sorted.map { ln(it.latency) };val x=sorted.map { ln(it.bytes.toDouble()) }
         val prefix=DoubleArray(n+1);val squares=DoubleArray(n+1)
         val px=DoubleArray(n+1);val pxx=DoubleArray(n+1);val pxy=DoubleArray(n+1)

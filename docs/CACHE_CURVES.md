@@ -19,9 +19,9 @@ Version 0.10.0 uses `dense-index-curve-v3` to compare full latency curves across
 
 ## 分析与显示 / Analysis and display
 
-全部计划点通过双向验证后，在对数工作集 / 对数延迟上进行带惩罚项的分段线性拟合，每段至少四点。拟合仅用来解释区间；图上始终显示实测中位数，不用拟合值替换。连续增长可以形成趋势段，不强制拆成 L1/L2/L3；相邻区间差异达到 25% 才列出转换。结论给出多个范围、区间中位数和转换前后延迟；小幅变化或样本不足时不能认定缓存容量。
+对连续通过双向验证的采样片段，在对数工作集 / 对数延迟上进行带惩罚项的分段线性拟合，每段至少四点、每个可分析片段至少八点。波动或缺测处切断分析，绝不跨缺口推断阶跃；其他连续片段仍给出结论，整体保留部分验证状态。拟合仅用来解释区间；图上始终显示实测中位数，不用拟合值替换。连续增长可以形成趋势段，不强制拆成 L1/L2/L3；相邻区间差异达到 25% 才列出转换。结论给出多个范围、区间中位数和转换前后延迟；小幅变化或样本不足时不能认定缓存容量。
 
-After every planned point passes bidirectional validation, apply penalized piecewise linear segmentation in log-size/log-latency space with at least four points per segment. Fits explain regions only; plotted values remain measured medians. Continuous growth may form a trend region, without forcing L1/L2/L3 labels. List transitions only when neighboring region medians differ by at least 25%. Conclusions include multiple ranges, medians and before/after latency, without assigning physical capacities from insufficient evidence.
+Apply penalized piecewise linear segmentation to contiguous bidirectionally validated spans in log-size/log-latency space, with at least four points per segment and eight points per analyzable span. Break analysis at inconsistent or missing points; never infer a transition across a gap. Other contiguous spans still receive conclusions while the overall result retains partial validation status. Fits explain regions only; plotted values remain measured medians. Continuous growth may form a trend region, without forcing L1/L2/L3 labels. List transitions only when neighboring region medians differ by at least 25%. Conclusions include multiple ranges, medians and before/after latency, without assigning physical capacities from insufficient evidence.
 
 默认叠加显示全部核心组，共用坐标；可切换单核心组、线性 / 对数 ns。单组误差线是合格计时块的 10–90% 分位范围，不是统计置信区间。空心点表示未通过验证。默认只测缓存曲线，RAM 带宽等测试需另行开启。
 

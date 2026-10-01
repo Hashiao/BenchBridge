@@ -81,7 +81,7 @@ internal fun ResultDashboard(
                             style = MaterialTheme.typography.labelSmall, modifier = Modifier.testTag("storage_result_timing"))
                     } else if (ram.cacheMatrix) {
                         Text(if(ram.curveMode)if(compact)"核心组延迟曲线 · T1"else"缓存：各核心组完整延迟曲线"else"${if (ram.automaticThreads) "自动校准线程" else "带宽 T${ram.threads}"} · 延迟 T1", style = MaterialTheme.typography.labelMedium,maxLines=1)
-                        Text(if(ram.curveMode)"正反两遍 · 每倍容量 ${ram.curveSteps} 个间隔"else"带宽 ${ram.rounds} 次 · 延迟 ${ram.latencyRounds} 次 · 中位数", style = MaterialTheme.typography.labelSmall,maxLines=1)
+                        Text(if(ram.curveMode)if(ram.curveProtocol==CacheProbe.METHOD)"正反两遍 · 每倍容量 ${ram.curveSteps} 个间隔"else"旧版协议 · 原始测量记录"else"带宽 ${ram.rounds} 次 · 延迟 ${ram.latencyRounds} 次 · 中位数", style = MaterialTheme.typography.labelSmall,maxLines=1)
                     } else {
                         Text("每轮 ${BenchmarkFormat.duration(ram.durationMs)} · 中位数", style = MaterialTheme.typography.labelMedium)
                         if (!compact) Text("工作集、线程和次数见各项", style = MaterialTheme.typography.labelSmall,
@@ -282,7 +282,7 @@ private fun DashboardStatus(disk: Boolean, report: JSONObject?, running: Boolean
         val statusText=when {
             running && curve && report.optString("phase")=="CACHE_PROBING" -> "扫描 CPU ${probe?.optInt("current_cpu_id")} · ${BenchmarkFormat.bytes(probe?.optLong("current_working_set_bytes")?:0)}"
             running -> "$current$phase · $completed / $total 轮"
-            curve && state=="PARTIAL" -> "完整性验证未通过"
+            curve && state=="PARTIAL" -> "扫描结束 · 部分范围受干扰"
             else -> RamResults.stateLabel(state)
         }
         Text(statusText,

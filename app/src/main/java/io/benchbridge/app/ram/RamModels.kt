@@ -32,6 +32,7 @@ data class RamConfig(
     val curveIncludeRam: Boolean = true,
     val curveMaxMiB: Int = 128,
     val curveSteps: Int = 8,
+    val curveProtocol: String = CacheProbe.METHOD,
 ) {
     val curveMode: Boolean get() = cacheMatrix && cacheCurve
     val scoredLevels: List<String> get() = if(curveMode&&!curveIncludeRam)emptyList()else if (cacheMatrix && !curveMode) MemoryPlanner.levels else listOf("RAM")
@@ -52,7 +53,8 @@ data class RamConfig(
         if (hasBandwidth && scoredLevels.isNotEmpty()) add("${if (cacheMatrix) "RAM " else ""}带宽：${BenchmarkFormat.mib(workingSetMiB)} · ${if (automaticThreads && cacheMatrix) "自动线程" else "$threads 线程"} · $rounds 次")
         if (hasLatency && scoredLevels.isNotEmpty()) add("${if (cacheMatrix) "RAM " else ""}延迟：${BenchmarkFormat.mib(latencySetMiB)} · 1 线程 · $latencyRounds 次")
         if(scoredLevels.isNotEmpty())add("${if (cacheMatrix) "RAM " else ""}每次 ${BenchmarkFormat.duration(durationMs)} · 预热 ${BenchmarkFormat.duration(warmupMs)} · 间隔 ${BenchmarkFormat.duration(cooldownMs)}")
-        if (curveMode) add("4 KiB–$curveMaxMiB MiB · 每倍容量 $curveSteps 个间隔 · 正反两遍交叉验证 · 自动补测与多区间分析")
+        if (curveMode) add(if(curveProtocol==CacheProbe.METHOD)"4 KiB–$curveMaxMiB MiB · 每倍容量 $curveSteps 个间隔 · 正反两遍交叉验证 · 自动补测与多区间分析"
+            else "旧版缓存曲线协议：$curveProtocol · 保留原始测量参数")
         else if (cacheMatrix) add("缓存每次 ${BenchmarkFormat.duration(minOf(durationMs, 1000))}；工作集按共享域分配。RAM 工作集至少为末级缓存的两倍，实际值见成绩。")
     }.joinToString("\n")
     val totalRounds: Int get() = kinds.sumOf { if (it == RamKind.LATENCY.code) latencyRounds else rounds } * scoredLevels.size
@@ -98,7 +100,7 @@ data class RamConfig(
         put("cache_matrix", cacheMatrix)
         put("cache_curve", curveMode)
         put("curve_include_ram",curveIncludeRam).put("curve_max_mib",curveMaxMiB).put("curve_steps",curveSteps)
-        if (curveMode) put("cache_probe_method", CacheProbe.METHOD).put("curve_include_ram",curveIncludeRam)
+        if (curveMode) put("cache_probe_method", curveProtocol).put("curve_include_ram",curveIncludeRam)
             .put("curve_max_mib",curveMaxMiB).put("curve_steps",curveSteps)
         put("calibration_ms", calibrationMs)
         if (cacheMatrix) put("cache_duration_ms", minOf(durationMs, 1000)).put("cache_warmup_ms", minOf(warmupMs, 250))
@@ -132,6 +134,7 @@ data class RamConfig(
                 cacheMatrix = json.optBoolean("cache_matrix", false), calibrationMs = json.optInt("calibration_ms", 150),
                 cacheCurve = json.optBoolean("cache_curve", false),
                 curveIncludeRam=json.optBoolean("curve_include_ram",true),curveMaxMiB=json.optInt("curve_max_mib",64),curveSteps=json.optInt("curve_steps",4),
+                curveProtocol=json.optString("cache_probe_method",if(json.optBoolean("cache_curve"))"legacy-curve"else CacheProbe.METHOD),
             ).also { it.validate() }
         }
     }
