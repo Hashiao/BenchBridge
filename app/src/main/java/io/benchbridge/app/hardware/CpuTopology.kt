@@ -13,18 +13,20 @@ data class CpuCore(val id: Int, val physicalKey: String, val capacity: Long, val
 }
 
 data class CpuCache(val id: String, val level: Int, val bytes: Long, val lineBytes: Int,
-                    val cpus: List<Int>, val source: String, val sourceRef: String = "") {
+                    val cpus: List<Int>, val source: String, val sourceRef: String = "", val lineSource: String = source) {
     fun toJson() = JSONObject().put("id", id).put("level", level).put("bytes", bytes).put("line_bytes", lineBytes)
-        .put("cpus", JSONArray(cpus)).put("source", source).put("source_ref", sourceRef)
+        .put("cpus", JSONArray(cpus)).put("source", source).put("source_ref", sourceRef).put("line_source", lineSource)
 }
 
 data class CpuTopology(val cores: List<CpuCore>, val caches: List<CpuCache>, val soc: JSONObject?,
-                       val catalogRevision: String, val notes: List<String> = emptyList()) {
+                       val catalogRevision: String, val notes: List<String> = emptyList(),
+                       val dataLineBytes: Int = 0, val dataLineSource: String = "unknown") {
     val allowedCores: List<CpuCore> get() = cores.filter { it.allowed }
     fun cache(cpu: Int, level: Int): CpuCache? = caches.filter { it.level == level && cpu in it.cpus }.minByOrNull { it.bytes }
     fun largestCache(cpu: Int): CpuCache? = caches.filter { cpu in it.cpus }.maxByOrNull { it.level }
     fun toJson() = JSONObject().put("cores", JSONArray(cores.map { it.toJson() })).put("caches", JSONArray(caches.map { it.toJson() }))
         .put("soc_metadata", soc ?: JSONObject.NULL).put("catalog_revision", catalogRevision).put("notes", JSONArray(notes))
+        .put("data_cache_line_bytes", dataLineBytes).put("data_cache_line_source", dataLineSource)
 
     companion object {
         internal fun cpuList(value: String): List<Int> = runCatching {
@@ -76,7 +78,8 @@ data class CpuTopology(val cores: List<CpuCore>, val caches: List<CpuCache>, val
             val identifiers = listOf(if (Build.VERSION.SDK_INT >= 31) Build.SOC_MODEL else "", Build.HARDWARE,
                 read("/sys/devices/soc0/machine"), read("/sys/devices/system/soc/soc0/machine"))
             val soc = catalog.match(identifiers)
-            return withCatalog(CpuTopology(cores, caches, soc, catalog.revision))
+            return withCatalog(CpuTopology(cores, caches, soc, catalog.revision,
+                dataLineBytes = native.optInt("data_cache_line_bytes"), dataLineSource = native.optString("data_cache_line_source", "unknown")))
         }
 
         /** 只补充缺失字段，并验证变体核心数及核心组匹配。 / Fill gaps only after validating variant count and core-group mapping. */
@@ -110,12 +113,13 @@ data class CpuTopology(val cores: List<CpuCore>, val caches: List<CpuCache>, val
                     val remaining = sorted.filter { it.id !in assigned }
                     val candidate = remaining.take(count)
                     val boundary = remaining.getOrNull(count)
-                    matching = if (candidate.size == count && candidate.all { part.isEmpty() || it.part.isEmpty() || it.part == part } &&
+                    matching = if (candidate.size == count && (!group.optBoolean("uniform_frequency_group") || candidate.map { it.maxKhz }.distinct().size == 1) && candidate.all { part.isEmpty() || it.part.isEmpty() || it.part == part } &&
                         (boundary == null || candidate.last().maxKhz > boundary.maxKhz)) candidate else emptyList()
                 }
                 if (matching.size != count) continue
                 assigned += matching.map { it.id }
-                val line = group.optInt("cache_line_bytes", 0)
+                val declaredLine = group.optInt("cache_line_bytes", 0)
+                val line = declaredLine.takeIf { it > 0 } ?: topology.dataLineBytes
                 if (line !in listOf(32, 64, 128, 256)) continue
                 for (level in 1..2) {
                     val size = group.optLong(if (level == 1) "l1d_bytes" else "l2_bytes")
@@ -125,9 +129,27 @@ data class CpuTopology(val cores: List<CpuCore>, val caches: List<CpuCache>, val
                     domains.forEach { cpus ->
                         if (caches.none { it.level == level && it.cpus.any(cpus::contains) })
                             caches += CpuCache("L$level:${cpus.sorted().joinToString(",")}", level, size, line, cpus.sorted(),
-                                "catalog-validated", if (level == 1) group.optString("l1_source", group.optString("cache_source")) else group.optString("cache_source"))
+                                "catalog-validated", if (level == 1) group.optString("l1_source", group.optString("cache_source")) else group.optString("cache_source"),
+                                if (declaredLine > 0) "catalog-validated" else topology.dataLineSource)
                     }
                 }
+            }
+            // 全 SoC 共享缓存不依赖频率分组，也不能按 2+3+3 拆成三份。
+            // An SoC-wide cache is independent of frequency groups and must not be triplicated for 2+3+3.
+            val sharedCaches = soc.optJSONArray("shared_cpu_caches") ?: JSONArray()
+            for (i in 0 until sharedCaches.length()) {
+                val shared = sharedCaches.getJSONObject(i)
+                val level = shared.optInt("level")
+                val size = shared.optLong("bytes")
+                val declaredLine = shared.optInt("line_bytes")
+                val line = declaredLine.takeIf { it > 0 } ?: topology.dataLineBytes
+                if (shared.optString("scope") != "soc" || level !in 1..3 || size !in 1024..1073741824L || line !in listOf(32,64,128,256)) continue
+                // 局部运行时记录与全域资料冲突时，保留运行时信息而不覆盖。
+                // Preserve partial runtime evidence instead of overlaying an incompatible global domain.
+                if (caches.any { it.level == level }) continue
+                val cpus = topology.cores.map { it.id }.sorted()
+                caches += CpuCache("L$level:${cpus.joinToString(",")}", level, size, line, cpus, "catalog-validated",
+                    shared.getString("source"), if (declaredLine > 0) "catalog-validated" else topology.dataLineSource)
             }
             val l3 = soc.optJSONObject("cpu_l3")
             if (caches.none { it.level == 3 } && l3 != null && l3.optString("scope") == "soc" && l3.optLong("bytes") > 0) {

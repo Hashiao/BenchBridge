@@ -1,8 +1,8 @@
 # 内部 SoC 资料库 / Internal SoC catalog
 
-资料库位于 `app/src/main/assets/soc_catalog.json`，修订号 `2026-09-30.2`。本次从 17 个条目扩充到 142 个，覆盖 2020 年以来常见安卓手机使用的平台，兼顾入门、中端和旗舰，也包括同期机型沿用的少量早期芯片。
+资料库位于 `app/src/main/assets/soc_catalog.json`，修订号 `2026-10-01.1`。共有 142 个条目，覆盖 2020 年以来常见安卓手机使用的平台，兼顾入门、中端和旗舰，也包括同期机型沿用的少量早期芯片。
 
-The catalog is stored in `app/src/main/assets/soc_catalog.json`, revision `2026-09-30.2`. This revision expands 17 entries to 142, covering platforms used in common Android phones since 2020 across entry, mid-range and flagship devices, including some earlier chips retained in those phones.
+The catalog is stored in `app/src/main/assets/soc_catalog.json`, revision `2026-10-01.1`. It contains 142 entries covering platforms used in common Android phones since 2020 across entry, mid-range and flagship devices, including some earlier chips retained in those phones.
 
 资料库只补充设备运行时未提供的资料。未收录的 SoC 仍可运行测试；收录某个型号也不表示其所有缓存和 GPU 规格都已确认。界面不展示规格数据库，成绩来自实际执行。
 
@@ -27,12 +27,12 @@ The inventory below and the JSON contain exact models, codes and sources. A seri
 | 平台 / Platform | 识别 / Identity | 已确认信息 / Confirmed metadata |
 |---|---|---|
 | XRING O3 / 玄戒 O3 | XRING O3、Xiaomi XRING O3、玄戒 O3 | 10 个 CPU 核心：2 Ultra + 4 Premium + 4 Pro；16 核 G2-Ultra NX GPU / ten CPU cores and sixteen GPU shader cores |
-| Snapdragon 8 Elite Extreme Gen 6 | SM8975、8EE6 | 2 Prime + 6 Performance；Adreno GPU |
+| Snapdragon 8 Elite Extreme Gen 6 | SM8975、8EE6 | 2+3+3 频率组 / frequency groups；Prime L1D 96 KiB、Performance L1D 64 KiB；八核共享 / all-core shared 16 MiB L2；Adreno GPU |
 | Snapdragon 8 Elite Gen 6 | SM8950、8E6 | 2 Prime + 6 Performance；Adreno GPU |
 
-两颗新骁龙的 16 MB Oryon Flex Cache 按厂商原始名称单独记录，未归类为 CPU L2 / L3。玄戒 O3 未取得一手容量与共享关系证据的缓存字段保持空值。没有将 GPU MC、WGP、shader engine、ALU 或 slice 互相换算。
+两颗新骁龙均保留厂商的 16 MB Oryon Flex Cache 原始名称。8EE6 另依据[极客湾原创分析](https://www.bilibili.com/video/BV17uhW6VE2R/)的 2:18 / 2:30 微架构图、2:37 / 2:50 die 图补充 L1D 与共享 L2；2+6 是核心类型划分，2+3+3 是实际频率分组。未从图中推测缓存行大小，运行时 CTR_EL0 最小行粒度单独标注。8E6 尚不沿用 Extreme 的拓扑；独立 CPU L3 仍未确认，不把共享 L2 或 SLC 冒充 L3。玄戒 O3 未取得一手容量与共享关系证据的字段保持空值。没有将 GPU MC、WGP、shader engine、ALU 或 slice 互相换算。
 
-The new Snapdragon platforms' 16 MB Oryon Flex Cache is recorded under its published name, without assigning it to CPU L2 or L3. XRING O3 cache capacities and sharing relationships remain null without primary evidence. GPU MC counts, WGPs, shader engines, ALUs and slices are not converted into one another.
+Both Snapdragon entries retain the original 16 MB Oryon Flex Cache marketing name. For 8EE6, [Geekerwan's original analysis](https://www.bilibili.com/video/BV17uhW6VE2R/) at 2:18/2:30 (microarchitecture) and 2:37/2:50 (die diagrams) supplies L1D and shared L2 evidence. 2+6 describes core types; 2+3+3 describes frequency groups. Line size is not inferred from images; runtime CTR_EL0 minimum granules carry separate provenance. The ordinary 8E6 does not inherit Extreme's topology. A separate CPU L3 remains unconfirmed; L2 and SLC are not renamed L3. XRING O3 cache fields remain null without primary evidence. GPU MC counts, WGPs, shader engines, ALUs and slices are not converted into one another.
 
 ## 匹配与回退 / Matching and fallback
 

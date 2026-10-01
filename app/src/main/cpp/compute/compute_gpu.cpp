@@ -46,6 +46,7 @@ struct GpuEngine::Impl {
         vkGetPhysicalDeviceQueueFamilyProperties(physical,&count,nullptr);std::vector<VkQueueFamilyProperties> families(count);vkGetPhysicalDeviceQueueFamilyProperties(physical,&count,families.data());
         bool found=false;for(unsigned i=0;i<count;++i)if(families[i].queueFlags&VK_QUEUE_COMPUTE_BIT){queueIndex=i;timestampBits=families[i].timestampValidBits;found=true;break;}
         if(!found)throw std::runtime_error("COMPUTE_QUEUE_UNAVAILABLE");
+        if(!std::isfinite(properties.limits.timestampPeriod)||properties.limits.timestampPeriod<=0)timestampBits=0;
         float priority=1;auto q=vk<VkDeviceQueueCreateInfo>(VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO);q.queueFamilyIndex=queueIndex;q.queueCount=1;q.pQueuePriorities=&priority;
         VkPhysicalDeviceFeatures enabled{};enabled.shaderFloat64=features.shaderFloat64;enabled.shaderInt64=features.shaderInt64;
         auto d=vk<VkDeviceCreateInfo>(VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);d.queueCreateInfoCount=1;d.pQueueCreateInfos=&q;d.pEnabledFeatures=&enabled;check(vkCreateDevice(physical,&d,nullptr,&device));vkGetDeviceQueue(device,queueIndex,0,&queue);
@@ -120,7 +121,18 @@ struct GpuEngine::Impl {
     std::uint64_t copy(Buffer& src,Buffer& dst,VkDeviceSize size,bool timed){return submit([&]{VkBufferCopy region{0,0,size};vkCmdCopyBuffer(command,src.buffer,dst.buffer,1,&region);},timed);}
     void clearOutput(){submit([&]{vkCmdFillBuffer(command,b.buffer,0,b.bytes,0xcdcdcdcdu);},false);}
     void prepare(int kind,std::atomic<bool>& cancelled){
-        if(kind==MemoryRead||kind==MemoryCopy||kind==Aes256||kind==Sha1){
+        if(kind==Sha1){
+            // 按字交错消息，让相邻线程读取相邻地址；逻辑消息内容保持相同。
+            // Interleave message words for coalesced loads without changing logical message contents.
+            auto* data=static_cast<std::uint32_t*>(host.mapped);
+            const auto messages=a.bytes/crypto_message_bytes;
+            for(std::size_t word=0;word<crypto_message_bytes/4;++word){
+                if(cancelled.load())throw std::runtime_error("RUN_CANCELLED");
+                for(std::size_t message=0;message<messages;++message)
+                    data[word*messages+message]=pattern(static_cast<std::uint32_t>(message*(crypto_message_bytes/4)+word),data_seed);
+            }
+            visibility(true);copy(host,a,a.bytes,false);
+        }else if(kind==MemoryRead||kind==MemoryCopy||kind==Aes256){
             for(std::size_t offset=0;offset<a.bytes;offset+=crypto_message_bytes){
                 if(cancelled.load())throw std::runtime_error("RUN_CANCELLED");
                 fill_data(static_cast<std::uint8_t*>(host.mapped)+offset,std::min<std::size_t>(crypto_message_bytes,a.bytes-offset),offset);
@@ -218,12 +230,19 @@ struct GpuEngine::Impl {
             }else if(kind>MemoryCopy&&kind<Julia){
                 plan.iterations=std::clamp<std::uint32_t>(static_cast<std::uint32_t>(std::min(8192.0,double(plan.iterations)*2000000/std::max<std::uint64_t>(time,1))),1,8192u);
             }
-            auto t1=dispatch(kind,plan,157,width,height),t2=dispatch(kind,plan,193,width,height);
-            if(!verify(kind,plan,193,width,height,0,&cancelled))throw std::runtime_error(cancelled.load()?"RUN_CANCELLED":"GPU_CALIBRATION_VERIFY_FAILED");
-            const double units=kind<=MemoryCopy?double(bytes):kind>=Julia?double(width)*height:double(plan.count)*units_per_item(kind,plan.iterations);
-            const double rate=units*2e9/(t1+t2);
-            if(!first)trials<<',';first=false;trials<<"{\"local_size\":"<<local<<",\"invocations\":"<<plan.count<<",\"iterations\":"<<plan.iterations<<",\"work_units_per_dispatch\":"<<static_cast<std::uint64_t>(units)<<",\"elapsed_ns\":["<<t1<<','<<t2<<"]}";
-            if(rate>score){score=rate;best=plan;}
+            for(;;){
+                if(cancelled.load())throw std::runtime_error("RUN_CANCELLED");
+                auto t1=dispatch(kind,plan,157,width,height),t2=dispatch(kind,plan,193,width,height);
+                if(!verify(kind,plan,193,width,height,0,&cancelled))throw std::runtime_error(cancelled.load()?"RUN_CANCELLED":"GPU_CALIBRATION_VERIFY_FAILED");
+                const double units=kind<=MemoryCopy?double(bytes):kind>=Julia?double(width)*height:double(plan.count)*units_per_item(kind,plan.iterations);
+                const double rate=units*2e9/(t1+t2);
+                if(!first)trials<<',';first=false;trials<<"{\"local_size\":"<<local<<",\"invocations\":"<<plan.count<<",\"iterations\":"<<plan.iterations<<",\"work_units_per_dispatch\":"<<static_cast<std::uint64_t>(units)<<",\"elapsed_ns\":["<<t1<<','<<t2<<"]}";
+                if(rate>score){score=rate;best=plan;}
+                // 比较更多独立消息，避免按单个工作组的耗时提前截断并行度。
+                // Compare larger message batches instead of fixing occupancy from one workgroup's timing.
+                if(!crypto||plan.count>=limit||std::max(t1,t2)>50000000ull)break;
+                plan.count=static_cast<std::uint32_t>(std::min<std::uint64_t>(limit,std::uint64_t(plan.count)*2));
+            }
         }
         if(score<0)throw std::runtime_error("GPU_WORKGROUP_UNAVAILABLE");trials<<']';best.calibration=trials.str();plans[planKey]=best;return best;
     }
@@ -246,7 +265,7 @@ std::string GpuEngine::round(int kind,int memory_mib,int warmup_ms,int duration_
     p->buffers(kind,std::uint64_t(kind<=MemoryCopy||crypto?memory_mib:4)*1048576);
     p->prepare(kind,cancelled);
     const auto plan=p->tune(kind,width,height,cancelled);
-    Result r;r.kind=kind;r.backend="vulkan-compute-v2";
+    Result r;r.kind=kind;r.backend="vulkan-compute-v3";r.timer=p->timestampBits?"vulkan-timestamp":"host-submit-fence";
     std::uint32_t seed=data_seed,cursor=0;
     const auto totalItems=crypto?p->a.bytes/units_per_item(kind,1):0;
     auto batch=[&](bool measured,std::uint64_t& deviceTime,std::uint64_t& invocations){
@@ -267,11 +286,13 @@ std::string GpuEngine::round(int kind,int memory_mib,int warmup_ms,int duration_
     if(!cancelled.load())p->clearOutput();cursor=0;
     const auto start=now_ns(),end=start+std::uint64_t(duration_ms)*1000000;
     while(!cancelled.load()&&now_ns()<end){batch(true,deviceTime,invocations);++batches;}
-    r.elapsed=r.wall=now_ns()-start;r.interrupted=cancelled.load();r.verified=!r.interrupted&&batches>0&&r.elapsed>0;
+    // GPU 主成绩只使用设备执行区间，CPU 提交间隙保留在 wall 中供审计。
+    // Score GPU execution intervals only; retain CPU submission gaps in wall time for auditing.
+    r.wall=now_ns()-start;r.elapsed=deviceTime;r.interrupted=cancelled.load();r.verified=!r.interrupted&&batches>0&&r.elapsed>0&&r.elapsed<=r.wall;
     if(r.verified)r.verified=p->verify(kind,plan,seed,width,height,invocations,&cancelled);
     r.interrupted=cancelled.load();r.verified &= !r.interrupted;
     const auto auxiliary=kind==MemoryRead||kind==Sha1?p->b.bytes:0;
-    std::ostringstream extra;extra<<",\"protocol\":\"gpgpu-v2\",\"timer_scope\":\"measurement-window\",\"batches\":"<<batches
+    std::ostringstream extra;extra<<",\"protocol\":\"gpgpu-v3\",\"timer_scope\":"<<quote(p->timestampBits?"device-execution":"host-submit-fence")<<",\"batches\":"<<batches
         <<",\"buffer_bytes\":"<<p->bytes<<",\"working_set_bytes\":"<<(kind<=MemoryCopy||crypto?p->bytes:0)
         <<",\"input_bytes\":"<<(kind==MemoryWrite||(kind>MemoryCopy&&!crypto)?0:p->a.bytes)<<",\"output_bytes\":"<<p->b.bytes<<",\"auxiliary_bytes\":"<<auxiliary
         <<",\"local_size\":"<<plan.local<<",\"invocations\":"<<plan.count<<",\"completed_invocations\":"<<invocations
@@ -279,6 +300,7 @@ std::string GpuEngine::round(int kind,int memory_mib,int warmup_ms,int duration_
         <<",\"message_bytes\":"<<(crypto?crypto_message_bytes:0)<<",\"messages_processed\":"<<(crypto?r.work/crypto_message_bytes:0)
         <<",\"fractal_iterations\":128,\"calibration\":"<<plan.calibration<<",\"input_prepared_before_timing\":true,\"measured_transfer_commands\":0"
         <<",\"device_elapsed_ns\":"<<deviceTime<<",\"device_timer\":"<<quote(p->timestampBits?"vulkan-timestamp":"host-submit-fence")
+        <<",\"input_layout\":"<<quote(kind==Sha1?"word-interleaved-messages":"contiguous")
         <<",\"input_memory_type\":"<<p->a.type<<",\"input_memory_flags\":"<<p->a.flags<<",\"output_memory_type\":"<<p->b.type<<",\"output_memory_flags\":"<<p->b.flags
         <<",\"warmup_ms\":"<<warmup_ms<<",\"requested_duration_ms\":"<<duration_ms<<",\"gpu\":"<<capabilities();r.extra=extra.str();return r.json();
 }

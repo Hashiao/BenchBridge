@@ -31,9 +31,9 @@ data class ComputeConfig(val kinds: List<Int> = ComputeKind.entries.map { it.cod
     }
     fun toJson() = JSONObject().put("kinds",JSONArray(kinds)).put("targets",JSONArray(targets)).put("rounds",rounds)
         .put("duration_ms",durationMs).put("warmup_ms",warmupMs).put("memory_mib",memoryMiB).put("cpu_threads",threads)
-        .put("image_size",imageSize).put("protocol","gpgpu-v2").put("fractal_iterations",128)
+        .put("image_size",imageSize).put("protocol","gpgpu-v3").put("fractal_iterations",128)
         .put("aes_mode","ECB-no-padding").put("aes_key_bits",256).put("aes_message_bytes",65536)
-        .put("sha1_message_bytes",65536).put("timer_scope","measurement-window")
+        .put("sha1_message_bytes",65536).put("cpu_timer_scope","measurement-window").put("gpu_timer_scope","device-execution-or-submit-fence")
     companion object {
         fun quick() = ComputeConfig(rounds=1,durationMs=150,warmupMs=25,memoryMiB=16,imageSize=256)
         fun fromJson(text: String): ComputeConfig {

@@ -8,9 +8,9 @@ Android CPU、GPU、内存与存储基准测试工具，使用 Kotlin / Jetpack 
 
 An Android CPU, GPU, memory and storage benchmark with a Kotlin / Jetpack Compose interface, C++20 kernels and Vulkan compute shaders.
 
-本仓库公开当前 0.7.0 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
+本仓库公开当前 0.8.0 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
 
-This repository contains the current 0.7.0 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+This repository contains the current 0.8.0 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
 
 ## 功能 / Features
 
@@ -26,6 +26,10 @@ This repository contains the current 0.7.0 implementation. The app interface is 
   **Run control:** a foreground service, screen-on behavior, continued measurement with the screen locked, cancellation and temporary-file cleanup.
 
 ## 当前范围 / Current scope
+
+0.8.0 修复 GPU 计时范围：主成绩使用 Vulkan 设备执行时间，整段耗时另行保留；无设备时间戳时明确标记降级。8EE6 按 2+3+3 频率组映射 L1D，八核共享一份 16 MiB L2。拓扑缺失时自动执行绑核分块扫描，详情提供延迟 / 带宽曲线和拐点候选区间，不凭曲线伪造 L3 规格。
+
+Version 0.8.0 scores GPU work using Vulkan device execution time and retains the complete wall time separately, explicitly identifying fallback timers. 8EE6 maps L1D by its 2+3+3 frequency groups and shares one 16 MiB L2 across eight cores. Missing topology triggers a pinned working-set sweep with latency/bandwidth curves and candidate transition ranges in details; curves do not fabricate L3 specifications.
 
 带宽测试比较可用核心组合及线程数，最多 16 个线程；延迟逐核校准后使用一个绑核线程。缓存工作集按实际共享域分配，容量或共享关系无法确认时显示“—”。每格显示正式测量使用的线程和总工作集，校准轮次不计入成绩。
 

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "revision": "2026-09-30.2",
+  "revision": "2026-10-01.1",
   "unknown_policy": "null means unconfirmed, never zero or absent hardware",
   "socs": [
     {
@@ -2002,30 +2002,49 @@
       "cpu_source": "https://www.qualcomm.com/content/dam/qcomm-martech/dm-assets/documents/Snapdragon-8-Elite-Extreme-Gen-6-Product-Brief.pdf",
       "cpu_groups": [
         {
-          "core": "Oryon Prime",
+          "core": "Oryon-L Prime",
           "count": 2,
           "midr_part": "",
-          "frequency_rank_mapping": false,
-          "l1d_bytes": null,
+          "frequency_rank_mapping": true,
+          "l1d_bytes": 98304,
           "l2_bytes": null,
           "l2_scope": "private",
           "cache_line_bytes": null,
           "cache_source": null,
-          "identity_source": "https://www.qualcomm.com/content/dam/qcomm-martech/dm-assets/documents/Snapdragon-8-Elite-Extreme-Gen-6-Product-Brief.pdf",
-          "midr_source": null
+          "identity_source": "https://www.bilibili.com/video/BV17uhW6VE2R/?t=170",
+          "midr_source": null,
+          "l1_source": "https://www.bilibili.com/video/BV17uhW6VE2R/?t=138",
+          "uniform_frequency_group": true
         },
         {
-          "core": "Oryon Performance",
-          "count": 6,
+          "core": "Oryon-M Performance (higher frequency)",
+          "count": 3,
           "midr_part": "",
-          "frequency_rank_mapping": false,
-          "l1d_bytes": null,
+          "frequency_rank_mapping": true,
+          "l1d_bytes": 65536,
           "l2_bytes": null,
           "l2_scope": "private",
           "cache_line_bytes": null,
           "cache_source": null,
-          "identity_source": "https://www.qualcomm.com/content/dam/qcomm-martech/dm-assets/documents/Snapdragon-8-Elite-Extreme-Gen-6-Product-Brief.pdf",
-          "midr_source": null
+          "identity_source": "https://www.bilibili.com/video/BV17uhW6VE2R/?t=170",
+          "midr_source": null,
+          "l1_source": "https://www.bilibili.com/video/BV17uhW6VE2R/?t=150",
+          "uniform_frequency_group": true
+        },
+        {
+          "core": "Oryon-M Performance (lower frequency)",
+          "count": 3,
+          "midr_part": "",
+          "frequency_rank_mapping": true,
+          "l1d_bytes": 65536,
+          "l2_bytes": null,
+          "l2_scope": "private",
+          "cache_line_bytes": null,
+          "cache_source": null,
+          "identity_source": "https://www.bilibili.com/video/BV17uhW6VE2R/?t=170",
+          "midr_source": null,
+          "l1_source": "https://www.bilibili.com/video/BV17uhW6VE2R/?t=150",
+          "uniform_frequency_group": true
         }
       ],
       "cpu_l3": null,
@@ -2045,7 +2064,7 @@
           "source": "https://www.qualcomm.com/content/dam/qcomm-martech/dm-assets/documents/Snapdragon-8-Elite-Extreme-Gen-6-Product-Brief.pdf"
         }
       },
-      "checked_at": "2026-09-30",
+      "checked_at": "2026-10-01",
       "advertised_cache": [
         {
           "label": "Qualcomm Oryon Flex Cache",
@@ -2054,7 +2073,20 @@
           "level": null,
           "source": "https://www.qualcomm.com/content/dam/qcomm-martech/dm-assets/documents/Snapdragon-8-Elite-Extreme-Gen-6-Product-Brief.pdf"
         }
-      ]
+      ],
+      "shared_cpu_caches": [
+        {
+          "level": 2,
+          "bytes": 16777216,
+          "scope": "soc",
+          "line_bytes": null,
+          "source": "https://www.bilibili.com/video/BV17uhW6VE2R/?t=157"
+        }
+      ],
+      "cache_notes": {
+        "zh": "2+3+3 为频率分组；8 核共享一份 16 MiB L2。L1D 为超大核 96 KiB、性能核 64 KiB。资料未确认独立 CPU L3；不将 L2、SLC 或 GPU 内存重标为 L3。缓存行粒度由设备读取。",
+        "en": "2+3+3 frequency groups share one 16 MiB L2. L1D is 96 KiB on Prime and 64 KiB on Performance cores. A separate CPU L3 is unconfirmed; do not relabel L2, SLC or GPU memory as L3. Read the line granule on the device."
+      }
     },
     {
       "id": "sm8950",

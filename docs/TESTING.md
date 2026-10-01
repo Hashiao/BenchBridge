@@ -60,6 +60,14 @@ Some cases cancel app runs, terminate the app's worker process or turn off the d
 
 ## 已有验证范围 / Existing validation scope
 
+0.8.0 通过 ARM64 / x86_64 编译、Debug / Release Lint（0 错误，保留一项 Gradle 更新提示）、23 项缓存 / SoC / GPGPU 设备用例。扫描细化后重跑 10 项缓存用例；频率映射兼容性收尾后重跑 8 项资料与探测用例。覆盖 8EE6 的 2+3+3 映射、全核共享 L2 预算、未知行粒度与模糊拓扑、扫描噪声 / 空洞 / 取消，以及 GPU 设备时间分母、加密结果和导出。签名 Release 在 API 37 x86_64 模拟器上完成标准 GPGPU 72/72 轮，公开 UI 导出 JSON 校验通过。
+
+Version 0.8.0 passed ARM64/x86_64 builds, Debug/Release Lint (zero errors and one retained Gradle update notice), and 23 cache/SoC/GPGPU device cases. Ten cache cases were repeated after sweep refinement and eight catalog/probe cases after the final frequency-mapping compatibility change. Coverage includes 8EE6 2+3+3 mapping, all-core L2 budgets, unknown granules/ambiguous topology, noisy or missing sweep points, cancellation, GPU device-time denominators, crypto correctness and exports. The signed Release completed all 72 standard GPGPU rounds on an API 37 x86_64 emulator and its UI-exported JSON passed verification.
+
+实际编译的 ARM64 Release AES/SHA 指令再次通过已知答案（AES 1 / 8 块；SHA-1 0、3、55、56、63、64、65、65536 字节），APK 签名及 16 KiB 对齐通过。未连接小米 18 Pro Max；该机实际频率域、权限、缓存曲线和性能数值仍待实机复测，模拟器成绩不代表 Adreno 性能。
+
+The compiled ARM64 Release AES/SHA instructions again passed known answers (AES 1/8 blocks; SHA-1 lengths 0, 3, 55, 56, 63, 64, 65 and 65536 bytes). APK signing and 16 KiB alignment passed. No Xiaomi 18 Pro Max was connected; its actual frequency domains, permissions, cache curves and scores still require a physical-device rerun. Emulator scores do not characterize Adreno performance.
+
 0.7.0 通过双 ABI 构建、Debug / Release Lint 和 9 项 GPGPU 用例，覆盖计算结果、内存与加密字节计数、配置工作集、取消、锁屏、历史换算、截图与导出。最后一次原生自检整理后，相关 3 项用例再次通过。ARM64 Release 内核在 AArch64 指令模拟中通过 AES 单块 / 八块及 SHA-1 的 0、3、55、56、63、64、65、65536 字节已知答案；反汇编确认 SHA1SU0/SU1 已生成。该检查执行实际编译的指令，不测量手机性能。
 
 Version 0.7.0 passed both ABI builds, Debug/Release Lint and nine GPGPU cases covering output validation, memory/cryptographic byte counts, configured working sets, cancellation, screen-off execution, legacy conversion, screenshots and export. Three affected cases passed again after final native self-test cleanup. Compiled ARM64 Release kernels passed AArch64 instruction-emulation checks for one/eight AES blocks and SHA-1 inputs of 0, 3, 55, 56, 63, 64, 65 and 65536 bytes; disassembly confirms SHA1SU0/SU1. These checks execute the compiled instructions and do not measure phone performance.

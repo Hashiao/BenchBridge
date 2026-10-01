@@ -60,7 +60,7 @@ class ComputeIntegrationTest {
                 val units=when(kind){8,9->65536;10,11->128*128;4,7->32;else->64}
                 val iters=if(kind>=8)1 else result.getLong("iterations_per_batch")
                 assertEquals(result.getLong("batches")*units*iters,result.getLong("work_units"))
-                assertEquals("gpgpu-v2",result.getString("protocol"))
+                assertEquals("gpgpu-v3",result.getString("protocol"))
                 if(kind==8||kind==9){
                     assertEquals(4*1048576L,result.getLong("working_set_bytes"))
                     assertEquals(65536,result.getInt("message_bytes"))
@@ -87,11 +87,14 @@ class ComputeIntegrationTest {
                 val expected=if(kind<=2)batches*4*1048576
                     else if(kind>=10)batches*128*128 else result.getLong("completed_invocations")*result.getLong("iterations_per_invocation")*(if(kind==8)16 else if(kind==9)65536 else if(kind==4||kind==7)32 else 64)
                 assertEquals(expected,result.getLong("work_units"))
-                assertEquals("measurement-window",result.getString("timer_scope"))
+                assertEquals(if(caps.optInt("timestamp_bits")>0)"device-execution"else"host-submit-fence",result.getString("timer_scope"))
+                assertEquals("gpgpu-v3",result.getString("protocol"))
                 assertEquals(0,result.getInt("measured_transfer_commands"))
-                assertTrue(result.getLong("elapsed_ns")>=60000000L)
+                assertTrue(result.getLong("wall_elapsed_ns")>=60000000L)
                 assertTrue(result.getLong("device_elapsed_ns")>0)
-                assertTrue(result.getLong("device_elapsed_ns")<=result.getLong("elapsed_ns"))
+                assertEquals(result.getLong("device_elapsed_ns"),result.getLong("elapsed_ns"))
+                assertTrue(result.getLong("elapsed_ns")<=result.getLong("wall_elapsed_ns"))
+                if(kind==9)assertEquals("word-interleaved-messages",result.getString("input_layout"))
                 assertTrue(result.getInt("output_memory_flags") and 1 != 0)
                 if(kind==2||kind==8)assertEquals(4*1048576L,result.getLong("input_bytes")+result.getLong("output_bytes"))
                 if(kind==8||kind==9){

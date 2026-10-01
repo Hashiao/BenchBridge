@@ -115,7 +115,7 @@ std::string cpu_round(int kind,const std::vector<int>& cpus,int warmup_ms,int du
     r.elapsed=r.wall=end-start;r.work=total*(crypto?crypto_message_bytes:kind>=Julia?std::uint64_t(width)*height:units_per_item(kind,iterations));
     std::ostringstream extra;extra << ",\"threads\":" << cpus.size() << ",\"iterations_per_batch\":" << iterations << ",\"batches\":" << total
         << ",\"width\":" << width << ",\"height\":" << height << ",\"fractal_iterations\":128,\"warmup_ms\":" << warmup_ms << ",\"requested_duration_ms\":" << duration_ms
-        << ",\"protocol\":\"gpgpu-v2\",\"timer_scope\":\"measurement-window\",\"working_set_bytes\":"<<(crypto?workingBytes:0)
+        << ",\"protocol\":\"gpgpu-v3\",\"timer_scope\":\"measurement-window\",\"working_set_bytes\":"<<(crypto?workingBytes:0)
         << ",\"input_bytes\":"<<inputBytes<<",\"output_bytes\":"<<(encrypted.size()+digests.size()*4)
         << ",\"message_bytes\":"<<(crypto?crypto_message_bytes:0)<<",\"messages_processed\":"<<(crypto?total:0)
         << ",\"frames\":"<<(kind>=Julia?total:0)<<",\"input_prepared_before_timing\":true"

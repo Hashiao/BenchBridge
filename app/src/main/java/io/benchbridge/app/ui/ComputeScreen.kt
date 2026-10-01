@@ -145,7 +145,11 @@ internal fun ComputeDetails(report:JSONObject,onExport:(JSONObject)->Unit){
         item{ReportActions(report,onExport)}
         item{SectionCard("本次测试"){
             Text(config.summary);Text("${report.optInt("completed_rounds")} / ${report.optInt("total_rounds")} 轮")
-            if(report.getJSONObject("config").optString("protocol")!="gpgpu-v2")Text("旧版测试记录",style=MaterialTheme.typography.bodySmall)
+            when(report.getJSONObject("config").optString("protocol")) {
+                "gpgpu-v3" -> Text("GPU 使用设备执行时间；CPU 使用连续测量时间。",style=MaterialTheme.typography.bodySmall)
+                "gpgpu-v2" -> Text("0.7 旧记录：GPU 包含主机提交与等待时间，不能与当前成绩直接比较。",style=MaterialTheme.typography.bodySmall)
+                else -> Text("0.6 旧记录：内存及加密负载不同，不能与当前成绩直接比较。",style=MaterialTheme.typography.bodySmall)
+            }
         }}
         ComputeKind.entries.filter { it.code in config.kinds }.forEach { kind -> item{
             SectionCard(kind.title){
@@ -159,6 +163,10 @@ internal fun ComputeDetails(report:JSONObject,onExport:(JSONObject)->Unit){
                     samples.forEach { sample ->
                         val value=ComputeResults.value(sample)
                         Text("第 ${sample.optInt("round")} 次："+if(value.isFinite())"%.2f ${kind.unit}".format(Locale.US,value)else"—",style=MaterialTheme.typography.bodySmall)
+                        if(target=="gpu" && sample.optString("protocol")=="gpgpu-v3") {
+                            Text("计分 %.2f ms · 整段 %.2f ms".format(Locale.US,sample.optLong("elapsed_ns")/1e6,sample.optLong("wall_elapsed_ns")/1e6),style=MaterialTheme.typography.bodySmall)
+                            if(sample.optString("timer_scope")=="host-submit-fence")Text("设备无 GPU 时间戳，使用提交至完成时间（含主机开销）。",style=MaterialTheme.typography.bodySmall)
+                        }
                     }
                 }
             }

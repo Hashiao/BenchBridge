@@ -53,6 +53,11 @@ def validate(path):
                     assert source(group.get('l1_source') if key == 'l1d_bytes' and group.get('l1_source') else group['cache_source']), (ident, key)
                     assert line is None or value % line == 0, ident
         l3 = soc['cpu_l3']
+        for cache in soc.get('shared_cpu_caches', []):
+            assert cache['scope'] == 'soc' and cache['level'] in (1, 2, 3), ident
+            assert isinstance(cache['bytes'], int) and 1024 <= cache['bytes'] <= 1073741824, ident
+            assert cache['line_bytes'] is None or cache['line_bytes'] in (32, 64, 128, 256), ident
+            assert source(cache['source']), ident
         if l3 is not None:
             assert l3['scope'] == 'soc' and source(l3['source']), ident
             assert isinstance(l3['bytes'], int) and 1024 <= l3['bytes'] <= 1073741824, ident

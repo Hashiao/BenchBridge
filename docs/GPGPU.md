@@ -40,9 +40,13 @@ CPU 浮点使用 ARM64 NEON FMA 或 x86_64 SSE2 乘加。ARM64 根据运行时�
 
 CPU floating-point kernels use ARM64 NEON FMA or x86_64 SSE2 multiply/add. Runtime capabilities select ARM64 AES and SHA-1 instructions, including SHA1C/P/M/H and SHA1SU0/SU1 for the message schedule. x86_64 supports AES-NI and retains portable SHA-1. Compute workers pin and verify their CPUs; automatic mode uses up to sixteen threads. The three CPU memory cases reuse existing RAM kernels. GPU cases run first and release resources before CPU cases start.
 
-GPU 通过 Vulkan 查询 FP64、INT64 和队列能力，比较 64 / 128 / 256 的工作组配置。校准独立记录，不进入正式成绩。CPU 和 GPU 主成绩均采用完整正式时段的连续耗时，包含期间的调度和同步；不累加短内核时间来代替完整时段。GPU 另导出设备时间戳累计值 `device_elapsed_ns`，没有时间戳时记录提交至围栏完成的累计时间。编译、初始化、预热、清空输出及校验都在主分母之外。
+GPU 通过 Vulkan 查询 FP64、INT64 和队列能力，比较 64 / 128 / 256 的工作组配置。校准独立记录，不进入正式成绩。0.8.0 的 GPU 主成绩使用已完成 dispatch 的设备时间戳之和 `elapsed_ns = device_elapsed_ns`；`wall_elapsed_ns` 另记录正式时段的连续耗时，包含主机提交与等待间隙。无时间戳时降级为提交至围栏完成的累计时间，标记 `host-submit-fence`，详情说明包含主机开销。CPU 仍使用连续正式时段耗时。编译、初始化、预热、清空输出及校验都在主分母之外。
 
-Vulkan provides GPU FP64, INT64 and queue capabilities; workgroup sizes of 64/128/256 are compared during calibration. Calibration is recorded separately and excluded from scores. Both CPU and GPU scores use elapsed time across the continuous formal measurement window, including scheduling and synchronization within it. Individual kernel times do not replace this denominator. GPU reports separately include `device_elapsed_ns`, accumulated device timestamps or submit-to-fence host time when timestamps are unavailable. Compilation, initialization, warmup, output clearing and verification are outside the score denominator.
+Vulkan provides GPU FP64, INT64 and queue capabilities; workgroup sizes of 64/128/256 are compared during calibration. Calibration is recorded separately and excluded from scores. Version 0.8.0 uses the sum of completed GPU dispatch intervals (`elapsed_ns = device_elapsed_ns`) for scoring and separately retains continuous `wall_elapsed_ns`, including host submission/wait gaps. Without timestamps, accumulated submit-to-fence time is explicitly labeled `host-submit-fence` in exports and details. CPU scores still use the continuous formal window. Compilation, initialization, warmup, clearing and verification are outside the denominator.
+
+SHA-1 的 64 KiB 消息按字交错布局，使相邻 GPU 线程读取相邻地址；逻辑消息和 CPU 参考摘要不变。AES/SHA 校准逐步增加并行批次，比较到完整工作集或单次超过 50 ms，不再仅按一个工作组的耗时估算占用率。5 秒驱动超时保护仍保留。
+
+SHA-1 interleaves words across 64 KiB messages for adjacent GPU-thread loads while preserving logical messages and CPU-reference digests. AES/SHA calibration progressively compares larger batches until the full workset or a dispatch over 50 ms, instead of estimating occupancy from one workgroup alone. The five-second driver timeout remains.
 
 正式测量前清空输出，校验只能使用本轮完成的工作。内存读取核对全部归约结果；写入和拷贝检查边界及分散位置。加密输出与通用 CPU 参考实现交叉核对；AES / SHA-1 另运行已知答案，覆盖 AES 批量和尾块、SHA-1 填充边界及 64 KiB 消息。分形抽样验证像素迭代次数，FP32 允许两次迭代的边界差异。
 
@@ -54,8 +58,8 @@ Capability probing runs in a separate process. Tests exclude simultaneous RAM/RO
 
 ## 历史记录 / Historical results
 
-0.7.0 使用 `gpgpu-v2`。旧版的 GPU 内存传输及短消息加密成绩保留原值，详情标记为旧版记录，不能作为同一负载直接比较。旧分形 FPS 按该轮保存的宽高换算成 MPix/s，仅改变显示，不改写原始历史或 JSON；缺失尺寸时不推测结果。
+0.8.0 使用 `gpgpu-v3`。0.7.0 的 `gpgpu-v2` 将 GPU 主分母改为连续时段，主机开销使所有 GPU 项目可能显著降低；新版本恢复设备时间口径，并保留审计数据。0.6 的 GPU 内存传输及短消息加密使用不同负载，不能因计时修复就认为可直接比较。旧成绩保留原值并标注协议差异。旧分形 FPS 按保存宽高换算成 MPix/s，不改写历史或 JSON；缺失尺寸时不推测结果。
 
-Version 0.7.0 uses `gpgpu-v2`. Earlier GPU memory-transfer and short-message cryptographic scores retain their original values and are marked as legacy records in details; they are different workloads. Legacy fractal FPS is displayed as MPix/s using the round's saved dimensions without rewriting history or exported JSON. Missing dimensions do not receive guessed values.
+Version 0.8.0 uses `gpgpu-v3`. Version 0.7.0's `gpgpu-v2` changed GPU scoring to a continuous window, allowing host overhead to depress every GPU operation. The new version restores device intervals while retaining audit timing. Version 0.6 memory-transfer and short-message crypto workloads remain different despite the timer correction. Historical values stay unchanged and details identify protocol differences. Legacy fractal FPS is displayed as MPix/s using saved dimensions without rewriting history or JSON. Missing dimensions do not receive guessed values.
 
 参考 / References: [Vulkan capabilities](https://docs.vulkan.org/refpages/latest/refpages/source/VkPhysicalDeviceFeatures.html), [Vulkan timestamps](https://docs.vulkan.org/refpages/latest/refpages/source/vkCmdWriteTimestamp.html), [Arm intrinsics](https://arm-software.github.io/acle/neon_intrinsics/advsimd.html), [OpenCL mad24 semantics](https://registry.khronos.org/OpenCL/specs/unified/refpages/man/html/mad24.html), [FIPS 197 AES](https://csrc.nist.gov/pubs/fips/197/final), [FIPS 180-4 SHA](https://csrc.nist.gov/pubs/fips/180-4/upd1/final).

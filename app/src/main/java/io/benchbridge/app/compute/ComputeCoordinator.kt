@@ -108,7 +108,7 @@ class ComputeCoordinator(private val context:Context,private val executor:Execut
                                 JSONObject(RamNative.runRound(run.memoryHandle,kind,c.memoryMiB*1048576L,cpus.size,c.warmupMs,c.durationMs,0xB16B00B5L)).apply {
                                     val bytes=c.memoryMiB*1048576L
                                     put("work_units",optLong("logical_bytes")).put("unit","MB/s").put("backend","native-cpu-memory-v2")
-                                    put("protocol","gpgpu-v2").put("timer_scope","measurement-window").put("working_set_bytes",bytes)
+                                    put("protocol","gpgpu-v3").put("timer_scope","measurement-window").put("working_set_bytes",bytes)
                                     put("input_bytes",if(kind==1)0 else if(kind==2)bytes/2 else bytes)
                                     put("output_bytes",if(kind==0)0 else if(kind==2)bytes/2 else bytes)
                                     put("input_prepared_before_timing",true)

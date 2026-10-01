@@ -97,3 +97,16 @@ Test files live in dedicated app-internal directories. Control records, file loc
 Scores describe CPU or storage access under the selected working set, thread count, cache policy and access pattern. RAM pointer chasing includes address-translation overhead, and Direct I/O does not exclude device-internal caching. Compare counting rules and effective configurations when comparing tools, operating systems or devices.
 
 参考 / References: [AIDA64 benchmarks](https://www.aida64.com/user-manual/benchmarks), [AIDA64 thread calibration](https://forums.aida64.com/topic/3930-laughing-at-reviewer-ignorance/), [CrystalDiskMark settings](https://crystalmark.info/en/software/crystaldiskmark/crystaldiskmark-main-menu/), [CrystalDiskMark history](https://crystalmark.info/en/software/crystaldiskmark/crystaldiskmark-history/).
+# 缓存分块扫描（0.8.0） / Cache working-set sweep (0.8.0)
+
+缓存拓扑有缺失时，先按运行时核心类型、容量、频率与频率域选择代表核心；分组信息全未知时逐核测试。扫描 4 KiB 至预算允许的最大 64 MiB，以 1、1.5 倍的几何序列增长，并在已知缓存容量周围增加采样。每点分别执行两次 20 ms 预热 + 50 ms 测量的绑核随机指针追逐及连续读取，两次使用不同随机种子。
+
+When topology is incomplete, select representative cores from runtime type/capacity/frequency domains, testing each core when grouping evidence is entirely absent. Sweep from 4 KiB to a budget-limited 64 MiB using geometric 1/1.5 steps, adding samples around known cache capacities. Each point has two independently seeded pinned pointer-chase and sequential-read trials, each with 20 ms warmup and 50 ms measurement.
+
+两次相对波动超过 15% 的点不用于判定。候选拐点要求前两点延迟平台稳定、后点延迟至少上升 25%，且下一点持续至少 20% 上升；带宽下降超过 8% 作为额外证据。初次区间内再插入三个点缩小区间。导出保留原始样本、粗区间、细化区间、绑核与步长来源，扫描不计入正式成绩。失败、取消和预算不足分别报告。
+
+Points with over 15% repeat variation are excluded from detection. A candidate requires a stable preceding two-point latency plateau, a rise of at least 25%, and a following point at least 20% above baseline; a bandwidth drop over 8% corroborates it. Three additional interior points refine each initial interval. Exports retain raw trials, coarse/refined ranges, affinity and stride provenance. Probe work is unscored, and failures, cancellation and insufficient budget are reported separately.
+
+这些是访问路径的有效拐点，不是缓存规格读取：TLB、预取器、调频、系统缓存都会影响曲线。未确认的层级不自动命名为 L1/L2/L3，不把系统缓存或共享 L2 写成 L3。ARM64 的 CTR_EL0 DminLine 是系统可用的最小数据缓存行粒度；用于指针步长并单独标注来源，不宣称它证明所有层级的精确物理行大小。
+
+These are effective access-path transitions, not direct cache specifications: TLBs, prefetching, frequency changes and system caches can affect curves. Unknown levels are not automatically labeled L1/L2/L3; system cache and shared L2 are not renamed L3. ARM64 CTR_EL0 DminLine supplies a system-safe minimum data-cache granule for pointer strides with separate provenance, not proof of each level's exact physical line size.

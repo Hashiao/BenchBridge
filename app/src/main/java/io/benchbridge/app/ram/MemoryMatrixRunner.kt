@@ -82,6 +82,14 @@ class MemoryMatrixRunner(private val context: Context, private val config: RamCo
             cells.put(JSONObject().put("level", level).put("kind", kind).put("state", "PENDING"))
         }
         publish(true)
+        if (topology.allowedCores.any { cpu -> (1..3).any { topology.cache(cpu.id, it) == null } }) {
+            report.put("phase", "CACHE_PROBING")
+            CacheProbe.run(topology, memoryBudget, ::shouldStop,
+                sample = { cpu, bytes, kind, stride, seed ->
+                    JSONObject(RamNative.runPinnedRound(handle, kind, longArrayOf(bytes), intArrayOf(cpu), 20, 50, seed, stride))
+                }, progress = { probe -> report.put("cache_probe", probe); publish(false) })
+            publish(true)
+        }
         for (i in 0 until cells.length()) {
             if (shouldStop()) break
             val cell = cells.getJSONObject(i)

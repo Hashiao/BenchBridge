@@ -1,10 +1,11 @@
 #version 450
 #extension GL_GOOGLE_include_directive : require
+#extension GL_EXT_control_flow_attributes : require
 #include "common/base.glsl"
 uint rol(uint x,uint n){return (x<<n)|(x>>(32u-n));}
 void compress(inout uvec4 h,inout uint he,uint w[16]){
     uint a=h.x,b=h.y,c=h.z,d=h.w,e=he;
-    for(int t=0;t<80;++t){
+    [[unroll]] for(int t=0;t<80;++t){
         if(t>=16)w[t&15]=rol(w[(t-3)&15]^w[(t-8)&15]^w[(t-14)&15]^w[t&15],1u);
         uint f=t<20?((b&c)|(~b&d)):t<40?(b^c^d):t<60?((b&c)|(b&d)|(c&d)):(b^c^d);
         uint k=t<20?0x5a827999u:t<40?0x6ed9eba1u:t<60?0x8f1bbcdcu:0xca62c1d6u;
@@ -21,7 +22,7 @@ void main(){
     uint w[16];
     for(uint block=0u;block<1024u;++block){
         for(uint n=0u;n<16u;++n){
-            uint x=inputData.values[message*16384u+block*16u+n];
+            uint x=inputData.values[(block*16u+n)*p.span+message];
             w[n]=((x&255u)<<24u)|((x&65280u)<<8u)|((x>>8u)&65280u)|(x>>24u);
         }
         compress(h,he,w);

@@ -162,7 +162,7 @@ class RamRunnerService : Service() {
             if (!run.finished) {
                 val nativePhase = RamNative.phase(run.handle)
                 val name = listOf("", "PREPARING", "WARMING", "MEASURING", "VALIDATING").getOrElse(nativePhase) { "" }
-                if (name.isNotEmpty() && result.optString("phase") != "CALIBRATING") result.put("phase", name)
+                if (name.isNotEmpty() && result.optString("phase") !in listOf("CALIBRATING", "CACHE_PROBING")) result.put("phase", name)
                 result.put("cancel_requested", run.cancelled.get())
             }
             return result.toString()
@@ -191,6 +191,9 @@ class RamRunnerService : Service() {
             // 大型校准记录保留在磁盘，Binder 仅传界面需要的摘要。
             // Keep full calibration records on disk and send only UI summaries through Binder.
             val compact = JSONObject(text)
+            compact.optJSONObject("cache_probe")?.optJSONArray("groups")?.let { groups ->
+                for (i in 0 until groups.length()) groups.getJSONObject(i).remove("samples")
+            }
             compact.optJSONArray("cells")?.let { cells ->
                 for (i in 0 until cells.length()) cells.getJSONObject(i).remove("calibration")
             }

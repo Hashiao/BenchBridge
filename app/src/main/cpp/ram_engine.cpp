@@ -411,7 +411,22 @@ Java_io_benchbridge_app_ram_RamNative_capabilities(JNIEnv* env, jobject) {
     const auto cpu_count = mask_known ? CPU_COUNT(&mask) : std::max(1L, sysconf(_SC_NPROCESSORS_ONLN));
     const Timer timer;
     std::ostringstream out;
+    // Linux 向用户态提供的最小数据缓存行粒度；它不是缓存容量或共享关系。
+    // Linux's user-visible minimum data-cache line granule is not a cache size or sharing map.
+    long data_line = 0;
+    const char* line_source = "unknown";
+#if defined(__aarch64__)
+    std::uint64_t ctr;
+    asm volatile("mrs %0, ctr_el0" : "=r"(ctr));
+    data_line = 4L << ((ctr >> 16) & 15);
+    line_source = "runtime-ctr-el0-minimum";
+#elif defined(_SC_LEVEL1_DCACHE_LINESIZE)
+    data_line = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
+    line_source = "runtime-sysconf";
+#endif
+    if (data_line < 32 || data_line > 256) { data_line = 0; line_source = "unknown"; }
     out << "{\"allowed_cpus\":" << cpu_count << ",\"page_size_bytes\":" << sysconf(_SC_PAGESIZE)
+        << ",\"data_cache_line_bytes\":" << data_line << ",\"data_cache_line_source\":" << quoted(line_source)
         << ",\"timer\":" << quoted(timer.name) << ",\"affinity_mask_known\":" << (mask_known ? "true" : "false")
         << ",\"allowed_cpu_ids\":[";
     bool first = true;

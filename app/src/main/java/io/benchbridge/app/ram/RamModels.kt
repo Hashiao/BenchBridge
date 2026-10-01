@@ -170,6 +170,7 @@ object RamResults {
         "COOLING" -> "轮间休息"
         "PERSISTING" -> "保存结果"
         "CALIBRATING" -> "校准线程与核心"
+        "CACHE_PROBING" -> "扫描缓存容量与延迟拐点"
         else -> "准备测试"
     }
 }

@@ -179,6 +179,7 @@ private fun DetailedReportPage(report: JSONObject, model: RamViewModel, onExport
             item { SectionCard("本次参数") { Text(RamConfig.fromJson(report.getJSONObject("config").toString()).summary,
                 style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("ram_result_config")) } }
             val config = RamConfig.fromJson(report.getJSONObject("config").toString())
+            if (config.cacheMatrix) item { CacheTopologyDetails(report) }
             (if (config.cacheMatrix) MemoryPlanner.levels else listOf("RAM")).forEach { level ->
                 config.kinds.forEach { code -> item { ResultCard(report, RamKind.entries.first { it.code == code }, level) } }
             }

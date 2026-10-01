@@ -271,7 +271,7 @@ private fun DashboardStatus(disk: Boolean, report: JSONObject?, running: Boolean
     val phase = when (report?.optString("phase")) {
         "PROBING" -> "检查支持"; "INITIALIZING" -> "准备文件"; "PREPARING" -> "准备"
         "WARMING" -> "预热"; "MEASURING" -> "测量"; "FLUSHING" -> "同步写入"
-        "VALIDATING" -> "校验"; "COOLING" -> "间隔"; "CLEANING" -> "回收文件"; "CALIBRATING" -> "校准"; else -> "准备"
+        "VALIDATING" -> "校验"; "COOLING" -> "间隔"; "CLEANING" -> "回收文件"; "CALIBRATING" -> "校准"; "CACHE_PROBING" -> "扫描缓存"; else -> "准备"
     }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         val current = if (!disk && report?.has("current_level") == true) "${report.optString("current_level")} · " else ""

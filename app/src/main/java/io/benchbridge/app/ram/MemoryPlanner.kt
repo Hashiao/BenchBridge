@@ -31,7 +31,7 @@ object MemoryPlanner {
         val sizes = mutableMapOf<Int, Long>()
         val domains = mutableListOf<String>()
         val sources = mutableListOf<String>()
-        var stride = topology.cache(cpus.first(), 1)?.lineBytes ?: 64
+        var stride = topology.cache(cpus.first(), 1)?.lineBytes ?: topology.dataLineBytes.takeIf { it in listOf(32,64,128,256) } ?: 64
         if (level == "RAM") {
             val requested = up(config.bytes(kind) / cpus.size)
             cpus.groupBy { topology.largestCache(it)?.id ?: "unknown:$it" }.forEach { (id, members) ->
@@ -70,20 +70,23 @@ object MemoryPlanner {
         fun add(ids: List<Int>) { if (ids.isNotEmpty()) masks += ids.sorted() }
         if (kind == 5) cores.forEach { add(listOf(it.id)) }
         else {
-            val counts = if (config.automaticThreads) (listOf(1, 2, 4, 8, 16, cores.size)).distinct().filter { it in 1..cores.size }
+            val counts = if (config.automaticThreads) (listOf(1, 2, 3, 4, 6, 8, 16, cores.size)).distinct().filter { it in 1..cores.size }
                          else listOf(config.threads).filter { it <= cores.size }
+            val groups = cores.groupBy { "${it.part}:${it.capacity}:${it.maxKhz}:${it.frequencyDomain}" }.values
+            if (config.automaticThreads) groups.forEach { group -> add(group.map { it.id }); add(listOf(group.first().id)) }
             counts.forEach { count -> add(cores.take(count).map { it.id }) }
             val physical = cores.distinctBy { it.physicalKey }
             counts.filter { it <= physical.size }.forEach { count -> add(physical.take(count).map { it.id }) }
-            val groups = cores.groupBy { "${it.part}:${it.capacity}:${it.maxKhz}:${it.frequencyDomain}" }.values
             groups.forEach { group -> counts.filter { it <= group.size }.forEach { count -> add(group.take(count).map { it.id }) } }
             if (config.automaticThreads) cores.forEach { add(listOf(it.id)) }
         }
-        return masks.mapNotNull { plan(topology, config, level, kind, it, budget) }.take(12)
+        return masks.mapNotNull { plan(topology, config, level, kind, it, budget) }.take(24)
     }
 
     fun unsupportedReason(topology: CpuTopology, config: RamConfig, level: String, kind: Int): String {
         if (topology.allowedCores.isEmpty()) return "无法取得可绑核的 CPU 列表"
+        if (level == "L3" && topology.soc?.optString("id") == "sm8975" && topology.caches.none { it.level == 3 })
+            return "8EE6 已确认全核心共享 L2；独立 CPU L3 未确认。分块扫描曲线见缓存规格与实测，不能将 L2 或系统缓存填为 L3。"
         if (level != "RAM" && topology.caches.none { it.level == levels.indexOf(level) + 1 }) return "$level 容量或共享关系未确认"
         if (!config.automaticThreads && kind != 5 && config.threads > topology.allowedCores.size) return "所选线程数超过可用 CPU 数"
         return "当前内存预算或缓存容量不足以区分目标层级"
