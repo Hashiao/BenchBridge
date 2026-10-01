@@ -10,5 +10,5 @@ object RamNative {
     external fun runRound(handle: Long, kind: Int, bytes: Long, threads: Int,
                           warmupMs: Int, durationMs: Int, seed: Long): String
     external fun runPinnedRound(handle: Long, kind: Int, workingSets: LongArray, cpuIds: IntArray,
-                                warmupMs: Int, durationMs: Int, seed: Long, nodeStride: Int): String
+                                warmupMs: Int, durationMs: Int, seed: Long, nodeStride: Int, minimumWarmupPasses: Int = 0): String
 }

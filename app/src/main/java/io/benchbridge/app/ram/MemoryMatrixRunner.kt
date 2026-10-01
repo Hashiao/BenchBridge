@@ -77,16 +77,16 @@ class MemoryMatrixRunner(private val context: Context, private val config: RamCo
 
     fun execute(): String {
         report.put("topology", topology.toJson()).put("cells", cells).put("effective_plan", effective)
-            .put("matrix_columns", JSONArray(MemoryPlanner.columns)).put("matrix_levels", JSONArray(MemoryPlanner.levels))
-        for (level in MemoryPlanner.levels) for (kind in MemoryPlanner.columns.filter(config.kinds::contains)) {
+            .put("matrix_columns", JSONArray(MemoryPlanner.columns)).put("matrix_levels", JSONArray(config.scoredLevels))
+        for (level in config.scoredLevels) for (kind in MemoryPlanner.columns.filter(config.kinds::contains)) {
             cells.put(JSONObject().put("level", level).put("kind", kind).put("state", "PENDING"))
         }
         publish(true)
-        if (topology.allowedCores.any { cpu -> (1..3).any { topology.cache(cpu.id, it) == null } }) {
+        if (config.curveMode || topology.allowedCores.any { cpu -> (1..3).any { topology.cache(cpu.id, it) == null } }) {
             report.put("phase", "CACHE_PROBING")
             CacheProbe.run(topology, memoryBudget, ::shouldStop,
-                sample = { cpu, bytes, kind, stride, seed ->
-                    JSONObject(RamNative.runPinnedRound(handle, kind, longArrayOf(bytes), intArrayOf(cpu), 20, 50, seed, stride))
+                sample = { cpu, bytes, stride, seed ->
+                    JSONObject(RamNative.runPinnedRound(handle, 5, longArrayOf(bytes), intArrayOf(cpu), 120, 120, seed, stride, 2))
                 }, progress = { probe -> report.put("cache_probe", probe); publish(false) })
             publish(true)
         }
@@ -141,6 +141,7 @@ class MemoryMatrixRunner(private val context: Context, private val config: RamCo
         return when {
             cancelled() -> "CANCELLED"
             failed -> "FAILED"
+            config.curveMode && report.optJSONObject("cache_probe")?.optString("state") != "COMPLETED" -> "PARTIAL"
             complete == config.totalRounds -> "COMPLETED"
             processed == config.totalRounds -> "PARTIAL"
             else -> "INTERRUPTED"

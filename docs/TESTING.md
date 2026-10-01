@@ -60,6 +60,18 @@ Some cases cancel app runs, terminate the app's worker process or turn off the d
 
 ## 已有验证范围 / Existing validation scope
 
+0.9.0 的双 ABI Debug / 签名 Release 构建及 Debug / Release Lint 通过（0 错误，保留一项 Gradle 更新提示）。共覆盖 22 个不同设备用例：首轮 20 项覆盖曲线、原生计数、缓存表历史与参数一致性；加入疑似阶跃细化后，最终 11 项相关用例再次通过，包含完整曲线导出和 GPGPU 24/24 快测。真实阶跃、孤立尖峰、采样空洞、波动区间、11.13 秒异常停顿、调度干扰与预热不足均有独立断言。
+
+Version 0.9.0 passed both ABI Debug/signed Release builds and Debug/Release Lint (zero errors and one retained Gradle update notice). Coverage includes 22 distinct device cases: twenty initial curve/native-count/legacy-history/parameter cases, followed by eleven affected cases after suspected-step refinement, including full curve export and a 24/24 GPGPU quick run. Assertions cover real steps, isolated spikes, gaps, noisy intervals, an 11.13-second overrun, scheduling interference and incomplete warmup.
+
+完整曲线设备用例运行于 API 37 x86_64 模拟器：四个代表核心的扫描和 RAM 4/4 轮完成，点选、纵轴切换、参考线与完整 JSON 导出通过。模拟器存在调度干扰，曲线状态如实标记为需复测；未将虚线疑似区间宣称为已确认硬件容量。小米 18 Pro Max 的 0.8.0 报告用于确定回归场景，新版曲线仍需手机实测。
+
+The full-curve device case used an API 37 x86_64 emulator: four representative-core sweeps and all four RAM rounds completed, with point selection, y-axis switching, reference lines and full JSON export verified. Emulator scheduling interference is explicitly marked as requiring a rerun; dashed candidates are not claimed as confirmed hardware capacities. The Xiaomi 18 Pro Max 0.8.0 report informed regression scenarios; the new curve still requires physical-phone validation.
+
+签名 Release 通过曲线采样、主动停止及完整 JSON 导出，保留 32 个已采样点；另完成 RAM 六项快测 6/6 轮。小屏幕检查曾发现大字体挤占曲线，修复紧凑布局后在 360×640、130% 字体下复核通过。APK 签名与 16 KiB 对齐通过，沿用已有证书。ARM64 GPGPU 计算库与 0.8.0 相同。
+
+The signed Release passed curve sampling, user cancellation and full JSON export with 32 retained points, plus all six RAM quick rounds. Small-screen testing exposed large-font controls squeezing out the chart; the compact layout was repaired and rechecked at 360×640 with 130% fonts. Signing and 16 KiB alignment passed with the existing certificate. The ARM64 GPGPU compute library is unchanged from 0.8.0.
+
 0.8.0 通过 ARM64 / x86_64 编译、Debug / Release Lint（0 错误，保留一项 Gradle 更新提示）、23 项缓存 / SoC / GPGPU 设备用例。扫描细化后重跑 10 项缓存用例；频率映射兼容性收尾后重跑 8 项资料与探测用例。覆盖 8EE6 的 2+3+3 映射、全核共享 L2 预算、未知行粒度与模糊拓扑、扫描噪声 / 空洞 / 取消，以及 GPU 设备时间分母、加密结果和导出。签名 Release 在 API 37 x86_64 模拟器上完成标准 GPGPU 72/72 轮，公开 UI 导出 JSON 校验通过。
 
 Version 0.8.0 passed ARM64/x86_64 builds, Debug/Release Lint (zero errors and one retained Gradle update notice), and 23 cache/SoC/GPGPU device cases. Ten cache cases were repeated after sweep refinement and eight catalog/probe cases after the final frequency-mapping compatibility change. Coverage includes 8EE6 2+3+3 mapping, all-core L2 budgets, unknown granules/ambiguous topology, noisy or missing sweep points, cancellation, GPU device-time denominators, crypto correctness and exports. The signed Release completed all 72 standard GPGPU rounds on an API 37 x86_64 emulator and its UI-exported JSON passed verification.

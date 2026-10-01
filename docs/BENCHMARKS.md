@@ -4,6 +4,28 @@
 
 This document describes the current counting rules, timing boundaries and interpretation of results. Scores come from measured work; incomplete or unverified rounds are excluded.
 
+## 缓存延迟阶跃曲线（0.9.0） / Cache latency steps (0.9.0)
+
+默认缓存模式用曲线替换 L1/L2/L3 分数行，只对 RAM 保留读、写、延迟、拷贝正式轮次。配置 `cache_curve=true`，扫描协议为 `latency-step-sweep-v2`；缺少该字段的旧报告按旧表格读取。扫描每个可识别核心组的固定代表核心，所有大小使用同一个核心，不逐点挑选最高分核心。无分组依据时逐核扫描。
+
+The default cache mode replaces L1/L2/L3 score rows with curves and retains scored RAM read/write/latency/copy rounds. Configuration uses `cache_curve=true` and protocol `latency-step-sweep-v2`; older reports without this field keep their table. A fixed representative of each identifiable core group handles every size without selecting a different fastest core per point. Without grouping evidence, cores are scanned individually.
+
+工作集从 4 KiB 扫到最多 64 MiB，受可用预算限制；使用 1 / 1.5 倍几何序列，在参考容量附近增加点。每点至少 3 次、最多 5 次，仅测绑核随机指针链延迟，不再用带宽稳定性阻挡延迟判定。每次至少预热 120 ms 且访问完整指针链两遍；补足遍历最多延长 3 秒，始终检查取消。正式测量 120 ms。
+
+Working sets span 4 KiB to a budget-limited 64 MiB with geometric 1/1.5 steps and extra points around reference capacities. Each point uses 3–5 pinned random pointer-chain trials, with no bandwidth gate. Each trial warms for at least 120 ms and two complete traversals, allowing at most three extra seconds to finish traversal while checking cancellation. Measurement lasts 120 ms.
+
+正式耗时超出请求时长的 125% + 10 ms、少于 90%、线程 CPU 时间不足连续耗时的 90%、预热遍历不足或原生校验失败的样本不进入点的中位数；原始样本和原因仍导出。线程 CPU 时间只用于干扰判断，不替换主分母。有效样本至少三个、极差不超过中位数 20% 的点才参与阶跃判定。稳定点不足 70% 时显示需复测。
+
+Exclude trials exceeding 125% of requested time plus 10 ms, shorter than 90%, with thread CPU time below 90% of wall time, incomplete warmup or failed native verification. Raw trials and reasons remain exported. Thread CPU time only diagnoses interference; it never replaces the latency denominator. A point needs at least three accepted trials and a range within 20% of its median for step detection. Groups with under 70% stable points request a rerun.
+
+阶跃需前后各两个稳定点，低侧平台差异不超过 25%，高侧至少比低侧上升 30%，重复测量误差范围不重叠，且相邻工作集没有超过两倍的空洞。每个粗区间插入三个点，只有两侧稳定时才缩窄；否则保留粗区间。候选区间保持未命名：TLB、预取、调频或 SLC 也可能形成阶跃。参考容量线必须标明参考，不作为实测结论。
+
+Steps require two stable observations on each side, at most 25% low-plateau variation, at least a 30% persistent rise, disjoint repeated-measurement ranges and no adjacent size gap over 2x. Add three interior samples per coarse interval; narrow only with stable observations on both sides. Candidates remain unnamed because TLBs, prefetching, frequency changes or SLC can also cause steps. Reference-capacity lines remain explicitly separate from measured conclusions.
+
+细扫的触发条件允许仅使用已接收样本的中位数，以免波动导致完全不触发细化；这类疑似区间在证据不足时单独存为 `candidate_intervals`，标记 `needs-retest`，界面显示虚线框。满足重复测量稳定性和两侧平台条件的区间才进入 `transitions` 并显示阴影。两者都不直接命名缓存层级。
+
+Median-only candidates from accepted samples may trigger refinement even when repeat variation prevents confirmation. Insufficiently supported intervals remain separate in `candidate_intervals` with `needs-retest` confidence and dashed outlines. Only intervals meeting repeat stability and two-sided plateau conditions enter `transitions` and receive shading. Neither assigns physical cache levels.
+
 ## RAM
 
 | 项目 / Operation | 测量方式 / Method | 主值 / Score |

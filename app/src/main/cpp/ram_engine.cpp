@@ -110,6 +110,7 @@ struct Worker {
     std::uintptr_t* node = nullptr;
     std::size_t words = 0, cursor = 0;
     std::uint64_t value = 0, total_ops = 0, warmup_ops = 0, measured_ops = 0, checksum = 0, end_ns = 0;
+    std::uint64_t start_ns = 0, cpu_elapsed_ns = 0;
     bool clock_failed = false;
     bool repeat_small = false;
     int node_stride = 128, target_cpu = -1, start_cpu = -1, end_cpu = -1;
@@ -148,11 +149,15 @@ void initialize(Worker& worker, Kind kind, std::size_t bytes, std::uint64_t seed
     }
 }
 
-void run_until(Worker& worker, Kind kind, const Timer& timer, std::uint64_t deadline, bool measured, Session& session) {
+void run_until(Worker& worker, Kind kind, const Timer& timer, std::uint64_t deadline, bool measured, Session& session,
+               std::uint64_t minimum_ops = 0) {
+    const auto initial_ops = worker.total_ops;
     while (!session.cancel.load(std::memory_order_relaxed)) {
         const auto now = timer.now();
         if (now == 0) { worker.clock_failed = true; session.cancel.store(true); break; }
-        if (now >= deadline) break;
+        // 曲线预热至少遍历完整链；三秒上限和取消检查避免无限等待。
+        // Curve warmup traverses complete chains, bounded by three extra seconds and cancellation.
+        if (now >= deadline && (worker.total_ops - initial_ops >= minimum_ops || now - deadline >= 3000000000ULL)) break;
         std::size_t operations;
         std::uint64_t checksum = 0;
         if (kind == Latency) {
@@ -201,7 +206,10 @@ bool verify(const Worker& worker, Kind kind, const Session& session) {
 }
 
 std::string run_round(Session& session, int kind_value, jlong bytes, int threads, int warmup_ms, int duration_ms, std::uint64_t seed,
-    const std::vector<jlong>& per_thread_bytes = {}, const std::vector<jint>& pinned_cpus = {}, int node_stride = 128) {
+    const std::vector<jlong>& per_thread_bytes = {}, const std::vector<jint>& pinned_cpus = {}, int node_stride = 128,
+    int minimum_warmup_passes = 0) {
+    if (minimum_warmup_passes < 0 || minimum_warmup_passes > 4 || (minimum_warmup_passes && kind_value != Latency))
+        throw std::invalid_argument("WARMUP_PASSES_INVALID");
     const bool pinned = !pinned_cpus.empty();
     if (kind_value < Read || kind_value > Latency || bytes < (pinned ? 1024 : 1024 * 1024) ||
         bytes > (2LL << 30) || bytes % 256 != 0 || threads < 1 || threads > 16 ||
@@ -273,12 +281,21 @@ std::string run_round(Session& session, int kind_value, jlong bytes, int threads
                 phases.arrive_and_wait();
                 if (setup_failed.load()) return;
                 phases.arrive_and_wait();
-                run_until(workers[index], kind, timer, warmup_deadline, false, session);
+                const auto minimum_ops = kind == Latency ? workers[index].words * 8 / node_stride * minimum_warmup_passes : 0;
+                run_until(workers[index], kind, timer, warmup_deadline, false, session, minimum_ops);
                 workers[index].warmup_ops = workers[index].total_ops;
                 phases.arrive_and_wait();
                 phases.arrive_and_wait();
                 workers[index].start_cpu = sched_getcpu();
+                auto thread_time = []() -> std::uint64_t {
+                    timespec t{};
+                    return clock_gettime(CLOCK_THREAD_CPUTIME_ID, &t) == 0 ? std::uint64_t(t.tv_sec) * 1000000000 + t.tv_nsec : 0;
+                };
+                workers[index].start_ns = timer.now();
+                const auto cpu_start = thread_time();
                 run_until(workers[index], kind, timer, measure_deadline, true, session);
+                const auto cpu_end = thread_time();
+                if (cpu_start && cpu_end >= cpu_start) workers[index].cpu_elapsed_ns = cpu_end - cpu_start;
                 std::atomic_thread_fence(std::memory_order_seq_cst);
                 // 结束计时前完成缓存写入；该屏障不保证数据已写回 DRAM。
                 // Complete cached stores before timing ends; this barrier does not flush data to DRAM.
@@ -347,6 +364,7 @@ std::string run_round(Session& session, int kind_value, jlong bytes, int threads
         << ",\"timer\":" << quoted(timer.name) << ",\"seed\":" << seed
         << ",\"access_bytes\":8,\"node_stride_bytes\":" << (kind == Latency ? node_stride : 0)
         << ",\"independent_batch_width\":" << ((kind == RandomRead || kind == RandomWrite) ? 8 : 1)
+        << ",\"minimum_warmup_passes\":" << minimum_warmup_passes
         << ",\"kernel_id\":" << quoted(kind == Latency ? (pinned ? "pointer-chase-line-v2" : "pointer-chase-128-v1") :
             (kind == RandomRead || kind == RandomWrite) ? "indexed-independent-8-v1" : (pinned ? "simd-pinned-v2" : "simd-cached-v1"))
         << ",\"range_policy\":" << quoted(pinned ? "cache-domain-disjoint-v2" : "fixed-total-disjoint-v1")
@@ -370,6 +388,10 @@ std::string run_round(Session& session, int kind_value, jlong bytes, int threads
     for (std::size_t i = 0; i < workers.size(); ++i) { if (i) out << ','; out << workers[i].start_cpu; }
     out << "],\"observed_end_cpus\":[";
     for (std::size_t i = 0; i < workers.size(); ++i) { if (i) out << ','; out << workers[i].end_cpu; }
+    out << "],\"per_thread_cpu_elapsed_ns\":[";
+    for (std::size_t i = 0; i < workers.size(); ++i) { if (i) out << ','; out << workers[i].cpu_elapsed_ns; }
+    out << "],\"per_thread_start_delay_ns\":[";
+    for (std::size_t i = 0; i < workers.size(); ++i) { if (i) out << ','; out << (workers[i].start_ns > start_ns ? workers[i].start_ns - start_ns : 0); }
     out << "],\"error\":" << (verified ? "null" : "\"RAM_VERIFY_MISMATCH\"") << '}';
     session.phase.store(Idle);
     return out.str();
@@ -460,7 +482,7 @@ Java_io_benchbridge_app_ram_RamNative_runRound(JNIEnv* env, jobject, jlong handl
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_io_benchbridge_app_ram_RamNative_runPinnedRound(JNIEnv* env, jobject, jlong handle, jint kind,
-    jlongArray worksets, jintArray cpu_ids, jint warmup_ms, jint duration_ms, jlong seed, jint node_stride) {
+    jlongArray worksets, jintArray cpu_ids, jint warmup_ms, jint duration_ms, jlong seed, jint node_stride, jint minimum_warmup_passes) {
     std::string result;
     const auto session = session_for(handle);
     try {
@@ -473,7 +495,7 @@ Java_io_benchbridge_app_ram_RamNative_runPinnedRound(JNIEnv* env, jobject, jlong
         env->GetIntArrayRegion(cpu_ids, 0, count, cpus.data());
         jlong total = 0;
         for (auto size : sizes) { if (size < 1024 || size > (2LL << 30)) throw std::invalid_argument("WORKSET_INVALID"); total += size; }
-        result = run_round(*session, kind, total, count, warmup_ms, duration_ms, static_cast<std::uint64_t>(seed), sizes, cpus, node_stride);
+        result = run_round(*session, kind, total, count, warmup_ms, duration_ms, static_cast<std::uint64_t>(seed), sizes, cpus, node_stride, minimum_warmup_passes);
     } catch (const Cancelled&) { result = "{\"status\":\"INTERRUPTED\",\"error\":\"RUN_CANCELLED\"}"; }
     catch (const std::bad_alloc&) { result = "{\"status\":\"FAILED\",\"error\":\"RAM_ALLOC_FAILED\"}"; }
     catch (const std::exception& error) { result = "{\"status\":\"FAILED\",\"error\":" + quoted(error.what()) + '}'; }

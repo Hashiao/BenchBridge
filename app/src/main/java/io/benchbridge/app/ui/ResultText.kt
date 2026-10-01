@@ -40,7 +40,19 @@ internal fun resultText(report: JSONObject): String = buildString {
     } else {
         val config = RamConfig.fromJson(report.getJSONObject("config").toString())
         appendLine("每轮 ${BenchmarkFormat.duration(config.durationMs)} · 中位数")
-        (if (config.cacheMatrix) MemoryPlanner.levels else listOf("RAM")).forEach { level ->
+        if(config.curveMode)report.optJSONObject("cache_probe")?.let { probe->
+            appendLine("缓存曲线 · 工作集大小 / 延迟 ns · ${probe.optString("state")}")
+            val groups=probe.optJSONArray("groups")
+            if(groups!=null)for(i in 0 until groups.length()) {
+                val group=groups.getJSONObject(i);val edges=group.optJSONArray("transitions")
+                appendLine("CPU ${group.optInt("cpu_id")} · ${group.optInt("stable_points")} / ${group.optJSONArray("points")?.length()?:0} 稳定点")
+                if(edges!=null)for(j in 0 until edges.length()) {
+                    val edge=edges.getJSONObject(j)
+                    appendLine("阶跃候选：${BenchmarkFormat.bytes(edge.getLong("lower_bytes"))}–${BenchmarkFormat.bytes(edge.getLong("upper_bytes"))}")
+                }
+            }
+        }
+        config.scoredLevels.forEach { level ->
         config.kinds.forEach { code ->
             val kind = RamKind.entries.first { it.code == code }
             val stats = RamResults.statistics(report, code, level)

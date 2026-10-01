@@ -56,7 +56,7 @@ class MemoryMatrixTest {
 
     @Test fun sharedDomainsConstrainFootprintsAndRamExceedsLastLevel() {
         val topology = fixture()
-        val config = RamConfig.matrixQuick()
+        val config = RamConfig.matrixQuick().copy(cacheCurve=false)
         val budget = 1024L * 1048576
         val l2 = MemoryPlanner.plan(topology,config,"L2",2,listOf(0,1),budget)!!
         assertEquals(786432L,l2.bytes)
@@ -135,7 +135,7 @@ class MemoryMatrixTest {
         lateinit var model: RamViewModel
         scenario.scenario.onActivity { model=ViewModelProvider(it)[RamViewModel::class.java] }
         withTimeout(15000) { while(model.state.value.capabilities==null) delay(30) }
-        scenario.scenario.onActivity { model.configure(RamConfig.matrixQuick());model.start() }
+        scenario.scenario.onActivity { model.configure(RamConfig.matrixQuick().copy(cacheCurve=false));model.start() }
         withTimeout(15000) { while(model.state.value.report==null) { check(model.state.value.error==null) { model.state.value.error!! };delay(30) } }
         val id=model.state.value.report!!.getString("run_id");owned+=id
         val report=terminal(id)
@@ -179,7 +179,7 @@ class MemoryMatrixTest {
     }
 
     @Test fun cancellationDuringCalibrationStopsWithoutPublishingTrialScores() = runBlocking {
-        val reply=JSONObject(client.service().startRam(RamConfig.matrixQuick().copy(calibrationMs=1000).toJson().toString()))
+        val reply=JSONObject(client.service().startRam(RamConfig.matrixQuick().copy(cacheCurve=false).copy(calibrationMs=1000).toJson().toString()))
         assertTrue(reply.toString(),reply.getBoolean("accepted"))
         val id=reply.getString("run_id");owned+=id
         withTimeout(15000) { while(JSONObject(client.service().snapshot(id)).optString("phase")!="CALIBRATING") delay(20) }

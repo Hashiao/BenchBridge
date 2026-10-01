@@ -8,14 +8,14 @@ Android CPU、GPU、内存与存储基准测试工具，使用 Kotlin / Jetpack 
 
 An Android CPU, GPU, memory and storage benchmark with a Kotlin / Jetpack Compose interface, C++20 kernels and Vulkan compute shaders.
 
-本仓库公开当前 0.8.0 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
+本仓库公开当前 0.9.0 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
 
-This repository contains the current 0.8.0 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+This repository contains the current 0.9.0 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
 
 ## 功能 / Features
 
-- **缓存与 RAM：**L1D、L2、L3、RAM 四行，连续读、连续写、延迟、拷贝四列；自动校准线程与核心。另保留 RAM 随机读写快测。
-  **Cache and RAM:** four rows for L1D, L2, L3 and RAM, with sequential read, sequential write, latency and copy columns. Thread counts and core selections are calibrated automatically. A separate RAM quick profile retains random read and write tests.
+- **缓存与 RAM：**首页以工作集大小为横轴、实际延迟 ns 为纵轴，按核心组查看曲线与阶跃候选区间；下方保留 RAM 读、写、延迟、拷贝成绩。旧版缓存表历史保留原样。另保留 RAM 随机读写快测。
+  **Cache and RAM:** the main page plots working-set size against measured latency in ns, with selectable core groups and candidate step intervals. RAM read/write/latency/copy scores remain below. Legacy cache-table reports retain their original layout. A separate RAM quick profile retains random I/O tests.
 - **存储：**顺序和随机读写，可配置文件大小、块大小、队列深度、线程数与缓存模式。
   **Storage:** sequential and random I/O with configurable file size, block size, queue depth, thread count and cache mode.
 - **GPGPU：**独立分页，12 项 CPU / GPU 测试，包含各自内存读写、FP32 / FP64、整数运算、大块 AES-256 / SHA-1 与分形图像处理。成绩、单位和操作按钮同屏展示。
@@ -27,13 +27,17 @@ This repository contains the current 0.8.0 implementation. The app interface is 
 
 ## 当前范围 / Current scope
 
+0.9.0 的 `latency-step-sweep-v2` 独立测量延迟，每点 3–5 次取中位数；至少预热两遍完整指针链。排除计时异常、明显调度干扰和预热不足的样本，保留误差范围及原因。横轴使用对数工作集，纵轴可切换线性 / 对数 ns，支持点击查看采样和显示参考容量线。曲线不把未知阶跃直接命名为 L1/L2/L3。
+
+Version 0.9.0's `latency-step-sweep-v2` measures latency independently, taking a median of 3–5 trials per point after at least two full warmup traversals. Timing anomalies, substantial scheduling interference and incomplete warmup are excluded with reasons and uncertainty retained. The logarithmic working-set axis pairs with selectable linear/logarithmic ns, point inspection and optional reference-capacity lines. Unknown steps are not assigned L1/L2/L3 labels.
+
 0.8.0 修复 GPU 计时范围：主成绩使用 Vulkan 设备执行时间，整段耗时另行保留；无设备时间戳时明确标记降级。8EE6 按 2+3+3 频率组映射 L1D，八核共享一份 16 MiB L2。拓扑缺失时自动执行绑核分块扫描，详情提供延迟 / 带宽曲线和拐点候选区间，不凭曲线伪造 L3 规格。
 
 Version 0.8.0 scores GPU work using Vulkan device execution time and retains the complete wall time separately, explicitly identifying fallback timers. 8EE6 maps L1D by its 2+3+3 frequency groups and shares one 16 MiB L2 across eight cores. Missing topology triggers a pinned working-set sweep with latency/bandwidth curves and candidate transition ranges in details; curves do not fabricate L3 specifications.
 
-带宽测试比较可用核心组合及线程数，最多 16 个线程；延迟逐核校准后使用一个绑核线程。缓存工作集按实际共享域分配，容量或共享关系无法确认时显示“—”。每格显示正式测量使用的线程和总工作集，校准轮次不计入成绩。
+RAM 带宽测试比较可用核心组合及线程数，最多 16 个线程；RAM 延迟逐核校准后使用一个绑核线程。缓存曲线直接扫描各组代表核心，不要求先确认 L1/L2/L3 容量。旧版缓存表仍按原共享域和工作集显示；每格保留当轮参数，校准轮次不计入正式成绩。
 
-Bandwidth calibration compares available core combinations and thread counts, up to 16 threads. Latency calibration selects one pinned core. Cache working sets respect sharing domains; unconfirmed capacities or sharing relationships produce a dash. Each cell shows the measured thread count and total working set. Calibration trials are excluded from scores.
+RAM bandwidth calibration compares available core combinations and thread counts, up to 16 threads; RAM latency selects one pinned core. Cache curves directly sweep each group's representative without requiring confirmed L1/L2/L3 capacities. Legacy cache tables retain their original domains, working sets and per-cell parameters. Calibration trials are excluded from scores.
 
 存储的默认组合对齐 CrystalDiskMark 9.x：1 GiB 文件、每项每方向 3 次、每轮 5 秒，采用 Direct I/O。历史报告保留原有参数。
 

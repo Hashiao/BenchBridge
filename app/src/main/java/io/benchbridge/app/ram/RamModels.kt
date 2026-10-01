@@ -28,26 +28,31 @@ data class RamConfig(
     val automaticThreads: Boolean = false,
     val cacheMatrix: Boolean = false,
     val calibrationMs: Int = 150,
+    val cacheCurve: Boolean = false,
 ) {
+    val curveMode: Boolean get() = cacheMatrix && cacheCurve
+    val scoredLevels: List<String> get() = if (cacheMatrix && !curveMode) MemoryPlanner.levels else listOf("RAM")
     val hasBandwidth: Boolean get() = kinds.any { it != RamKind.LATENCY.code }
     val hasLatency: Boolean get() = RamKind.LATENCY.code in kinds
     fun resolveThreads(allowedCpus: Int): RamConfig = if (automaticThreads) copy(threads = allowedCpus.coerceIn(1, 16)) else this
     fun sameParameters(other: RamConfig): Boolean = copy(presetId = "") == other.copy(presetId = "")
     fun recognizedPresetId(): String = when {
-        sameParameters(matrixQuick().copy(threads = threads)) -> "cache-matrix-quick-v1"
-        sameParameters(aida64(threads)) -> "aida64-style-v1"
+        sameParameters(matrixQuick().copy(threads = threads)) -> "cache-curve-quick-v1"
+        sameParameters(aida64(threads)) -> "cache-curve-standard-v1"
         sameParameters(quick()) -> "ram-quick-dev-v1"
         else -> "ram-custom-v1"
     }
     fun normalized(): RamConfig = copy(presetId = recognizedPresetId())
     val summary: String get() = buildList {
-        if (cacheMatrix) add("L1 / L2 / L3 / RAM · ${if (automaticThreads) "线程与核心自动校准" else "带宽 $threads 线程"}")
+        if (curveMode) add("缓存曲线：工作集大小 × 延迟 ns；每个核心组固定一个核心")
+        else if (cacheMatrix) add("L1 / L2 / L3 / RAM · ${if (automaticThreads) "线程与核心自动校准" else "带宽 $threads 线程"}")
         if (hasBandwidth) add("${if (cacheMatrix) "RAM " else ""}带宽：${BenchmarkFormat.mib(workingSetMiB)} · ${if (automaticThreads && cacheMatrix) "自动线程" else "$threads 线程"} · $rounds 次")
         if (hasLatency) add("${if (cacheMatrix) "RAM " else ""}延迟：${BenchmarkFormat.mib(latencySetMiB)} · 1 线程 · $latencyRounds 次")
         add("${if (cacheMatrix) "RAM " else ""}每次 ${BenchmarkFormat.duration(durationMs)} · 预热 ${BenchmarkFormat.duration(warmupMs)} · 间隔 ${BenchmarkFormat.duration(cooldownMs)}")
-        if (cacheMatrix) add("缓存每次 ${BenchmarkFormat.duration(minOf(durationMs, 1000))}；工作集按共享域分配。RAM 工作集至少为末级缓存的两倍，实际值见成绩。")
+        if (curveMode) add("缓存扫描 4 KiB–64 MiB（受预算限制），每点 3–5 次；粗扫后细化阶跃区间。RAM 参数独立。")
+        else if (cacheMatrix) add("缓存每次 ${BenchmarkFormat.duration(minOf(durationMs, 1000))}；工作集按共享域分配。RAM 工作集至少为末级缓存的两倍，实际值见成绩。")
     }.joinToString("\n")
-    val totalRounds: Int get() = kinds.sumOf { if (it == RamKind.LATENCY.code) latencyRounds else rounds } * if (cacheMatrix) 4 else 1
+    val totalRounds: Int get() = kinds.sumOf { if (it == RamKind.LATENCY.code) latencyRounds else rounds } * scoredLevels.size
     fun bytes(kind: Int): Long = (if (kind == RamKind.LATENCY.code) latencySetMiB else workingSetMiB) * 1048576L
     fun threads(kind: Int): Int = if (kind == RamKind.LATENCY.code) 1 else threads
     fun rounds(kind: Int): Int = if (kind == RamKind.LATENCY.code) latencyRounds else rounds
@@ -87,16 +92,18 @@ data class RamConfig(
         put("seed", 0xB16B00B5L)
         put("latency_threads", 1)
         put("cache_matrix", cacheMatrix)
+        put("cache_curve", curveMode)
+        if (curveMode) put("cache_probe_method", "latency-step-sweep-v2")
         put("calibration_ms", calibrationMs)
         if (cacheMatrix) put("cache_duration_ms", minOf(durationMs, 1000)).put("cache_warmup_ms", minOf(warmupMs, 250))
     }
 
     companion object {
         fun aida64(allowedCpus: Int = 1) = standard().copy(kinds = listOf(0, 1, 2, 5),
-            threads = allowedCpus.coerceIn(1, 16), automaticThreads = true, cacheMatrix = true, presetId = "aida64-style-v1")
+            threads = allowedCpus.coerceIn(1, 16), automaticThreads = true, cacheMatrix = true, cacheCurve = true, presetId = "cache-curve-standard-v1")
         fun matrixQuick() = RamConfig(kinds = listOf(0, 1, 2, 5), workingSetMiB = 16, latencySetMiB = 8,
             warmupMs = 25, durationMs = 150, rounds = 1, latencyRounds = 1, cooldownMs = 0,
-            automaticThreads = true, cacheMatrix = true, calibrationMs = 50, presetId = "cache-matrix-quick-v1")
+            automaticThreads = true, cacheMatrix = true, cacheCurve = true, calibrationMs = 50, presetId = "cache-curve-quick-v1")
         fun quick() = RamConfig()
         fun standard() = RamConfig(workingSetMiB = 512, latencySetMiB = 256,
             warmupMs = 1000, durationMs = 3000, rounds = 3, latencyRounds = 5,
@@ -117,6 +124,7 @@ data class RamConfig(
                 cooldownMs = json.getInt("cooldown_ms"), presetId = json.getString("preset_id"),
                 automaticThreads = json.optString("thread_mode", if (json.optString("preset_id") == "aida64-style-v1") "auto" else "fixed") == "auto",
                 cacheMatrix = json.optBoolean("cache_matrix", false), calibrationMs = json.optInt("calibration_ms", 150),
+                cacheCurve = json.optBoolean("cache_curve", false),
             ).also { it.validate() }
         }
     }

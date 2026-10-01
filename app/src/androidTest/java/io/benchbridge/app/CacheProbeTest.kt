@@ -6,6 +6,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.benchbridge.app.hardware.*
 import io.benchbridge.app.ram.*
 import org.json.JSONObject
+import org.json.JSONArray
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -49,7 +50,7 @@ class CacheProbeTest {
     }
 
     @Test fun sweepDetectsPersistentTransitionsButRejectsNoiseAndMissingPoints() {
-        fun curve(latency:List<Double>)=latency.mapIndexed { i,n -> CacheProbe.Point(4096L shl i,n,if(i<3)100.0 else 60.0,true) }
+        fun curve(latency:List<Double>)=latency.mapIndexed { i,n -> CacheProbe.Point(4096L shl i,n,true) }
         val clear=curve(listOf(1.0,1.02,1.0,2.0,2.1,2.0))
         val edges=CacheProbe.edges(clear)
         assertEquals(1,edges.size); assertEquals(16384L,edges[0].lower); assertEquals(32768L,edges[0].upper)
@@ -66,13 +67,70 @@ class CacheProbeTest {
         val handle=RamNative.createSession()
         try {
             var stopped=false;var calls=0
-            val report=CacheProbe.run(topology,35L*1048576,{stopped},{id,bytes,kind,stride,seed->
-                val sample=JSONObject(RamNative.runPinnedRound(handle,kind,longArrayOf(bytes),intArrayOf(id),0,50,seed,stride))
+            val report=CacheProbe.run(topology,35L*1048576,{stopped},{id,bytes,stride,seed->
+                val sample=JSONObject(RamNative.runPinnedRound(handle,5,longArrayOf(bytes),intArrayOf(id),0,50,seed,stride,2))
                 assertEquals(sample.toString(),"COMPLETED",sample.getString("status"));assertTrue(sample.getBoolean("verified"))
+                assertTrue(sample.getJSONArray("per_thread_warmup_operations").getLong(0)>=bytes/stride*2)
+                assertTrue(sample.getJSONArray("per_thread_cpu_elapsed_ns").getLong(0)>0)
                 calls++;sample
-            },{probe->if(probe.getJSONArray("groups").optJSONObject(0)?.getJSONArray("points")?.length()==2)stopped=true})
+            },{probe->if(probe.getJSONArray("groups").optJSONObject(0)?.optInt("processed_points")==2)stopped=true})
             assertEquals("CANCELLED",report.getString("state")); assertFalse(report.getBoolean("scored"))
-            assertEquals(8,calls);assertEquals(2,report.getJSONArray("groups").getJSONObject(0).getJSONArray("points").length())
+            assertTrue(calls in 6..10);assertEquals(2,report.getJSONArray("groups").getJSONObject(0).getInt("processed_points"))
         } finally { RamNative.releaseSession(handle) }
+    }
+
+    private fun sample(latency: Double, bytes: Long=4096):JSONObject=JSONObject().put("kind",5).put("status","COMPLETED").put("verified",true)
+        .put("operations",(150000000/latency).toLong()).put("elapsed_ns",150000000).put("requested_duration_ms",150)
+        .put("working_set_bytes",bytes).put("node_stride_bytes",64).put("per_thread_cpu_elapsed_ns",JSONArray(listOf(149000000)))
+        .put("per_thread_warmup_operations",JSONArray(listOf(bytes/64*2)))
+
+    @Test fun longPauseAndIncompleteWarmupNeverBecomeLatencySteps() {
+        val interrupted=sample(1.0).put("elapsed_ns",11129188277L)
+        assertEquals("TIMING_OVERRUN",CacheProbe.qualityReason(interrupted))
+        assertEquals("SCHEDULING_INTERFERENCE",CacheProbe.qualityReason(sample(1.0).put("per_thread_cpu_elapsed_ns",JSONArray(listOf(70000000)))))
+        assertEquals("WARMUP_INCOMPLETE",CacheProbe.qualityReason(sample(1.0).put("per_thread_warmup_operations",JSONArray(listOf(1)))))
+        val point=CacheProbe.summarize(4096,listOf(sample(1.0),sample(1.02),sample(1.04),interrupted))!!
+        assertTrue(point.stable);assertEquals(3,point.trials);assertEquals(1.02,point.latency,0.001)
+        assertFalse(CacheProbe.summarize(4096,listOf(sample(1.0),sample(2.0),sample(3.0)))!!.stable)
+    }
+
+    @Test fun curveProtocolKeepsLegacyReportsAndRamRoundCountsSeparate() {
+        val config=RamConfig.matrixQuick()
+        assertTrue(config.curveMode);assertEquals(4,config.totalRounds);assertEquals(listOf("RAM"),config.scoredLevels)
+        assertEquals(config,RamConfig.fromJson(config.toJson().toString()))
+        val old=config.toJson().apply { remove("cache_curve");remove("cache_probe_method") }.toString()
+        val decoded=RamConfig.fromJson(old)
+        assertFalse(decoded.curveMode);assertEquals(16,decoded.totalRounds)
+        assertEquals(old,JSONObject(old).toString())
+    }
+
+    @Test fun latencySweepRefinesARealStepWithoutBandwidthAndStaysWithinBudget() {
+        val cpu=CpuCore(0,"cpu0",1,1000000,"","",true)
+        val topology=CpuTopology(listOf(cpu),emptyList(),null,"test",dataLineBytes=64)
+        val visited=mutableListOf<Long>()
+        val report=CacheProbe.run(topology,35L*1048576,{false},{_,bytes,_,_->
+            visited+=bytes;sample(if(bytes<=65536)1.0 else 4.0,bytes)
+        },{})
+        val group=report.getJSONArray("groups").getJSONObject(0)
+        assertEquals("COMPLETED",report.getString("state"))
+        val edge=group.getJSONArray("transitions").getJSONObject(0)
+        assertEquals(65536L,edge.getLong("lower_bytes"));assertTrue(edge.getLong("upper_bytes")<98304)
+        assertTrue(visited.distinct().size>CacheProbe.sizes(report.getLong("maximum_working_set_bytes"),emptyList()).size)
+        assertTrue(visited.max()<=report.getLong("maximum_working_set_bytes"))
+        assertTrue(edge.isNull("cache_level"))
+    }
+
+    @Test fun noisyStepsTriggerRefinementButRemainUnconfirmed() {
+        val cpu=CpuCore(0,"cpu0",1,1000000,"","",true)
+        val topology=CpuTopology(listOf(cpu),emptyList(),null,"test",dataLineBytes=64)
+        val report=CacheProbe.run(topology,35L*1048576,{false},{_,bytes,_,seed->
+            sample((if(bytes<=65536)1.0 else 4.0)*(if(seed%2==0L)1.8 else 1.0),bytes)
+        },{})
+        val group=report.getJSONArray("groups").getJSONObject(0)
+        assertEquals("UNSTABLE",report.getString("state"))
+        assertEquals(0,group.getJSONArray("transitions").length())
+        assertTrue(group.getJSONArray("candidate_intervals").length()>0)
+        assertEquals("needs-retest",group.getJSONArray("candidate_intervals").getJSONObject(0).getString("confidence"))
+        assertTrue(group.getInt("planned_points")>CacheProbe.sizes(report.getLong("maximum_working_set_bytes"),emptyList()).size)
     }
 }

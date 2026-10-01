@@ -80,8 +80,8 @@ internal fun ResultDashboard(
                         Text("${storage.rounds} 次 / 方向 · ${BenchmarkFormat.duration(storage.durationMs)} · ${if (storage.direct) "Direct" else "Buffered"}",
                             style = MaterialTheme.typography.labelSmall, modifier = Modifier.testTag("storage_result_timing"))
                     } else if (ram.cacheMatrix) {
-                        Text("${if (ram.automaticThreads) "自动校准线程" else "带宽 T${ram.threads}"} · 延迟 T1", style = MaterialTheme.typography.labelMedium)
-                        Text("带宽 ${ram.rounds} 次 · 延迟 ${ram.latencyRounds} 次 · 中位数", style = MaterialTheme.typography.labelSmall)
+                        Text(if(ram.curveMode)if(compact)"缓存延迟阶跃 · T1"else"缓存：按核心组扫描延迟阶跃"else"${if (ram.automaticThreads) "自动校准线程" else "带宽 T${ram.threads}"} · 延迟 T1", style = MaterialTheme.typography.labelMedium,maxLines=1)
+                        Text(if(ram.curveMode)"每点 3–5 次 · RAM 独立测试"else"带宽 ${ram.rounds} 次 · 延迟 ${ram.latencyRounds} 次 · 中位数", style = MaterialTheme.typography.labelSmall,maxLines=1)
                     } else {
                         Text("每轮 ${BenchmarkFormat.duration(ram.durationMs)} · 中位数", style = MaterialTheme.typography.labelMedium)
                         if (!compact) Text("工作集、线程和次数见各项", style = MaterialTheme.typography.labelSmall,
@@ -90,7 +90,9 @@ internal fun ResultDashboard(
                 }
                 Box {
                     TextButton(onClick = { unitsOpen = true }, modifier = Modifier.testTag("result_unit"),
-                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)) { Text("$unit ▾") }
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)) {
+                        Text(if(!disk&&ram.curveMode)"RAM $unit ▾"else"$unit ▾",fontSize=if(compact&&ram.curveMode)10.sp else 14.sp)
+                    }
                     DropdownMenu(expanded = unitsOpen, onDismissRequest = { unitsOpen = false }) {
                         (if (disk) listOf("MB/s", "GB/s", "IOPS", "µs") else listOf("MB/s", "GB/s")).forEach { option ->
                             DropdownMenuItem(text = { Text(option) }, onClick = { unit = option; unitsOpen = false }, modifier = Modifier.testTag("unit_$option"))
@@ -157,7 +159,7 @@ internal fun ResultDashboard(
                         Text(if (unit == "µs") "平均延迟 · 吞吐最佳轮次" else "最高完整轮次 · $unit",
                             fontSize = 10.sp, lineHeight = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else if (ram.cacheMatrix) {
-                        MemoryMatrix(report, ram, unit, compact)
+                        if(ram.curveMode)CacheCurveBoard(report,ram,unit,compact)else MemoryMatrix(report, ram, unit, compact)
                     } else {
                         ram.kinds.forEachIndexed { index, code ->
                             val kind = RamKind.entries.first { it.code == code }
@@ -195,7 +197,7 @@ internal fun ResultDashboard(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("BenchBridge ${(report?.optString("app_version") ?: BuildConfig.VERSION_NAME).substringBefore('-')}",
                     fontSize = 10.sp, lineHeight = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(stamp ?: if (disk) storage.directionLabel else "${ram.kinds.size * if (ram.cacheMatrix) 4 else 1} 项测试", fontSize = 10.sp, lineHeight = 13.sp,
+                Text(stamp ?: if (disk) storage.directionLabel else if(ram.curveMode)"缓存曲线 + RAM"else"${ram.kinds.size * if (ram.cacheMatrix) 4 else 1} 项测试", fontSize = 10.sp, lineHeight = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
@@ -275,7 +277,15 @@ private fun DashboardStatus(disk: Boolean, report: JSONObject?, running: Boolean
     }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         val current = if (!disk && report?.has("current_level") == true) "${report.optString("current_level")} · " else ""
-        Text(if (running) "$current$phase · $completed / $total 轮" else RamResults.stateLabel(state),
+        val probe=report?.optJSONObject("cache_probe")
+        val curve=report?.optJSONObject("config")?.optBoolean("cache_curve")==true
+        val statusText=when {
+            running && curve && report.optString("phase")=="CACHE_PROBING" -> "扫描 CPU ${probe?.optInt("current_cpu_id")} · ${BenchmarkFormat.bytes(probe?.optLong("current_working_set_bytes")?:0)}"
+            running -> "$current$phase · $completed / $total 轮"
+            curve && state=="PARTIAL" -> "扫描完成，部分采样需复测"
+            else -> RamResults.stateLabel(state)
+        }
+        Text(statusText,
             style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.testTag((if (disk) "storage_state_" else "run_state_") + state))
         if (running) LinearProgressIndicator(progress = { (report?.optInt("processed_rounds", completed) ?: completed).toFloat() / total.coerceAtLeast(1) }, modifier = Modifier.width(72.dp).height(3.dp))
