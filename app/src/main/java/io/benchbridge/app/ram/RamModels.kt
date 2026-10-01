@@ -29,9 +29,12 @@ data class RamConfig(
     val cacheMatrix: Boolean = false,
     val calibrationMs: Int = 150,
     val cacheCurve: Boolean = false,
+    val curveIncludeRam: Boolean = true,
+    val curveMaxMiB: Int = 128,
+    val curveSteps: Int = 8,
 ) {
     val curveMode: Boolean get() = cacheMatrix && cacheCurve
-    val scoredLevels: List<String> get() = if (cacheMatrix && !curveMode) MemoryPlanner.levels else listOf("RAM")
+    val scoredLevels: List<String> get() = if(curveMode&&!curveIncludeRam)emptyList()else if (cacheMatrix && !curveMode) MemoryPlanner.levels else listOf("RAM")
     val hasBandwidth: Boolean get() = kinds.any { it != RamKind.LATENCY.code }
     val hasLatency: Boolean get() = RamKind.LATENCY.code in kinds
     fun resolveThreads(allowedCpus: Int): RamConfig = if (automaticThreads) copy(threads = allowedCpus.coerceIn(1, 16)) else this
@@ -46,17 +49,17 @@ data class RamConfig(
     val summary: String get() = buildList {
         if (curveMode) add("缓存曲线：工作集大小 × 延迟 ns；每个核心组固定一个核心")
         else if (cacheMatrix) add("L1 / L2 / L3 / RAM · ${if (automaticThreads) "线程与核心自动校准" else "带宽 $threads 线程"}")
-        if (hasBandwidth) add("${if (cacheMatrix) "RAM " else ""}带宽：${BenchmarkFormat.mib(workingSetMiB)} · ${if (automaticThreads && cacheMatrix) "自动线程" else "$threads 线程"} · $rounds 次")
-        if (hasLatency) add("${if (cacheMatrix) "RAM " else ""}延迟：${BenchmarkFormat.mib(latencySetMiB)} · 1 线程 · $latencyRounds 次")
-        add("${if (cacheMatrix) "RAM " else ""}每次 ${BenchmarkFormat.duration(durationMs)} · 预热 ${BenchmarkFormat.duration(warmupMs)} · 间隔 ${BenchmarkFormat.duration(cooldownMs)}")
-        if (curveMode) add("缓存扫描 4 KiB–64 MiB（受预算限制），每点 3–5 次；粗扫后细化阶跃区间。RAM 参数独立。")
+        if (hasBandwidth && scoredLevels.isNotEmpty()) add("${if (cacheMatrix) "RAM " else ""}带宽：${BenchmarkFormat.mib(workingSetMiB)} · ${if (automaticThreads && cacheMatrix) "自动线程" else "$threads 线程"} · $rounds 次")
+        if (hasLatency && scoredLevels.isNotEmpty()) add("${if (cacheMatrix) "RAM " else ""}延迟：${BenchmarkFormat.mib(latencySetMiB)} · 1 线程 · $latencyRounds 次")
+        if(scoredLevels.isNotEmpty())add("${if (cacheMatrix) "RAM " else ""}每次 ${BenchmarkFormat.duration(durationMs)} · 预热 ${BenchmarkFormat.duration(warmupMs)} · 间隔 ${BenchmarkFormat.duration(cooldownMs)}")
+        if (curveMode) add("4 KiB–$curveMaxMiB MiB · 每倍容量 $curveSteps 个间隔 · 正反两遍交叉验证 · 自动补测与多区间分析")
         else if (cacheMatrix) add("缓存每次 ${BenchmarkFormat.duration(minOf(durationMs, 1000))}；工作集按共享域分配。RAM 工作集至少为末级缓存的两倍，实际值见成绩。")
     }.joinToString("\n")
     val totalRounds: Int get() = kinds.sumOf { if (it == RamKind.LATENCY.code) latencyRounds else rounds } * scoredLevels.size
     fun bytes(kind: Int): Long = (if (kind == RamKind.LATENCY.code) latencySetMiB else workingSetMiB) * 1048576L
     fun threads(kind: Int): Int = if (kind == RamKind.LATENCY.code) 1 else threads
     fun rounds(kind: Int): Int = if (kind == RamKind.LATENCY.code) latencyRounds else rounds
-    fun estimatedBytes(): Long = kinds.maxOfOrNull { kind ->
+    fun estimatedBytes(): Long = if(curveMode&&!curveIncludeRam) 40L*1048576 else kinds.maxOfOrNull { kind ->
         val data = bytes(kind)
         val indices = when (kind) {
             3, 4 -> data / 2
@@ -74,6 +77,7 @@ data class RamConfig(
         require(rounds in 1..10 && latencyRounds in 1..10) { "重复次数必须为 1–10" }
         require(cooldownMs in 0..30000 && presetId.length in 1..64) { "预设参数无效" }
         require(calibrationMs in 50..1000) { "校准时长无效" }
+        require(curveMaxMiB in 1..256 && curveSteps in 2..8) { "曲线范围或密度无效" }
         require(!cacheMatrix || kinds.all { it in listOf(0, 1, 2, 5) }) { "缓存表支持读取、写入、延迟和拷贝" }
     }
 
@@ -93,17 +97,19 @@ data class RamConfig(
         put("latency_threads", 1)
         put("cache_matrix", cacheMatrix)
         put("cache_curve", curveMode)
-        if (curveMode) put("cache_probe_method", "latency-step-sweep-v2")
+        put("curve_include_ram",curveIncludeRam).put("curve_max_mib",curveMaxMiB).put("curve_steps",curveSteps)
+        if (curveMode) put("cache_probe_method", CacheProbe.METHOD).put("curve_include_ram",curveIncludeRam)
+            .put("curve_max_mib",curveMaxMiB).put("curve_steps",curveSteps)
         put("calibration_ms", calibrationMs)
         if (cacheMatrix) put("cache_duration_ms", minOf(durationMs, 1000)).put("cache_warmup_ms", minOf(warmupMs, 250))
     }
 
     companion object {
         fun aida64(allowedCpus: Int = 1) = standard().copy(kinds = listOf(0, 1, 2, 5),
-            threads = allowedCpus.coerceIn(1, 16), automaticThreads = true, cacheMatrix = true, cacheCurve = true, presetId = "cache-curve-standard-v1")
+            threads = allowedCpus.coerceIn(1, 16), automaticThreads = true, cacheMatrix = true, cacheCurve = true, curveIncludeRam=false, presetId = "cache-curve-standard-v1")
         fun matrixQuick() = RamConfig(kinds = listOf(0, 1, 2, 5), workingSetMiB = 16, latencySetMiB = 8,
             warmupMs = 25, durationMs = 150, rounds = 1, latencyRounds = 1, cooldownMs = 0,
-            automaticThreads = true, cacheMatrix = true, cacheCurve = true, calibrationMs = 50, presetId = "cache-curve-quick-v1")
+            automaticThreads = true, cacheMatrix = true, cacheCurve = true, curveIncludeRam=false, curveSteps=4, curveMaxMiB=64, calibrationMs = 50, presetId = "cache-curve-quick-v1")
         fun quick() = RamConfig()
         fun standard() = RamConfig(workingSetMiB = 512, latencySetMiB = 256,
             warmupMs = 1000, durationMs = 3000, rounds = 3, latencyRounds = 5,
@@ -125,6 +131,7 @@ data class RamConfig(
                 automaticThreads = json.optString("thread_mode", if (json.optString("preset_id") == "aida64-style-v1") "auto" else "fixed") == "auto",
                 cacheMatrix = json.optBoolean("cache_matrix", false), calibrationMs = json.optInt("calibration_ms", 150),
                 cacheCurve = json.optBoolean("cache_curve", false),
+                curveIncludeRam=json.optBoolean("curve_include_ram",true),curveMaxMiB=json.optInt("curve_max_mib",64),curveSteps=json.optInt("curve_steps",4),
             ).also { it.validate() }
         }
     }

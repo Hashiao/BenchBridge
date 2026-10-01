@@ -80,15 +80,15 @@ internal fun ResultDashboard(
                         Text("${storage.rounds} 次 / 方向 · ${BenchmarkFormat.duration(storage.durationMs)} · ${if (storage.direct) "Direct" else "Buffered"}",
                             style = MaterialTheme.typography.labelSmall, modifier = Modifier.testTag("storage_result_timing"))
                     } else if (ram.cacheMatrix) {
-                        Text(if(ram.curveMode)if(compact)"缓存延迟阶跃 · T1"else"缓存：按核心组扫描延迟阶跃"else"${if (ram.automaticThreads) "自动校准线程" else "带宽 T${ram.threads}"} · 延迟 T1", style = MaterialTheme.typography.labelMedium,maxLines=1)
-                        Text(if(ram.curveMode)"每点 3–5 次 · RAM 独立测试"else"带宽 ${ram.rounds} 次 · 延迟 ${ram.latencyRounds} 次 · 中位数", style = MaterialTheme.typography.labelSmall,maxLines=1)
+                        Text(if(ram.curveMode)if(compact)"核心组延迟曲线 · T1"else"缓存：各核心组完整延迟曲线"else"${if (ram.automaticThreads) "自动校准线程" else "带宽 T${ram.threads}"} · 延迟 T1", style = MaterialTheme.typography.labelMedium,maxLines=1)
+                        Text(if(ram.curveMode)"正反两遍 · 每倍容量 ${ram.curveSteps} 个间隔"else"带宽 ${ram.rounds} 次 · 延迟 ${ram.latencyRounds} 次 · 中位数", style = MaterialTheme.typography.labelSmall,maxLines=1)
                     } else {
                         Text("每轮 ${BenchmarkFormat.duration(ram.durationMs)} · 中位数", style = MaterialTheme.typography.labelMedium)
                         if (!compact) Text("工作集、线程和次数见各项", style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                Box {
+                if(!ram.curveMode || ram.curveIncludeRam || disk)Box {
                     TextButton(onClick = { unitsOpen = true }, modifier = Modifier.testTag("result_unit"),
                         contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)) {
                         Text(if(!disk&&ram.curveMode)"RAM $unit ▾"else"$unit ▾",fontSize=if(compact&&ram.curveMode)10.sp else 14.sp)
@@ -282,13 +282,16 @@ private fun DashboardStatus(disk: Boolean, report: JSONObject?, running: Boolean
         val statusText=when {
             running && curve && report.optString("phase")=="CACHE_PROBING" -> "扫描 CPU ${probe?.optInt("current_cpu_id")} · ${BenchmarkFormat.bytes(probe?.optLong("current_working_set_bytes")?:0)}"
             running -> "$current$phase · $completed / $total 轮"
-            curve && state=="PARTIAL" -> "扫描完成，部分采样需复测"
+            curve && state=="PARTIAL" -> "完整性验证未通过"
             else -> RamResults.stateLabel(state)
         }
         Text(statusText,
             style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.testTag((if (disk) "storage_state_" else "run_state_") + state))
-        if (running) LinearProgressIndicator(progress = { (report?.optInt("processed_rounds", completed) ?: completed).toFloat() / total.coerceAtLeast(1) }, modifier = Modifier.width(72.dp).height(3.dp))
-        else if (report != null) Text("$completed / $total 轮", style = MaterialTheme.typography.labelSmall)
+        val probing=curve && (total==0 || report?.optString("phase")=="CACHE_PROBING")
+        val done=if(probing)probe?.optInt("completed_points")?:0 else report?.optInt("processed_rounds",completed)?:completed
+        val planned=if(probing)probe?.optInt("planned_points")?:0 else total
+        if (running) LinearProgressIndicator(progress = { (done.toFloat()/planned.coerceAtLeast(1)).coerceIn(0f,1f) }, modifier = Modifier.width(72.dp).height(3.dp))
+        else if (report != null) Text(if(probing)"$done / $planned 点次"else "$completed / $total 轮", style = MaterialTheme.typography.labelSmall)
     }
 }

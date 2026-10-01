@@ -106,6 +106,11 @@ class RamRunnerService : Service() {
             }
             try {
                 val requested = RamConfig.fromJson(configJson)
+                val resumeId = JSONObject(configJson).optString("resume_run_id")
+                val previous = if (resumeId.isEmpty()) null else store.read(resumeId).also {
+                    require(it != null && CacheProbe.canResume(it)) { "该记录无法续测，请重新测试" }
+                    require(requested.sameParameters(RamConfig.fromJson(it.getJSONObject("config").toString()))) { "续测参数与原记录不一致" }
+                }
                 val caps = capabilityReport()
                 val config = requested.resolveThreads(caps.optInt("allowed_cpus", 1)).normalized()
                 require(config.estimatedBytes() <= caps.getLong("memory_budget_bytes")) {
@@ -136,6 +141,11 @@ class RamRunnerService : Service() {
                         .put("api", Build.VERSION.SDK_INT).put("android", Build.VERSION.RELEASE)
                         .put("fingerprint", Build.FINGERPRINT))
                     put("error", JSONObject.NULL)
+                    if (previous != null) {
+                        put("cache_probe", previous.getJSONObject("cache_probe"))
+                        put("resumed_from_run_id", resumeId)
+                        put("original_started_at_ms", previous.optLong("original_started_at_ms", previous.getLong("started_at_ms")))
+                    }
                 }
                 val handle = RamNative.createSession()
                 try { resources.start("RAM"); store.save(report) }
@@ -157,7 +167,7 @@ class RamRunnerService : Service() {
         }
         override fun snapshot(runId: String): String {
             val run = current?.takeIf { it.id == runId }
-                ?: return storage.snapshot(runId) ?: compute.snapshot(runId) ?: store.read(runId)?.toString() ?: JSONObject().put("error", "RUN_NOT_FOUND").toString()
+                ?: return storage.snapshot(runId) ?: compute.snapshot(runId) ?: store.read(runId)?.let { compactReport(it).toString() } ?: JSONObject().put("error", "RUN_NOT_FOUND").toString()
             val result = JSONObject(run.snapshotText)
             if (!run.finished) {
                 val nativePhase = RamNative.phase(run.handle)
@@ -185,6 +195,10 @@ class RamRunnerService : Service() {
     private fun publish(run: Run, persist: Boolean = false) {
         if (persist) store.save(run.report)
         if (run.report.optString("state") in RamResults.terminalStates) run.finished = true
+        if (run.report.has("cache_probe")) {
+            run.snapshotText = compactReport(run.report).toString()
+            return
+        }
         val text = run.report.toString()
         if (text.length <= 240000) run.snapshotText = text
         else {
@@ -199,6 +213,26 @@ class RamRunnerService : Service() {
             }
             compact.put("full_report_in_storage", true)
             run.snapshotText = compact.toString()
+        }
+    }
+
+    // 避免先序列化再解析整份采样记录；磁盘保存全量，Binder 只传摘要。
+    // Avoid serializing and reparsing all raw samples; persist the full report and send a compact Binder view.
+    private fun compactReport(report: JSONObject): JSONObject {
+        fun copy(source: JSONObject, excluded: Set<String>) = JSONObject().apply {
+            source.keys().forEach { key -> if (key !in excluded) put(key, source.get(key)) }
+        }
+        return copy(report, setOf("cache_probe", "cells")).apply {
+            report.optJSONObject("cache_probe")?.let { probe ->
+                put("cache_probe", copy(probe, setOf("groups")).put("groups", JSONArray().apply {
+                    val groups = probe.optJSONArray("groups") ?: JSONArray()
+                    for (i in 0 until groups.length()) put(copy(groups.getJSONObject(i), setOf("samples")))
+                }))
+            }
+            report.optJSONArray("cells")?.let { cells ->
+                put("cells", JSONArray().apply { for (i in 0 until cells.length()) put(copy(cells.getJSONObject(i), setOf("calibration"))) })
+            }
+            put("full_report_in_storage", true)
         }
     }
 

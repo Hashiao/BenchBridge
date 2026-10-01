@@ -46,9 +46,10 @@ internal fun resultText(report: JSONObject): String = buildString {
             if(groups!=null)for(i in 0 until groups.length()) {
                 val group=groups.getJSONObject(i);val edges=group.optJSONArray("transitions")
                 appendLine("CPU ${group.optInt("cpu_id")} · ${group.optInt("stable_points")} / ${group.optJSONArray("points")?.length()?:0} 稳定点")
+                appendLine(group.optJSONObject("analysis")?.optString("summary")?:"旧协议记录 / 扫描未完成")
                 if(edges!=null)for(j in 0 until edges.length()) {
                     val edge=edges.getJSONObject(j)
-                    appendLine("阶跃候选：${BenchmarkFormat.bytes(edge.getLong("lower_bytes"))}–${BenchmarkFormat.bytes(edge.getLong("upper_bytes"))}")
+                    appendLine("延迟转换：${BenchmarkFormat.bytes(edge.getLong("lower_bytes"))}–${BenchmarkFormat.bytes(edge.getLong("upper_bytes"))}")
                 }
             }
         }

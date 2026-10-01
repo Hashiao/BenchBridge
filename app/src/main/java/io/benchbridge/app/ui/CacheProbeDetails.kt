@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
@@ -38,22 +39,26 @@ internal fun CacheLatencyPanel(report: JSONObject?, modifier: Modifier = Modifie
     val groups=objects(probe?.optJSONArray("groups"))
     var selectedCpu by rememberSaveable(report?.optString("run_id")) { mutableIntStateOf(-1) }
     var selectedBytes by rememberSaveable(report?.optString("run_id"),selectedCpu) { mutableLongStateOf(0) }
-    var logarithmic by rememberSaveable { mutableStateOf(true) }
+    var logarithmic by rememberSaveable { mutableStateOf(false) }
     var references by rememberSaveable { mutableStateOf(false) }
-    val group=groups.firstOrNull { it.optInt("cpu_id")==selectedCpu }?:groups.firstOrNull()
-    val points=objects(group?.optJSONArray("points")).filter { it.optLong("working_set_bytes")>0 && it.optDouble("latency_ns").let { v->v.isFinite()&&v>0 } }.sortedBy { it.optLong("working_set_bytes") }
+    val group=groups.firstOrNull { it.optInt("cpu_id")==selectedCpu }
+    val visible=if(group==null)groups else listOf(group)
+    val palette=listOf(Color(0xFF4658B8),Color(0xFF008577),Color(0xFFB26318),Color(0xFF9551A5))
+    fun samples(g:JSONObject)=objects(g.optJSONArray("points")).filter { it.optLong("working_set_bytes")>0 && it.optDouble("latency_ns").let { v->v.isFinite()&&v>0 } }.sortedBy { it.optLong("working_set_bytes") }
+    val points=visible.flatMap(::samples).sortedBy { it.optLong("working_set_bytes") }
+    val allPoints=groups.flatMap(::samples)
     val edges=objects(group?.optJSONArray("transitions"))
-    val pending=objects(group?.optJSONArray("candidate_intervals"))
     val caches=objects(report?.optJSONObject("topology")?.optJSONArray("caches")).filter { cache->
         val cpus=cache.optJSONArray("cpus")
-        group!=null && cpus!=null && (0 until cpus.length()).any { cpus.optInt(it)==group.optInt("cpu_id") }
+        cpus!=null && visible.any { g->(0 until cpus.length()).any { cpus.optInt(it)==g.optInt("cpu_id") } }
     }
     Column(modifier.testTag("cache_curve_panel"),verticalArrangement=Arrangement.spacedBy(if(compact)1.dp else 4.dp)) {
-        if(!compact)Text("缓存访问延迟 · 点击曲线查看采样",fontSize=12.sp,lineHeight=16.sp,maxLines=1)
+        if(!compact)Text("各核心组延迟 · 同一坐标比较",fontSize=12.sp,lineHeight=16.sp,maxLines=1)
         Row(Modifier.fillMaxWidth()) {
             Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(4.dp)) {
+                FilterChip(selected=group==null,onClick={selectedCpu=-1;selectedBytes=0},label={Text("全部",fontSize=10.sp,lineHeight=12.sp,maxLines=1)},modifier=Modifier.height(if(compact)26.dp else 30.dp).testTag("curve_cpu_all"))
                 groups.forEach { g->FilterChip(selected=group===g,onClick={selectedCpu=g.optInt("cpu_id");selectedBytes=0},
-                    label={Text("CPU ${g.optInt("cpu_id")}",fontSize=if(compact)8.sp else 10.sp,lineHeight=12.sp,maxLines=1)},
+                    label={Text("CPU ${g.optInt("cpu_id")}",color=palette[groups.indexOf(g)%palette.size],fontSize=if(compact)8.sp else 10.sp,lineHeight=12.sp,maxLines=1)},
                     modifier=Modifier.height(if(compact)26.dp else 30.dp).testTag("curve_cpu_${g.optInt("cpu_id")}")) }
             }
             if(compact) {
@@ -76,11 +81,10 @@ internal fun CacheLatencyPanel(report: JSONObject?, modifier: Modifier = Modifie
         val primary=MaterialTheme.colorScheme.primary
         val textColor=MaterialTheme.colorScheme.onSurface
         val gridColor=MaterialTheme.colorScheme.outlineVariant
-        val uncertain=MaterialTheme.colorScheme.error
         val maxBytes=maxOf(probe?.optLong("maximum_working_set_bytes",64L*1048576)?:64L*1048576,points.lastOrNull()?.optLong("working_set_bytes")?:0,8192)
         val logStart=ln(4096.0);val logSpan=ln(maxBytes.toDouble())-logStart
-        val minimum=points.minOfOrNull { it.optDouble("minimum_ns",it.getDouble("latency_ns")) }?.coerceAtLeast(0.01)?:1.0
-        val maximum=points.maxOfOrNull { it.optDouble("maximum_ns",it.getDouble("latency_ns")) }?.coerceAtLeast(minimum*1.1)?:512.0
+        val minimum=allPoints.minOfOrNull { it.optDouble("minimum_ns",it.getDouble("latency_ns")) }?.coerceAtLeast(0.01)?:1.0
+        val maximum=allPoints.maxOfOrNull { it.optDouble("maximum_ns",it.getDouble("latency_ns")) }?.coerceAtLeast(minimum*1.1)?:512.0
         val minY=if(logarithmic)10.0.pow(floor(log10(minimum)))else 0.0
         val maxY=if(logarithmic)10.0.pow(ceil(log10(maximum)))else ceil(maximum*1.1).coerceAtLeast(1.0)
         val axisLeft=44.dp;val axisRight=12.dp
@@ -121,30 +125,38 @@ internal fun CacheLatencyPanel(report: JSONObject?, modifier: Modifier = Modifie
             val xlabel="工作集大小（KiB / MiB，对数）"
             drawContext.canvas.nativeCanvas.drawText(xlabel,left+(right-left-paint.measureText(xlabel))/2,size.height-2.dp.toPx(),paint)
             edges.forEach { e->drawRect(primary.copy(alpha=0.13f),Offset(x(e.getLong("lower_bytes")),top),Size((x(e.getLong("upper_bytes"))-x(e.getLong("lower_bytes"))).coerceAtLeast(1f),bottom-top)) }
-            pending.forEach { e->drawRect(uncertain.copy(alpha=0.6f),Offset(x(e.getLong("lower_bytes")),top),Size((x(e.getLong("upper_bytes"))-x(e.getLong("lower_bytes"))).coerceAtLeast(1f),bottom-top),style=Stroke(1.dp.toPx(),pathEffect=PathEffect.dashPathEffect(floatArrayOf(6f,5f)))) }
             if(references)caches.forEach { cache->
                 val bytes=cache.optLong("bytes")
                 if(bytes in 4096..maxBytes) {
                     val px=x(bytes);drawLine(gridColor,Offset(px,top),Offset(px,bottom),2f,pathEffect=PathEffect.dashPathEffect(floatArrayOf(6f,5f)))
-                    drawContext.canvas.nativeCanvas.drawText("L${cache.optInt("level")}参考",px+2f,top+paint.textSize,paint)
+                    val label="L${cache.optInt("level")}参考"
+                    drawContext.canvas.nativeCanvas.drawText(label,(px+2f).coerceAtMost(size.width-paint.measureText(label)),top+paint.textSize,paint)
                 }
             }
-            points.zipWithNext().forEach { (a,b)->drawLine(primary.copy(alpha=if(a.optBoolean("stable")&&b.optBoolean("stable"))0.9f else 0.3f),
-                Offset(x(a.getLong("working_set_bytes")),y(a.getDouble("latency_ns"))),Offset(x(b.getLong("working_set_bytes")),y(b.getDouble("latency_ns"))),2.dp.toPx()) }
-            points.forEach { p->
-                val px=x(p.getLong("working_set_bytes"));val py=y(p.getDouble("latency_ns"));val color=if(p.optBoolean("stable"))primary else uncertain
-                drawLine(color.copy(alpha=0.5f),Offset(px,y(p.optDouble("minimum_ns",p.getDouble("latency_ns")))),Offset(px,y(p.optDouble("maximum_ns",p.getDouble("latency_ns")))),1.dp.toPx())
-                if(p.optBoolean("stable"))drawCircle(color,2.5.dp.toPx(),Offset(px,py))else drawCircle(color,3.dp.toPx(),Offset(px,py),style=Stroke(1.dp.toPx()))
-                if(p.getLong("working_set_bytes")==selectedBytes)drawCircle(textColor,5.dp.toPx(),Offset(px,py),style=Stroke(1.dp.toPx()))
+            visible.forEach { g->
+                val color=palette[groups.indexOf(g)%palette.size]
+                val series=samples(g)
+                series.zipWithNext().forEach { (a,b)->
+                    if(b.getLong("working_set_bytes").toDouble()/a.getLong("working_set_bytes")<=1.6)
+                        drawLine(color.copy(alpha=if(a.optBoolean("stable")&&b.optBoolean("stable"))0.95f else 0.35f),
+                            Offset(x(a.getLong("working_set_bytes")),y(a.getDouble("latency_ns"))),Offset(x(b.getLong("working_set_bytes")),y(b.getDouble("latency_ns"))),1.6.dp.toPx())
+                }
+                series.forEach { p->
+                    val px=x(p.getLong("working_set_bytes"));val py=y(p.getDouble("latency_ns"))
+                    if(group!=null)drawLine(color.copy(alpha=0.35f),Offset(px,y(p.optDouble("minimum_ns",p.getDouble("latency_ns")))),Offset(px,y(p.optDouble("maximum_ns",p.getDouble("latency_ns")))),1.dp.toPx())
+                    if(p.optBoolean("stable"))drawCircle(color,1.7.dp.toPx(),Offset(px,py))else drawCircle(color.copy(alpha=0.6f),2.dp.toPx(),Offset(px,py),style=Stroke(1.dp.toPx()))
+                    if(p.getLong("working_set_bytes")==selectedBytes)drawCircle(textColor,4.dp.toPx(),Offset(px,py),style=Stroke(1.dp.toPx()))
+                }
             }
             if(points.isEmpty())drawContext.canvas.nativeCanvas.drawText(if(probe==null)"开始测试后生成曲线"else"等待有效采样",left+20.dp.toPx(),(top+bottom)/2,paint)
         }
-        val selected=points.firstOrNull { it.optLong("working_set_bytes")==selectedBytes }?:points.lastOrNull()
-        Text(selected?.let { "${sizeLabel(it.getLong("working_set_bytes"))} · %.2f ns".format(Locale.US,it.getDouble("latency_ns"))+
-            if(it.optBoolean("stable"))" · 稳定"else" · 波动 / 样本不足" }?:"固定核心 · 单线程随机访问",fontSize=if(compact)8.sp else 10.sp,lineHeight=if(compact)11.sp else 13.sp,maxLines=1,modifier=Modifier.testTag("curve_selected_point"))
-        if(!compact)Text((if(edges.isEmpty())"尚未确认阶跃"else"阶跃："+edges.joinToString("；") { "${sizeLabel(it.getLong("lower_bytes"))}–${sizeLabel(it.getLong("upper_bytes"))}" })+
-            if(pending.isNotEmpty())" · ${pending.size} 处疑似阶跃待复测"else" · 空心点需复测",
-            fontSize=9.sp,lineHeight=12.sp,maxLines=2,modifier=Modifier.testTag("curve_transitions"))
+        val targetBytes=selectedBytes.takeIf { it>0 }?:points.lastOrNull()?.optLong("working_set_bytes")
+        val selected=visible.mapNotNull { g->samples(g).firstOrNull { it.optLong("working_set_bytes")==targetBytes }?.let { g.optInt("cpu_id") to it } }
+        Text(if(selected.isEmpty())"固定核心 · 随机依赖访问 · 原始中位数"else "${sizeLabel(targetBytes!!)} · "+selected.joinToString(" / "){(cpu,p)->"CPU $cpu %.2f ns".format(Locale.US,p.getDouble("latency_ns"))},
+            fontSize=if(compact)8.sp else 10.sp,lineHeight=if(compact)11.sp else 13.sp,maxLines=2,modifier=Modifier.testTag("curve_selected_point"))
+        if(!compact)Text(if(group!=null)group.optJSONObject("analysis")?.optString("summary")?:if(probe?.optString("method")==CacheProbe.METHOD)"正在完成整段扫描与交叉验证"else"旧协议记录，保留原始曲线"
+            else if(probe?.optString("state")=="COMPLETED")"所有核心组已完成 · 分段结论见详情"else"正反两遍扫描 · 自动复核 · 点按核心查看结论",
+            fontSize=9.sp,lineHeight=12.sp,maxLines=3,modifier=Modifier.testTag("curve_transitions"))
     }
 }
 
@@ -152,15 +164,25 @@ internal fun CacheLatencyPanel(report: JSONObject?, modifier: Modifier = Modifie
 internal fun CacheTopologyDetails(report: JSONObject) {
     SectionCard("工作集大小—访问延迟") {
         CacheLatencyPanel(report,Modifier.fillMaxWidth().height(360.dp))
-        Text("阴影为满足稳定性条件的阶跃区间，虚线框为待复测的疑似阶跃，误差线为重复测量范围。参考线来自系统或资料库，不能把阶跃直接认定为 L1/L2/L3。",style=MaterialTheme.typography.bodySmall)
+        Text("实线连接实测中位数；空心点未通过一致性验证，未用于分段结论。误差线为 10–90% 分位区间。不同核心共享坐标轴，线性和对数纵轴均以 ns 为单位。",style=MaterialTheme.typography.bodySmall)
         report.optJSONObject("cache_probe")?.let { probe->
-            if(probe.optString("method")!=CacheProbe.METHOD)Text("旧版扫描记录：保留原始采样与稳定性判断。",style=MaterialTheme.typography.bodySmall)
-            objects(probe.optJSONArray("groups")).forEach { group->
-                val points=objects(group.optJSONArray("points"))
-                Text("CPU ${group.optInt("cpu_id")}：${points.count { it.optBoolean("stable") }} / ${points.size} 个稳定点；排除 ${group.optInt("rejected_trials")} 次受干扰采样",style=MaterialTheme.typography.bodySmall)
+            if(probe.optString("method")!=CacheProbe.METHOD)Text("旧协议记录：仅保留原始曲线。",style=MaterialTheme.typography.bodySmall)
+            objects(probe.optJSONArray("groups")).forEach { g->
+                HorizontalDivider()
+                Text("CPU ${g.optInt("cpu_id")} · %.2f GHz 上限".format(Locale.US,g.optLong("max_khz")/1000000.0),style=MaterialTheme.typography.titleSmall)
+                val analysis=g.optJSONObject("analysis")
+                Text(analysis?.optString("summary")?:"扫描未完成，已有采样已保存。",style=MaterialTheme.typography.bodySmall)
+                objects(analysis?.optJSONArray("regions")).forEach { r->
+                    val trend=when(r.optString("trend")){"plateau"->"平台";"rising"->"上升";else->"下降"}
+                    Text("区间 ${r.optInt("index")}（$trend）：${sizeLabel(r.getLong("lower_bytes"))}–${sizeLabel(r.getLong("upper_bytes"))} · 中位 %.2f ns".format(Locale.US,r.getDouble("latency_ns")),style=MaterialTheme.typography.bodySmall)
+                }
+                objects(analysis?.optJSONArray("transitions")).forEachIndexed { index,e->
+                    Text("转换 ${index+1}：${sizeLabel(e.getLong("lower_bytes"))}–${sizeLabel(e.getLong("upper_bytes"))} · %.2f → %.2f ns".format(Locale.US,e.getDouble("before_ns"),e.getDouble("after_ns")),style=MaterialTheme.typography.bodySmall)
+                }
             }
         }
-        Text("原始样本、被排除的原因、线程实际运行时间与参考规格均保存在 JSON。",style=MaterialTheme.typography.bodySmall)
+        Text("结论描述实测访问层次，不将曲线转换直接等同于 L1/L2/L3 容量。系统页大小、TLB、预取和频率均可影响曲线。参考线仅代表系统或资料库容量。",style=MaterialTheme.typography.bodySmall)
+        Text("本版采用高熵数据上的 32 位依赖索引链（含地址计算），普通系统页。原始计时、线程实际运行时间、频率及正反两遍结果均保存在 JSON，比较其他工具时需使用相同访问模式。",style=MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -168,6 +190,17 @@ internal fun CacheTopologyDetails(report: JSONObject) {
 internal fun ColumnScope.CacheCurveBoard(report: JSONObject?, config: RamConfig, unit: String, compact: Boolean) {
     CacheLatencyPanel(report,Modifier.fillMaxWidth().weight(1f),compact)
     HorizontalDivider(Modifier.padding(vertical=if(compact)2.dp else 4.dp))
+    if(!config.curveIncludeRam) {
+        objects(report?.optJSONObject("cache_probe")?.optJSONArray("groups")).take(4).forEach { g->
+            val a=g.optJSONObject("analysis")
+            Text("CPU ${g.optInt("cpu_id")}："+if(a?.optString("status")=="COMPLETE")
+                "${a.optJSONArray("regions")?.length()} 个延迟区间 · ${a.optJSONArray("transitions")?.length()} 处转换"
+                else if(report?.optString("state")=="RUNNING")"扫描与验证中"
+                else "${g.optInt("stable_points")} / ${g.optJSONArray("planned_sizes")?.length()?:0} 点通过验证，不能确定完整层次",
+                fontSize=if(compact)8.sp else 10.sp,lineHeight=if(compact)11.sp else 14.sp,maxLines=2)
+        }
+        return
+    }
     if(!compact)Text("RAM · 大工作集",fontSize=11.sp,lineHeight=14.sp,maxLines=1)
     Row(Modifier.fillMaxWidth()) {
         MemoryPlanner.columns.forEach { kind->

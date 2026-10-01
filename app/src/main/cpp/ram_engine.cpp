@@ -1,4 +1,5 @@
 #include "ram_kernels.h"
+#include "latency_probe.h"
 #include <jni.h>
 #include <sched.h>
 #include <time.h>
@@ -424,6 +425,14 @@ extern "C" JNIEXPORT jint JNICALL
 Java_io_benchbridge_app_ram_RamNative_phase(JNIEnv*, jobject, jlong handle) {
     const auto session = session_for(handle);
     return session ? session->phase.load() : Idle;
+}
+extern "C" JNIEXPORT jstring JNICALL
+Java_io_benchbridge_app_ram_RamNative_runLatencyPoint(JNIEnv* env,jobject,jlong handle,jint cpu,jlong bytes,jint stride,jlong seed) {
+    const auto session=session_for(handle);
+    std::string result;
+    try { result=session?bb_latency_point(session->cancel,session->phase,cpu,bytes,stride,seed):"{\"status\":\"FAILED\",\"error\":\"SESSION_NOT_FOUND\"}"; }
+    catch(const std::exception&) { result="{\"status\":\"FAILED\",\"error\":\"PROBE_WORKER_FAILED\"}"; }
+    return env->NewStringUTF(result.c_str());
 }
 extern "C" JNIEXPORT jstring JNICALL
 Java_io_benchbridge_app_ram_RamNative_capabilities(JNIEnv* env, jobject) {

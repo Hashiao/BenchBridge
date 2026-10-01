@@ -18,4 +18,6 @@ void bb_random_write(std::uint64_t* data, const std::uint32_t* indices, std::siz
 // 沿有效指针链执行 hops 次依赖读取，并返回最终节点。
 // Follow a valid pointer chain for hops dependent loads and return the final node.
 std::uintptr_t* bb_chase(std::uintptr_t* node, std::size_t hops);
+// 32 位索引依赖链，包含索引地址计算成本。 / Dependent 32-bit index chain, including address-generation cost.
+std::uint32_t bb_chase_index(const std::uint32_t* data, std::uint32_t index, std::size_t hops);
 }

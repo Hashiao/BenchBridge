@@ -8,14 +8,14 @@ Android CPU、GPU、内存与存储基准测试工具，使用 Kotlin / Jetpack 
 
 An Android CPU, GPU, memory and storage benchmark with a Kotlin / Jetpack Compose interface, C++20 kernels and Vulkan compute shaders.
 
-本仓库公开当前 0.9.0 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
+本仓库公开当前 0.10.0 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
 
-This repository contains the current 0.9.0 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+This repository contains the current 0.10.0 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
 
 ## 功能 / Features
 
-- **缓存与 RAM：**首页以工作集大小为横轴、实际延迟 ns 为纵轴，按核心组查看曲线与阶跃候选区间；下方保留 RAM 读、写、延迟、拷贝成绩。旧版缓存表历史保留原样。另保留 RAM 随机读写快测。
-  **Cache and RAM:** the main page plots working-set size against measured latency in ns, with selectable core groups and candidate step intervals. RAM read/write/latency/copy scores remain below. Legacy cache-table reports retain their original layout. A separate RAM quick profile retains random I/O tests.
+- **缓存与 RAM：**不同核心组在同一坐标叠加工作集大小—延迟曲线，默认 4 KiB–128 MiB、每倍容量 8 个间隔、正反扫描和自动补测。完整验证后列出多个延迟区间与转换结论。RAM 读写等测试可选，旧版历史保持原协议。
+  **Cache and RAM:** overlay core-group size/latency curves on shared axes, normally covering 4 KiB–128 MiB with eight intervals per octave, reverse sweeps and automatic rechecks. Report multiple regions and transitions after full validation. RAM tests are optional; historical reports retain their original protocol.
 - **存储：**顺序和随机读写，可配置文件大小、块大小、队列深度、线程数与缓存模式。
   **Storage:** sequential and random I/O with configurable file size, block size, queue depth, thread count and cache mode.
 - **GPGPU：**独立分页，12 项 CPU / GPU 测试，包含各自内存读写、FP32 / FP64、整数运算、大块 AES-256 / SHA-1 与分形图像处理。成绩、单位和操作按钮同屏展示。
@@ -27,9 +27,13 @@ This repository contains the current 0.9.0 implementation. The app interface is 
 
 ## 当前范围 / Current scope
 
-0.9.0 的 `latency-step-sweep-v2` 独立测量延迟，每点 3–5 次取中位数；至少预热两遍完整指针链。排除计时异常、明显调度干扰和预热不足的样本，保留误差范围及原因。横轴使用对数工作集，纵轴可切换线性 / 对数 ns，支持点击查看采样和显示参考容量线。曲线不把未知阶跃直接命名为 L1/L2/L3。
+0.10.0 的 `dense-index-curve-v3` 使用高熵缓冲区和 32 位依赖索引链。同一点复用内存与绑核线程，记录墙钟、线程 CPU 时间及频率，按正反两遍一致性自动复核。曲线显示实测中位数，分段分析区分平台和连续变化，不把未知转换直接命名为 L1/L2/L3。详细计时范围、判据和跨工具可比性见 [缓存曲线协议](docs/CACHE_CURVES.md)。
 
-Version 0.9.0's `latency-step-sweep-v2` measures latency independently, taking a median of 3–5 trials per point after at least two full warmup traversals. Timing anomalies, substantial scheduling interference and incomplete warmup are excluded with reasons and uncertainty retained. The logarithmic working-set axis pairs with selectable linear/logarithmic ns, point inspection and optional reference-capacity lines. Unknown steps are not assigned L1/L2/L3 labels.
+Version 0.10.0's `dense-index-curve-v3` uses high-entropy buffers and dependent 32-bit index chains. Reuse each point's allocation and pinned thread, record wall/CPU time and frequency, and automatically recheck bidirectional consistency. Plot measured medians while segmentation distinguishes plateaus from continuous trends, without assigning unknown transitions to L1/L2/L3. See the [cache curve protocol](docs/CACHE_CURVES.md) for timing, criteria and comparability.
+
+逐点保存完整记录，界面只传摘要；取消或进程中断后可继续纯曲线测试，原记录保留。支持系统进程退出原因记录。模拟器验证仅证明功能和数据流程，不代替目标手机的真实缓存曲线验收。
+
+Persist complete per-point checkpoints and send compact UI summaries. Cancelled/interrupted curve-only runs can resume while retaining the original report, with system exit information when available. Emulator checks validate functionality and data flow, not the target phone's cache behavior.
 
 0.8.0 修复 GPU 计时范围：主成绩使用 Vulkan 设备执行时间，整段耗时另行保留；无设备时间戳时明确标记降级。8EE6 按 2+3+3 频率组映射 L1D，八核共享一份 16 MiB L2。拓扑缺失时自动执行绑核分块扫描，详情提供延迟 / 带宽曲线和拐点候选区间，不凭曲线伪造 L3 规格。
 

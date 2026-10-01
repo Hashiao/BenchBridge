@@ -127,6 +127,7 @@ fun BenchBridgeApp(state: RamUiState, model: RamViewModel) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     if (displayed != null) FilledTonalButton(onClick = share, enabled = !sharing, modifier = Modifier.weight(1f).testTag("share_screenshot"),
                         contentPadding = PaddingValues(vertical = 14.dp)) { Text("分享截图") }
+                    if(displayed!=null && CacheProbe.canResume(displayed))Button(onClick={model.resumeCurve(displayed)},modifier=Modifier.weight(1f).testTag("curve_resume"),contentPadding=PaddingValues(vertical=14.dp)){Text("继续扫描")}
                     if (tab in listOf(0,1,4)) Button(onClick = startBenchmark,
                         enabled = when(tab){4->state.computeConfig.kinds.isNotEmpty()&&state.computeConfig.targets.isNotEmpty();1->state.storageConfig.cases.isNotEmpty();else->state.config.kinds.isNotEmpty()},
                         modifier = Modifier.weight(1f).testTag(when(tab){4->"compute_start";1->"storage_start";else->"ram_start"}),
@@ -190,7 +191,7 @@ private fun DetailedReportPage(report: JSONObject, model: RamViewModel, onExport
 @Composable
 internal fun RunProgress(report: JSONObject, running: Boolean) {
     SectionCard(RamResults.stateLabel(report.optString("state"))) {
-        Text("已完成 ${report.optInt("completed_rounds")} / ${report.optInt("total_rounds")} 轮", modifier = Modifier.testTag("run_state_${report.optString("state")}"))
+        Text(if(report.optInt("total_rounds")==0 && report.has("cache_probe"))report.getJSONObject("cache_probe").let { "已保存 ${it.optInt("completed_points")} / ${it.optInt("planned_points")} 个扫描点次" }else "已完成 ${report.optInt("completed_rounds")} / ${report.optInt("total_rounds")} 轮", modifier = Modifier.testTag("run_state_${report.optString("state")}"))
         if (running) {
             val kind = RamKind.entries.getOrNull(report.optInt("current_kind", -1))
             Text("${kind?.title ?: "RAM"} · 第 ${report.optInt("current_round", 1)} 轮 · ${RamResults.phaseLabel(report.optString("phase"))}", style = MaterialTheme.typography.bodyMedium)

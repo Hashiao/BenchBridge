@@ -9,6 +9,15 @@
 
 #define BB_NOINLINE __attribute__((noinline))
 
+extern "C" BB_NOINLINE std::uint32_t bb_chase_index(const std::uint32_t* data,std::uint32_t index,std::size_t hops) {
+    for(std::size_t i=0;i<hops/8;++i) {
+        index=data[index];index=data[index];index=data[index];index=data[index];
+        index=data[index];index=data[index];index=data[index];index=data[index];
+    }
+    for(std::size_t i=0;i<hops%8;++i)index=data[index];
+    asm volatile("" : "+r"(index) : : "memory");return index;
+}
+
 // 每一遍都保留实际访存；编译器屏障不生成缓存刷新指令。
 // Retain memory accesses on every pass; the compiler barrier does not flush caches.
 extern "C" BB_NOINLINE std::uint64_t bb_cached_read(const std::uint64_t* data, std::size_t words, std::size_t passes) {

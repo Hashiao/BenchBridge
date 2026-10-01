@@ -87,6 +87,11 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
         return true
     }
     fun start() = startFamily("ram")
+    fun resumeCurve(report: JSONObject) {
+        if (mutableState.value.running || !CacheProbe.canResume(report)) return
+        configure(RamConfig.fromJson(report.getJSONObject("config").toString()))
+        startFamily("ram", resumeId = report.getString("run_id"))
+    }
     fun startStorage() = startFamily("storage")
     fun startCompute() = startFamily("compute")
     fun configureCompute(config:ComputeConfig){
@@ -103,13 +108,14 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
         else mutableState.value.copy(report = report,
             config = report?.optJSONObject("config")?.let { RamConfig.fromJson(it.toString()) } ?: mutableState.value.config)
     }
-    private fun startFamily(family: String, resumed: JSONObject? = null) {
+    private fun startFamily(family: String, resumed: JSONObject? = null, resumeId: String? = null) {
         if (mutableState.value.running) return
         val json = if (resumed != null) JSONObject() else try {
             if(family=="compute")mutableState.value.computeConfig.also { it.validate() }.toJson()
             else if (family == "storage") mutableState.value.storageConfig.also { it.validate() }.toJson()
             else mutableState.value.config.also { it.validate() }.toJson()
         } catch (error: Exception) { mutableState.value = mutableState.value.copy(error = error.message); return }
+        resumeId?.let { json.put("resume_run_id", it) }
         pendingCancel = null; cancelAt = 0
         mutableState.value = mutableState.value.copy(starting = true, cancelling = false, error = null, activeFamily = family)
         updateReport(null, family)

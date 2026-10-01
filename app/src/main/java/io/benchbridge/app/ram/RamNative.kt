@@ -7,6 +7,7 @@ object RamNative {
     external fun releaseSession(handle: Long)
     external fun phase(handle: Long): Int
     external fun capabilities(): String
+    external fun runLatencyPoint(handle: Long, cpu: Int, bytes: Long, stride: Int, seed: Long): String
     external fun runRound(handle: Long, kind: Int, bytes: Long, threads: Int,
                           warmupMs: Int, durationMs: Int, seed: Long): String
     external fun runPinnedRound(handle: Long, kind: Int, workingSets: LongArray, cpuIds: IntArray,
