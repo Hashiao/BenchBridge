@@ -177,9 +177,10 @@ private fun DetailedReportPage(report: JSONObject, model: RamViewModel, onExport
             item { StorageMatrix(report, null) }
         } else {
             item { RunProgress(report, false) }
+            val config = RamConfig.fromJson(report.getJSONObject("config").toString())
+            if (config.curveMode) item { SectionCard("RAM 四项摘要") { RamSummaryRow(report, config) } }
             item { SectionCard("本次参数") { Text(RamConfig.fromJson(report.getJSONObject("config").toString()).summary,
                 style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("ram_result_config")) } }
-            val config = RamConfig.fromJson(report.getJSONObject("config").toString())
             if (config.cacheMatrix) item { CacheTopologyDetails(report) }
             config.scoredLevels.forEach { level ->
                 config.kinds.forEach { code -> item { ResultCard(report, RamKind.entries.first { it.code == code }, level) } }
@@ -190,8 +191,11 @@ private fun DetailedReportPage(report: JSONObject, model: RamViewModel, onExport
 
 @Composable
 internal fun RunProgress(report: JSONObject, running: Boolean) {
-    SectionCard(RamResults.stateLabel(report.optString("state"))) {
+    SectionCard(RamResults.stateLabel(report)) {
         Text(if(report.optInt("total_rounds")==0 && report.has("cache_probe"))report.getJSONObject("cache_probe").let { "已保存 ${it.optInt("completed_points")} / ${it.optInt("planned_points")} 个扫描点次" }else "已完成 ${report.optInt("completed_rounds")} / ${report.optInt("total_rounds")} 轮", modifier = Modifier.testTag("run_state_${report.optString("state")}"))
+        if(report.optInt("total_rounds")>0)report.optJSONObject("cache_probe")?.let { probe->
+            Text("曲线已保存 ${probe.optInt("completed_points")} / ${probe.optInt("planned_points")} 个扫描点次",style=MaterialTheme.typography.bodySmall)
+        }
         if (running) {
             val kind = RamKind.entries.getOrNull(report.optInt("current_kind", -1))
             Text("${kind?.title ?: "RAM"} · 第 ${report.optInt("current_round", 1)} 轮 · ${RamResults.phaseLabel(report.optString("phase"))}", style = MaterialTheme.typography.bodyMedium)
@@ -270,7 +274,7 @@ private fun HistoryPage(state: RamUiState, model: RamViewModel, onExport: (JSONO
                     Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         val disk = report.optString("kind") == "storage_benchmark"
                         val compute=report.optString("kind")=="compute_benchmark"
-                        Text("${if(compute)"GPGPU"else if (disk) "ROM" else "RAM"} · ${RamResults.stateLabel(report.optString("state"))}", style = MaterialTheme.typography.titleMedium)
+                        Text("${if(compute)"GPGPU"else if (disk) "ROM" else "RAM"} · ${RamResults.stateLabel(report)}", style = MaterialTheme.typography.titleMedium)
                         Text(SimpleDateFormat("MM-dd HH:mm:ss", locale).format(Date(report.optLong("started_at_ms"))), style = MaterialTheme.typography.bodySmall)
                         val config = report.getJSONObject("config")
                         Text(if(compute)ComputeConfig.fromJson(config.toString()).summary else if (disk) StorageConfig.fromJson(config.toString()).summary

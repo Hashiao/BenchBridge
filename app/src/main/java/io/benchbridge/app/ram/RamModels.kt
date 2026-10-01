@@ -56,6 +56,7 @@ data class RamConfig(
         if (curveMode) add(if(curveProtocol==CacheProbe.METHOD)"4 KiB–$curveMaxMiB MiB · 每倍容量 $curveSteps 个间隔 · 正反两遍交叉验证 · 自动补测与多区间分析"
             else "旧版缓存曲线协议：$curveProtocol · 保留原始测量参数")
         else if (cacheMatrix) add("缓存每次 ${BenchmarkFormat.duration(minOf(durationMs, 1000))}；工作集按共享域分配。RAM 工作集至少为末级缓存的两倍，实际值见成绩。")
+        if(curveMode && curveIncludeRam)add("RAM 工作集会按末级缓存与线程数增大，实际工作集见各项成绩。")
     }.joinToString("\n")
     val totalRounds: Int get() = kinds.sumOf { if (it == RamKind.LATENCY.code) latencyRounds else rounds } * scoredLevels.size
     fun bytes(kind: Int): Long = (if (kind == RamKind.LATENCY.code) latencySetMiB else workingSetMiB) * 1048576L
@@ -108,10 +109,10 @@ data class RamConfig(
 
     companion object {
         fun aida64(allowedCpus: Int = 1) = standard().copy(kinds = listOf(0, 1, 2, 5),
-            threads = allowedCpus.coerceIn(1, 16), automaticThreads = true, cacheMatrix = true, cacheCurve = true, curveIncludeRam=false, presetId = "cache-curve-standard-v1")
+            threads = allowedCpus.coerceIn(1, 16), automaticThreads = true, cacheMatrix = true, cacheCurve = true, curveIncludeRam=true, presetId = "cache-curve-standard-v1")
         fun matrixQuick() = RamConfig(kinds = listOf(0, 1, 2, 5), workingSetMiB = 16, latencySetMiB = 8,
             warmupMs = 25, durationMs = 150, rounds = 1, latencyRounds = 1, cooldownMs = 0,
-            automaticThreads = true, cacheMatrix = true, cacheCurve = true, curveIncludeRam=false, curveSteps=4, curveMaxMiB=64, calibrationMs = 50, presetId = "cache-curve-quick-v1")
+            automaticThreads = true, cacheMatrix = true, cacheCurve = true, curveIncludeRam=true, curveSteps=4, curveMaxMiB=64, calibrationMs = 50, presetId = "cache-curve-quick-v1")
         fun quick() = RamConfig()
         fun standard() = RamConfig(workingSetMiB = 512, latencySetMiB = 256,
             warmupMs = 1000, durationMs = 3000, rounds = 3, latencyRounds = 5,
@@ -180,6 +181,9 @@ object RamResults {
         "FAILED" -> "未完成"
         else -> "准备就绪"
     }
+    fun stateLabel(report: JSONObject): String = if(report.optString("state")=="PARTIAL" && report.optJSONObject("config")?.optBoolean("cache_curve")==true)
+        if(report.optJSONObject("cache_probe")?.optString("state")!="COMPLETED")"曲线部分范围未通过验证"else"部分项目未完成"
+        else stateLabel(report.optString("state"))
     fun phaseLabel(phase: String): String = when (phase) {
         "PREPARING" -> "分配内存、建立访问序列"
         "WARMING" -> "预热"

@@ -15,7 +15,7 @@ internal fun resultText(report: JSONObject): String = buildString {
     report.optJSONObject("device")?.let {
         appendLine("${it.optString("manufacturer").take(128)} ${it.optString("model").take(256)} · API ${it.optInt("api")}")
     }
-    appendLine("${RamResults.stateLabel(report.optString("state"))} · ${report.optInt("completed_rounds")} / ${report.optInt("total_rounds")} 轮")
+    appendLine("${RamResults.stateLabel(report)} · ${report.optInt("completed_rounds")} / ${report.optInt("total_rounds")} 轮")
     if(compute){
         val config=ComputeConfig.fromJson(report.getJSONObject("config").toString());appendLine(config.summary)
         ComputeKind.entries.filter { it.code in config.kinds }.forEach { kind ->

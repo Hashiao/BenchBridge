@@ -23,8 +23,8 @@ internal fun RamSettingsPage(state: RamUiState, model: RamViewModel) {
         item {
             SectionCard("测试配置") {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(preset == "cache-curve-standard-v1", { model.configure(RamConfig.aida64(allowed)) }, { Text("完整缓存曲线") }, modifier = Modifier.testTag("ram_aida"))
-                    FilterChip(preset == "cache-curve-quick-v1", { model.configure(RamConfig.matrixQuick().resolveThreads(allowed)) }, { Text("快速缓存曲线") }, modifier = Modifier.testTag("ram_matrix_quick"))
+                    FilterChip(preset == "cache-curve-standard-v1", { model.configure(RamConfig.aida64(allowed)) }, { Text("缓存曲线 + RAM") }, modifier = Modifier.testTag("ram_aida"))
+                    FilterChip(preset == "cache-curve-quick-v1", { model.configure(RamConfig.matrixQuick().resolveThreads(allowed)) }, { Text("曲线 + RAM 快测") }, modifier = Modifier.testTag("ram_matrix_quick"))
                     FilterChip(preset == "ram-quick-dev-v1", { model.configure(RamConfig.quick()) }, { Text("RAM 六项快测") }, modifier = Modifier.testTag("ram_quick"))
                 }
                 if(config.curveMode) {
@@ -34,7 +34,7 @@ internal fun RamSettingsPage(state: RamUiState, model: RamViewModel) {
                     }
                     Text("每倍容量 ${config.curveSteps} 个间隔 · 正反两遍 · 自动复核",style=MaterialTheme.typography.bodySmall)
                     Row {
-                        Text("曲线后继续测试 RAM",Modifier.weight(1f))
+                        Text("同时测试 RAM 四项（先测）",Modifier.weight(1f))
                         Switch(config.curveIncludeRam,{edit(config.copy(curveIncludeRam=it))},modifier=Modifier.testTag("curve_include_ram"))
                     }
                 }

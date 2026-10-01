@@ -129,7 +129,8 @@ class CacheProbeTest {
 
     @Test fun curveProtocolKeepsLegacyReportsAndRamRoundCountsSeparate() {
         val config=RamConfig.matrixQuick()
-        assertTrue(config.curveMode);assertEquals(0,config.totalRounds);assertTrue(config.scoredLevels.isEmpty())
+        assertTrue(config.curveMode);assertTrue(config.curveIncludeRam);assertEquals(4,config.totalRounds);assertEquals(listOf("RAM"),config.scoredLevels)
+        assertTrue(RamConfig.aida64().curveIncludeRam);assertEquals(14,RamConfig.aida64().totalRounds)
         assertEquals(config,RamConfig.fromJson(config.toJson().toString()))
         val old=config.toJson().apply { remove("cache_curve");remove("cache_probe_method") }.toString()
         assertEquals(16,RamConfig.fromJson(old).totalRounds)
@@ -138,7 +139,13 @@ class CacheProbeTest {
         assertEquals(4,RamConfig.fromJson(v09.toString()).totalRounds)
         assertFalse(RamConfig.fromJson(v09.toString()).summary.contains("正反两遍"))
         assertEquals("latency-step-sweep-v2",RamConfig.fromJson(v09.toString()).toJson().getString("cache_probe_method"))
-        assertEquals(4,config.copy(curveIncludeRam=true).totalRounds)
+        val v010=config.toJson().put("curve_include_ram",false)
+        val frozen=RamConfig.fromJson(v010.toString())
+        assertFalse(frozen.curveIncludeRam);assertEquals(0,frozen.totalRounds)
+        assertEquals(v010.toString(),frozen.toJson().toString())
+        val historical=JSONObject().put("state","PARTIAL").put("config",v010).put("cache_probe",JSONObject().put("state","INCOMPLETE"))
+        assertEquals("曲线部分范围未通过验证",RamResults.stateLabel(historical))
+        assertNull(RamResults.statistics(historical,5))
     }
 
     @Test fun sweepRefinesMultipleStepsAndResumesWithoutRemeasuringCompletedPairs() {

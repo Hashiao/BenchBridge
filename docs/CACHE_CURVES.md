@@ -23,9 +23,9 @@ Version 0.10.0 uses `dense-index-curve-v3` to compare full latency curves across
 
 Apply penalized piecewise linear segmentation to contiguous bidirectionally validated spans in log-size/log-latency space, with at least four points per segment and eight points per analyzable span. Break analysis at inconsistent or missing points; never infer a transition across a gap. Other contiguous spans still receive conclusions while the overall result retains partial validation status. Fits explain regions only; plotted values remain measured medians. Continuous growth may form a trend region, without forcing L1/L2/L3 labels. List transitions only when neighboring region medians differ by at least 25%. Conclusions include multiple ranges, medians and before/after latency, without assigning physical capacities from insufficient evidence.
 
-默认叠加显示全部核心组，共用坐标；可切换单核心组、线性 / 对数 ns。单组误差线是合格计时块的 10–90% 分位范围，不是统计置信区间。空心点表示未通过验证。默认只测缓存曲线，RAM 带宽等测试需另行开启。
+默认叠加显示全部核心组，共用坐标；可切换单核心组、线性 / 对数 ns。单组误差线是合格计时块的 10–90% 分位范围，不是统计置信区间。空心点表示未通过验证。0.10.1 恢复默认先测 RAM 四项再扫描曲线，首页和详情保留读取 / 写入 / 延迟 / 拷贝摘要。设置中仍可关闭 RAM，0.10.0 纯曲线历史保留未测状态，不从曲线推算 RAM 成绩。执行顺序保存在 `stage_order` 中。
 
-The default overlay compares all groups on shared axes, with per-group selection and linear/logarithmic ns. Error bars for a selected group show the 10th–90th percentiles of accepted blocks, not confidence intervals. Hollow points failed validation. Cache curves run independently by default; RAM tests are optional.
+The default overlay compares all groups on shared axes, with per-group selection and linear/logarithmic ns. Error bars for a selected group show the 10th–90th percentiles of accepted blocks, not confidence intervals. Hollow points failed validation. Version 0.10.1 restores four RAM tests before the curve sweep and a read/write/latency/copy summary on both result views. RAM can still be disabled; 0.10.0 curve-only records remain unmeasured without deriving RAM scores from curves. Record execution order in `stage_order`.
 
 每完成一个点次就原子保存全量检查点。Binder 只传界面摘要，导出使用磁盘全量记录。取消或进程中断后可以显式继续当前协议的纯曲线测试，保留旧记录并创建关联的新记录；验证拓扑、参数和内存预算，复核次数不会因续测无限重置。Android 11+ 尽可能保存系统进程退出原因；查不到时只报告未知中断，不推断为 OOM。
 

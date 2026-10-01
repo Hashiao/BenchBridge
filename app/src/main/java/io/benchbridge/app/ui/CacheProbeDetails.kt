@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.benchbridge.app.BenchmarkFormat
@@ -193,29 +194,36 @@ internal fun CacheTopologyDetails(report: JSONObject) {
 internal fun ColumnScope.CacheCurveBoard(report: JSONObject?, config: RamConfig, unit: String, compact: Boolean) {
     CacheLatencyPanel(report,Modifier.fillMaxWidth().weight(1f),compact)
     HorizontalDivider(Modifier.padding(vertical=if(compact)2.dp else 4.dp))
-    if(!config.curveIncludeRam) {
-        objects(report?.optJSONObject("cache_probe")?.optJSONArray("groups")).take(4).forEach { g->
-            val a=g.optJSONObject("analysis")
-            Text("CPU ${g.optInt("cpu_id")}："+if(a?.optString("status") in listOf("COMPLETE","PARTIAL"))
-                "${a?.optJSONArray("regions")?.length()} 个延迟区间 · ${a?.optJSONArray("transitions")?.length()} 处转换"+if(a?.optString("status")=="PARTIAL")" · 部分范围受干扰"else""
-                else if(report?.optString("state")=="RUNNING")"扫描与验证中"
-                else "${g.optInt("stable_points")} / ${g.optJSONArray("planned_sizes")?.length()?:0} 点通过验证，不能确定完整层次",
-                fontSize=if(compact)8.sp else 10.sp,lineHeight=if(compact)11.sp else 14.sp,maxLines=2)
-        }
-        return
-    }
-    if(!compact)Text("RAM · 大工作集",fontSize=11.sp,lineHeight=14.sp,maxLines=1)
+    RamSummaryRow(report,config,unit,compact)
+}
+
+/** 首页和详情共用四项摘要；仅使用 RAM 正式轮次，不拿曲线值代替未测成绩。
+ * Share the four-score summary between dashboard and details; never substitute curve samples for unmeasured RAM rounds. */
+@Composable
+internal fun RamSummaryRow(report: JSONObject?, config: RamConfig, unit: String = "GB/s", compact: Boolean = false) {
+    Text(if(!config.curveIncludeRam)"RAM · 本次未测试"else"RAM · 大工作集",
+        fontSize=if(compact)8.sp else 11.sp,lineHeight=if(compact)11.sp else 14.sp,maxLines=1,modifier=Modifier.testTag("ram_summary_title"))
     Row(Modifier.fillMaxWidth()) {
         MemoryPlanner.columns.forEach { kind->
             val stats=report?.let { RamResults.statistics(it,kind,"RAM") }
-            val plan=report?.let { RamResults.cell(it,"RAM",kind)?.optJSONObject("plan") }
+            val cell=report?.let { RamResults.cell(it,"RAM",kind) }
+            val plan=cell?.optJSONObject("plan")
+            val hint=when {
+                stats!=null -> plan?.let { "T${it.optInt("threads")} · ${sizeLabel(it.optLong("working_set_bytes"))}" }.orEmpty()
+                !config.curveIncludeRam -> "未测"
+                kind !in config.kinds -> "未选"
+                cell?.optString("state")=="UNSUPPORTED" -> "不支持"
+                cell?.optString("state")=="FAILED" -> "未完成"
+                report!=null && report.optString("state") in RamResults.terminalStates -> "未测"
+                else -> "待测"
+            }
             Column(Modifier.weight(1f).padding(vertical=if(compact)1.dp else 3.dp)) {
                 val label=when(kind){0->"读取";1->"写入";5->"延迟";else->"拷贝"}
                 Text(if(compact)"$label · ${if(kind==5)"ns"else unit}"else label,fontSize=if(compact)7.sp else 10.sp,lineHeight=if(compact)10.sp else 13.sp,maxLines=1)
-                Text(stats?.let { "%.2f".format(Locale.US,it.median*if(kind==5||unit=="GB/s")1 else 1000) }?:"—",fontSize=if(compact)12.sp else 17.sp,lineHeight=if(compact)16.sp else 21.sp,maxLines=1,
-                    color=MaterialTheme.colorScheme.primary,modifier=Modifier.testTag("curve_ram_$kind"))
+                ScoreNumber(stats?.let { "%.2f".format(Locale.US,it.median*if(kind==5||unit=="GB/s")1 else 1000) }?:"—",
+                    stats!=null,"curve_ram_$kind",if(compact)12 else 17,Modifier.fillMaxWidth(),TextAlign.Start,8)
                 if(!compact)Text(if(kind==5)"ns"else unit,fontSize=9.sp,lineHeight=12.sp,maxLines=1)
-                if(!compact)Text(plan?.let { "T${it.optInt("threads")} · ${sizeLabel(it.optLong("working_set_bytes"))}" }?:if(kind !in config.kinds)"未选"else"",fontSize=8.sp,lineHeight=11.sp,maxLines=1)
+                if(!compact || stats==null)Text(hint,fontSize=8.sp,lineHeight=11.sp,maxLines=1,modifier=Modifier.testTag("curve_ram_hint_$kind"))
             }
         }
     }

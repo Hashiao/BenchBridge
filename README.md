@@ -8,14 +8,14 @@ Android CPU、GPU、内存与存储基准测试工具，使用 Kotlin / Jetpack 
 
 An Android CPU, GPU, memory and storage benchmark with a Kotlin / Jetpack Compose interface, C++20 kernels and Vulkan compute shaders.
 
-本仓库公开当前 0.10.0 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
+本仓库公开当前 0.10.1 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
 
-This repository contains the current 0.10.0 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+This repository contains the current 0.10.1 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
 
 ## 功能 / Features
 
-- **缓存与 RAM：**不同核心组在同一坐标叠加工作集大小—延迟曲线，默认 4 KiB–128 MiB、每倍容量 8 个间隔、正反扫描和自动补测。对连续通过验证的区间给出多个转换结论，另列无法定位的范围。RAM 读写等测试可选，旧版历史保持原协议。
-  **Cache and RAM:** overlay core-group size/latency curves on shared axes, normally covering 4 KiB–128 MiB with eight intervals per octave, reverse sweeps and automatic rechecks. Report transitions within contiguous validated regions and separately list unresolved ranges. RAM tests are optional; historical reports retain their original protocol.
+- **缓存与 RAM：**不同核心组在同一坐标叠加工作集大小—延迟曲线，默认 4 KiB–128 MiB、每倍容量 8 个间隔、正反扫描和自动补测。先测 RAM 读取、写入、延迟、拷贝四项，首页和详情均保留一行摘要；再扫描曲线并给出多个转换结论。可手动关闭 RAM；旧版纯曲线记录明确显示 RAM 未测，历史保持原协议。
+  **Cache and RAM:** overlay core-group size/latency curves on shared axes, normally covering 4 KiB–128 MiB with eight intervals per octave, reverse sweeps and automatic rechecks. Measure RAM read/write/latency/copy first and retain a four-score row on the dashboard and in details, then scan and analyze the curves. RAM can be disabled explicitly; historical curve-only records show RAM as unmeasured without rewriting history.
 - **存储：**顺序和随机读写，可配置文件大小、块大小、队列深度、线程数与缓存模式。
   **Storage:** sequential and random I/O with configurable file size, block size, queue depth, thread count and cache mode.
 - **GPGPU：**独立分页，12 项 CPU / GPU 测试，包含各自内存读写、FP32 / FP64、整数运算、大块 AES-256 / SHA-1 与分形图像处理。成绩、单位和操作按钮同屏展示。
@@ -26,6 +26,10 @@ This repository contains the current 0.10.0 implementation. The app interface is
   **Run control:** a foreground service, screen-on behavior, continued measurement with the screen locked, cancellation and temporary-file cleanup.
 
 ## 当前范围 / Current scope
+
+0.10.1 恢复默认 RAM 四项，修复 0.10.0 默认仅测曲线导致摘要消失的问题。组合测试的 RAM 成绩先保存，后续扫描中断时仍保留已完成成绩。读取、写入、拷贝以 GB/s 显示，延迟以 ns 显示；拷贝按读写合计。曲线的局部波动不再被详情页误写成“项目不支持”。
+
+Version 0.10.1 restores the default four RAM measurements after 0.10.0's curve-only default removed the summary. Combined runs persist RAM scores before scanning so completed scores survive a later interruption. Read/write/copy use GB/s, latency uses ns, and copy counts both reads and writes. Curve repeatability issues are no longer labeled as unsupported features in details.
 
 0.10.0 的 `dense-index-curve-v3` 使用高熵缓冲区和 32 位依赖索引链。同一点复用内存与绑核线程，记录墙钟、线程 CPU 时间及频率，按正反两遍一致性自动复核。曲线显示实测中位数，分段分析区分平台和连续变化，不把未知转换直接命名为 L1/L2/L3。详细计时范围、判据和跨工具可比性见 [缓存曲线协议](docs/CACHE_CURVES.md)。
 

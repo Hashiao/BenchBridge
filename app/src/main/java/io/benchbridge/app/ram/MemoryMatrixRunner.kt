@@ -75,22 +75,28 @@ class MemoryMatrixRunner(private val context: Context, private val config: RamCo
         return selected
     }
 
+    private fun probe() {
+        if (shouldStop()) return
+        report.put("phase", "CACHE_PROBING")
+        CacheProbe.run(topology, memoryBudget, ::shouldStop,
+            sample = { cpu, bytes, stride, seed -> JSONObject(RamNative.runLatencyPoint(handle, cpu, bytes, stride, seed)) },
+            progress = { probe -> report.put("cache_probe", probe); publish(probe.optBoolean("checkpoint")) },
+            config = config, previous = report.optJSONObject("cache_probe"))
+        publish(true)
+    }
+
     fun execute(): String {
         report.put("topology", topology.toJson()).put("cells", cells).put("effective_plan", effective)
             .put("matrix_columns", JSONArray(MemoryPlanner.columns)).put("matrix_levels", JSONArray(config.scoredLevels))
+        if(config.curveMode)report.put("stage_order",JSONArray(if(config.curveIncludeRam)listOf("RAM","cache_curve")else listOf("cache_curve")))
         for (level in config.scoredLevels) for (kind in MemoryPlanner.columns.filter(config.kinds::contains)) {
             cells.put(JSONObject().put("level", level).put("kind", kind).put("state", "PENDING"))
         }
         publish(true)
-        if (config.curveMode || topology.allowedCores.any { cpu -> (1..3).any { topology.cache(cpu.id, it) == null } }) {
-            report.put("phase", "CACHE_PROBING")
-            CacheProbe.run(topology, memoryBudget, ::shouldStop,
-                sample = { cpu, bytes, stride, seed ->
-                    JSONObject(RamNative.runLatencyPoint(handle, cpu, bytes, stride, seed))
-                }, progress = { probe -> report.put("cache_probe", probe); publish(probe.optBoolean("checkpoint")) },
-                config = config, previous = report.optJSONObject("cache_probe"))
-            publish(true)
-        }
+        // 组合测试先保存 RAM 四项，长时间扫描期间即可查看；纯曲线及旧协议保持原执行路径。
+        // Persist RAM scores before the long combined sweep; retain curve-only and legacy execution paths.
+        val ramFirst = config.curveMode && config.curveIncludeRam
+        if (!ramFirst && (config.curveMode || topology.allowedCores.any { cpu -> (1..3).any { topology.cache(cpu.id, it) == null } })) probe()
         for (i in 0 until cells.length()) {
             if (shouldStop()) break
             val cell = cells.getJSONObject(i)
@@ -139,6 +145,7 @@ class MemoryMatrixRunner(private val context: Context, private val config: RamCo
             cell.put("state", if (cellCompleted == rounds) "COMPLETED" else if (cancelled()) "CANCELLED" else "FAILED")
             publish(true)
         }
+        if (ramFirst) probe()
         return when {
             cancelled() -> "CANCELLED"
             failed -> "FAILED"

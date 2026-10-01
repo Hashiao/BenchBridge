@@ -65,8 +65,14 @@ class ParameterAlignmentTest {
             device.waitForIdle()
         }
         fun visible(): UiObject2? {
-            val result = device.findObject(By.res(id)) ?: return null
+            var result = device.findObject(By.res(id)) ?: return null
             if (!scroll) return result
+            // 等滚动后的控件位置稳定再点击，防止使用滑动动画中的旧坐标。
+            // Wait for stable post-scroll bounds instead of tapping stale animation coordinates.
+            val before = result.visibleBounds
+            SystemClock.sleep(150)
+            result = device.findObject(By.res(id)) ?: return null
+            if (before != result.visibleBounds) return null
             val pane = device.findObject(By.scrollable(true))?.visibleBounds ?: return result
             val bounds = result.visibleBounds
             // 被视口裁切的选项仍可能报告完整语义边界，中心点可能落到固定底栏下方。
@@ -175,9 +181,7 @@ class ParameterAlignmentTest {
     @Test fun ramBandwidthAndLatencyHaveIndependentControls() {
         node("ram_settings").click()
         assertTrue(node("ram_aida").isChecked)
-        assertFalse(node("curve_include_ram").isChecked)
-        node("curve_include_ram").click()
-        device.waitForIdle()
+        assertTrue(node("curve_include_ram").isChecked)
         assertTrue(node("ram_threads_auto", true).isChecked)
         assertTrue(node("ram_bandwidth_rounds_3", true).isChecked)
         assertTrue(node("ram_latency_rounds_5", true).isChecked)

@@ -205,7 +205,7 @@ internal fun ResultDashboard(
 }
 
 @Composable
-private fun ScoreNumber(text: String, numeric: Boolean, tag: String, maximum: Int, modifier: Modifier, align: TextAlign = TextAlign.End, minimum: Int = 12) {
+internal fun ScoreNumber(text: String, numeric: Boolean, tag: String, maximum: Int, modifier: Modifier, align: TextAlign = TextAlign.End, minimum: Int = 12) {
     BasicText(text, modifier.testTag(tag), maxLines = 1,
         style = MaterialTheme.typography.headlineLarge.copy(fontFamily = FontFamily.SansSerif,
             fontWeight = FontWeight.Bold, textAlign = align, lineHeight = TextUnit.Unspecified,
