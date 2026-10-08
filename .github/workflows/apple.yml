@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [macos-15, macos-26]
+        image: [macos-15, xcode-27]
     runs-on: ${{ matrix.image }}
     timeout-minutes: 40
     steps:

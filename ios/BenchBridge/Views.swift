@@ -107,7 +107,7 @@ private struct RAMRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             ForEach(scores) { item in VStack(alignment: .leading, spacing: 5) { Text(item.title).font(.caption); ScoreCell(item: item) }.frame(maxWidth: .infinity, alignment: .leading) }
-        }.accessibilityIdentifier("ram-summary")
+        }
     }
 }
 private struct CurveChart: View {

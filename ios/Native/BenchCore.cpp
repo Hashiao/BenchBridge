@@ -206,12 +206,15 @@ extern "C" BBResult bb_storage(BBSession* s,const char* path,int32_t writeTest,i
 #if defined(__APPLE__)
         out.no_cache=fcntl(file.fd,F_NOCACHE,1)==0;
 #endif
-        for(uint64_t offset=0;offset<bytes;offset+=uint64_t(block)){check(s);file.io(true,pattern.data(),size_t(block));}file.sync();file.seek(0);
+        constexpr uint64_t marker=UINT64_C(0xB16B4190C0FFEE);
+        for(uint64_t offset=0;offset<bytes;offset+=uint64_t(block)){check(s);pattern[0]=offset^marker;file.io(true,pattern.data(),size_t(block));}file.sync();file.seek(0);
         auto& t=out.trials[0];const auto start=now(),cpu=cpu_now();uint64_t offset=0,last=0;
         do {check(s);if(random)offset=rng.bounded(bytes/uint64_t(block))*uint64_t(block);file.seek(offset);last=offset;
+            if(writeTest)pattern[0]=offset^marker;
             file.io(writeTest!=0,writeTest?pattern.data():buffer.data(),size_t(block));t.operations++;t.logical_bytes+=uint64_t(block);offset=(offset+uint64_t(block))%bytes;
         }while(now()-start<uint64_t(duration)*1000000);
         if(writeTest)file.sync();t.cpu_ns=cpu_now()-cpu;t.elapsed_ns=now()-start;
+        pattern[0]=last^marker;if(!writeTest&&buffer!=pattern)throw 4;
         file.seek(last);file.io(false,buffer.data(),size_t(block));check(s);if(buffer!=pattern)throw 4;
         t.accepted=1;out.verified=1;out.trial_count=1;out.checksum=buffer.front();
     }catch(int error){out.status=error;}catch(const std::bad_alloc&){out.status=3;}catch(...){out.status=5;}

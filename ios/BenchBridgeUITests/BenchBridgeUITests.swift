@@ -13,7 +13,10 @@ final class BenchBridgeUITests: XCTestCase {
         app.buttons["start-test"].tap()
         XCTAssertTrue(app.buttons["stop-test"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["start-test"].waitForExistence(timeout: 120))
-        for kind in [0, 1, 5, 2] { XCTAssertNotEqual(app.staticTexts["value-ram-\(kind)"].label, "—") }
+        for kind in [0, 1, 5, 2] {
+            let value = app.staticTexts["value-ram-\(kind)"]
+            XCTAssertTrue(value.exists); XCTAssertNotEqual(value.label, "—")
+        }
         screenshot("RAM and cache", app: app)
         if !app.buttons["export-json"].isHittable { app.swipeUp() }
         XCTAssertTrue(app.buttons["export-json"].exists)
@@ -22,7 +25,7 @@ final class BenchBridgeUITests: XCTestCase {
     }
     func testStorageAndCancellation() {
         let app = app(); app.tabBars.buttons["ROM"].tap(); app.buttons["start-test"].tap()
-        XCTAssertTrue(app.buttons["start-test"].waitForExistence(timeout: 60))
+        XCTAssertTrue(app.buttons["export-json"].waitForExistence(timeout: 60))
         for id in ["seq-1048576-0", "seq-1048576-1", "random-4096-0", "random-4096-1"] {
             XCTAssertNotEqual(app.staticTexts["value-\(id)"].label, "—")
         }

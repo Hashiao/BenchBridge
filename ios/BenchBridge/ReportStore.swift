@@ -21,6 +21,11 @@ struct ReportStore: Sendable {
     func recover() throws {
         for var report in all() where report.state == "running" {
             report.state = "interrupted"; report.finishedAt = Date(); report.error = "上次运行未正常结束，已保存的采样仍保留"
+            let temporary = FileManager.default.temporaryDirectory.appendingPathComponent("BenchBridgeIO-" + report.id.uuidString)
+            if FileManager.default.fileExists(atPath: temporary.path) {
+                do { try FileManager.default.removeItem(at: temporary) }
+                catch { report.error = "上次运行中断，临时文件回收失败：\(error.localizedDescription)" }
+            }
             try save(report)
         }
     }

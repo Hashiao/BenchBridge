@@ -25,9 +25,11 @@ try:
         versions=[(tuple(int(n) for n in re.findall(r'\d+',p.name)),p) for p in candidates if re.search(r'Xcode_\d',p.name)]
         # macOS 15 优先保留 iOS 18 的基线工具链。 / Prefer the iOS 18 baseline toolchain on macOS 15.
         major=int(platform.mac_ver()[0].split('.')[0])
-        preferred=[pair for pair in versions if (pair[0][0]==16 if major==15 else True)]
+        preferred=[pair for pair in versions if (pair[0][0]==16 if major==15 else pair[0][:2]==(27,0) if major>=27 else True) and 'beta' not in pair[1].name.lower()]
         if preferred:os.environ['DEVELOPER_DIR']=str(max(preferred)[1]/'Contents/Developer')
     manifest['xcode']=run(['xcodebuild','-version']);manifest['sdks']=run(['xcodebuild','-showsdks']);save()
+    metal=subprocess.run(['xcrun','-sdk','iphoneos','metal','--version'],capture_output=True,text=True)
+    if metal.returncode:run(['xcodebuild','-downloadComponent','MetalToolchain'],'metal-toolchain.log')
     native=OUT/'core-tests'
     run(['xcrun','clang++','-std=c++20','-O2','-fno-lto','-Wall','-Wextra','-Werror',
          'ios/Native/BenchCore.cpp','ios/Native/SharedKernels.cpp','ios/Native/SharedCompute.cpp','ios/Native/CoreTests.cpp','-o',str(native)],'native-build.log')
@@ -41,8 +43,9 @@ try:
         for file in application.rglob('*'):
             if file.is_file():archive.write(file,Path('Payload/BenchBridge.app')/file.relative_to(application))
     manifest['unsigned_device_build']='passed';manifest['install_requires_resigning']=True;save()
+    sdk=tuple(map(int,run(['xcrun','--sdk','iphonesimulator','--show-sdk-version']).split('.')[:2]))
     available=json.loads(run(['xcrun','simctl','list','devices','available','-j']))['devices']
-    options=[(runtime,d) for runtime,devices in available.items() if 'iOS' in runtime for d in devices if d.get('isAvailable')]
+    options=[(runtime,d) for runtime,devices in available.items() if 'iOS' in runtime and tuple(map(int,re.findall(r'\d+',runtime)))[:2]<=sdk for d in devices if d.get('isAvailable')]
     for family in ('iPhone','iPad'):
         choices=[item for item in options if family in item[1]['name']]
         if not choices:raise RuntimeError('No available '+family+' runtime')
@@ -54,6 +57,7 @@ try:
             run(base+['-destination','id='+udid,'-derivedDataPath',str(OUT/'sim-build'),'-resultBundlePath',str(OUT/(family+'.xcresult')),
                       '-parallel-testing-enabled','NO','test'],family+'-tests.log')
             entry['status']='passed'
+            entry['skipped_tests']=re.findall(r"Test Case .*skipped.*",(OUT/(family+'-tests.log')).read_text(errors='replace'))
             run(['xcrun','simctl','io',udid,'screenshot',str(OUT/(family+'.png'))])
             # 保留测试记录、日志、IPA 与截图，不上传整个构建缓存。 / Keep results, logs, IPA and screenshots, not all build caches.
         finally:

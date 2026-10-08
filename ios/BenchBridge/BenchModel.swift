@@ -34,8 +34,9 @@ import Combine
             let report = BenchWorker.initial(family, config: config); reports[family] = report
             running = true; activeFamily = family; error = nil; UIApplication.shared.isIdleTimerDisabled = true
             let destination = store
-            task = Task.detached(priority: .userInitiated) { [weak self] in
-                await BenchWorker.run(report, token: session, store: destination) { updated in await self?.accept(updated) }
+            let receiver = self
+            task = Task.detached(priority: .userInitiated) {
+                await BenchWorker.run(report, token: session, store: destination) { updated in await receiver.accept(updated) }
             }
         } catch { self.error = BenchWorker.description(error) }
     }
