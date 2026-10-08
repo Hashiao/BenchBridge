@@ -41,11 +41,11 @@ private struct Dashboard: View {
                 }
                 if family == .memory {
                     VStack(alignment: .leading, spacing: 12) {
-                        CurveChart(groups: report?.curves ?? [], maximumMiB: report?.config.cacheMaxMiB ?? model.config.cacheMaxMiB,
-                                   height: sizeClass == .regular ? 340 : 240)
-                        Divider()
                         Text("RAM · 读取 / 写入 / 延迟 / 拷贝").font(.caption)
                         RAMRow(scores: report?.scores ?? BenchWorker.scorePlan(.memory))
+                        Divider()
+                        CurveChart(groups: report?.curves ?? [], maximumMiB: report?.config.cacheMaxMiB ?? model.config.cacheMaxMiB,
+                                   height: sizeClass == .regular ? 340 : 200)
                     }.card()
                     Text("按任务优先级扫描，未固定到某颗 CPU；优先级曲线不能直接当作大小核曲线。").font(.caption).foregroundStyle(.secondary)
                 } else if family == .storage {
@@ -81,6 +81,8 @@ private struct Dashboard: View {
             }.padding().frame(maxWidth: 1000).frame(maxWidth: .infinity)
         }
         .navigationTitle(family == .memory ? "缓存与内存" : family == .storage ? "存储测试" : "计算测试")
+        .navigationBarTitleDisplayMode(.inline)
+        .background(Color(uiColor: .systemGroupedBackground))
         .toolbar { Button { settings = true } label: { Image(systemName: "gearshape") }.disabled(model.running).accessibilityIdentifier("settings") }
         .safeAreaInset(edge: .bottom) {
             Button(model.running ? "停止测试" : "开始测试") { if model.running { model.stop() } else { model.start(family) } }
@@ -131,7 +133,8 @@ private struct CurveChart: View {
             }
             .chartXScale(domain: 4096.0...Double(maximumMiB * 1048576), type: .log)
             .chartYScale(type: logarithmic ? .log : .linear)
-            .chartForegroundStyleScale(domain: ["高优先级", "后台优先级"], range: [Color.indigo, Color.teal])
+            .chartForegroundStyleScale(domain: visible.isEmpty ? ["高优先级"] : visible.map(\.title),
+                                       range: visible.isEmpty ? [Color.indigo] : visible.map { $0.qos == 0 ? Color.indigo : Color.teal })
             .chartXAxis { AxisMarks(values: [4096.0, 65536, 1048576, 16777216, 134217728].filter { $0 <= Double(maximumMiB * 1048576) }) { value in
                 AxisGridLine(); AxisValueLabel { if let bytes = value.as(Double.self) { Text(Statistics.size(UInt64(bytes))).font(.caption2) } }
             } }.chartYAxis { AxisMarks(position: .leading) }.chartYAxisLabel("ns")
@@ -228,6 +231,7 @@ private struct DevicePage: View {
                 LabeledContent("L1", value: info.reportedL1Bytes.map(Statistics.size) ?? "未提供")
                 LabeledContent("L2", value: info.reportedL2Bytes.map(Statistics.size) ?? "未提供")
                 LabeledContent("L3", value: info.reportedL3Bytes.map(Statistics.size) ?? "未提供")
+                LabeledContent("缓存行粒度", value: info.reportedLineBytes.map { "\($0) B" } ?? "未提供")
                 Text("系统未提供的规格保持未知；这些信息不等于曲线已经证明的容量。").font(.caption)
             }
         }.navigationTitle("设备")

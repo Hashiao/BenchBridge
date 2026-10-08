@@ -21,6 +21,10 @@ python tools/publish-release.py --tag vX.Y.Z --notes-file release-notes.md --sha
 
 Notes may live outside the repository or in ignored `.local`. Configure an optional proxy with `--proxy`, not in the script. The tool creates a draft, verifies the uploaded size and digest, publishes, then downloads from the anonymous public link and verifies again. An existing asset must match the local file or publication stops.
 
+苹果端发版先检查对应提交的 Apple CI 中 iPhone/iPad 运行结果、跳过项和截图，再从该提交的成功构建取 `BenchBridge-iOS-unsigned.ipa`。通过可重复的 `--asset PATH` 一并上传 IPA、验证摘要等附件；工具为每份文件生成 SHA-256，全部核对后发布草稿。更新说明必须写明未签名、真机验证状态和未实现项目。不得把模拟器包当作真机 IPA，也不得把一次通过的旧提交产物冒充当前构建。
+
+For Apple releases, inspect iPhone/iPad outcomes, skips and screenshots for the matching commit before taking `BenchBridge-iOS-unsigned.ipa` from a successful build. Repeat `--asset PATH` to include the IPA and verification summaries. Each file receives a SHA-256 companion and all assets are verified before the draft is published. Notes must state signing, device-validation and unimplemented-feature status. Never present simulator packages as device IPAs or older commit artifacts as current builds.
+
 首页的固定下载链接指向 `releases/latest/download/BenchBridge-release.apk`。发布后核对该链接可直接下载，且下载文件与交付目录的 APK 摘要相同。失败时保留本地产物，报告未完成的步骤，不宣布交付成功。
 
 The homepage links to `releases/latest/download/BenchBridge-release.apk`. After publishing, confirm that the link downloads directly and matches the APK in the delivery directory. On failure, retain local artifacts, report the unfinished step, and do not claim successful delivery.

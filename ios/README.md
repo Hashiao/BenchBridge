@@ -1,5 +1,80 @@
 # BenchBridge for iPhone and iPad / iPhone 与 iPad 版本
 
-原生 iOS / iPadOS 工程，最低部署版本 18.0。构建与验证说明将在实现过程中补全。
+原生 SwiftUI + C++20 + Metal 工程，最低 iOS / iPadOS 18.0，支持 iPhone 与 iPad。与 Android 共用内存和 CPU 算术内核；界面、存储调用、GPU 后端与生命周期按苹果平台实现。
 
-Native iOS/iPadOS application targeting 18.0 and later. Build and validation instructions are maintained with the implementation.
+Native SwiftUI + C++20 + Metal application for iPhone and iPad, targeting iOS/iPadOS 18.0+. Memory and CPU arithmetic kernels are shared with Android; UI, storage calls, GPU backend and lifecycle are implemented for Apple platforms.
+
+## 功能与范围 / Features and scope
+
+| 项目 / Area | 0.11.0 实现 / Implementation |
+|---|---|
+| RAM | 先测读取、写入、延迟、拷贝，首页保留四项摘要；可配置工作集、线程、时长、重复次数。 / Read, write, latency and copy first, with a four-score dashboard row and configurable working set, threads, duration and repeats. |
+| 缓存曲线 / Cache curve | 默认 4 KiB–128 MiB、每倍容量 8 个间隔、正反扫描与有限复测；显示实测点和多个持续转换区间。 / Default 4 KiB–128 MiB, eight intervals per octave, forward/reverse sweeps and bounded rechecks; measured points and multiple sustained transitions. |
+| ROM | 1 MiB 顺序与 4 KiB 随机读写，Q1 T1，应用沙盒临时文件。 / 1 MiB sequential and 4 KiB random reads/writes, Q1 T1, owned temporary sandbox files. |
+| CPU | 12 项，包括内存、浮点、整数、AES-256、SHA-1、Julia 与 Mandelbrot。 / Twelve tests covering memory, floating point, integers, AES-256, SHA-1, Julia and Mandelbrot. |
+| GPU | Metal 内存读写拷贝、FP32、INT24/32/64、Julia；FP64 与 Mandelbrot FP64 不支持，AES/SHA 首版未实现，界面和导出明确记录原因。 / Metal memory read/write/copy, FP32, INT24/32/64 and Julia; FP64/Mandelbrot FP64 unavailable and GPU AES/SHA not yet implemented, with explicit reasons in UI/export. |
+| 结果 / Reports | 每步原子保存、历史、JSON 分享、取消、上次中断恢复标记；切到后台或严重热状态时停止。 / Atomic checkpoints, history, JSON sharing, cancellation and interruption recovery; stop on backgrounding or serious thermal state. |
+
+本版不提供固定物理核心或锁定频率。默认高优先级，可选后台优先级对照；QoS 只是调度提示，不能把两条曲线命名为性能核和能效核。系统没有提供的 L1/L2/L3 容量保持未知，转换区间不自动当作缓存容量。
+
+This version does not pin physical cores or lock frequency. High priority is the default with an optional background-priority comparison. QoS is a scheduling hint, not proof of performance/efficiency core placement. Unreported L1/L2/L3 capacities remain unknown; measured transitions are not automatically labeled as cache capacities.
+
+## 测量协议 / Measurement protocol
+
+- 缓存使用高熵缓冲区与随机 32 位依赖索引链；优先采用系统报告的缓存行粒度（32/64/128/256 B），缺失时显式采用 64 B，原始记录保存 `node_stride_bytes`。同一点保持内存与工作线程，预热至少两遍链和 40 ms，然后采集 7 次约 30 ms 正式采样；单独保留墙钟和线程 CPU 时间。
+  Cache measurements use high-entropy buffers and a shuffled dependent 32-bit index chain. Use the reported cache line size when it is 32/64/128/256 B, otherwise a 64 B fallback, exported as `node_stride_bytes`. Keep allocation and worker for a point, warm for at least two chain cycles and 40 ms, then collect seven approximately 30 ms trials, retaining wall and thread CPU time separately.
+- 正反遍分别至少 5 次有效采样；MAD/中位数不超过 8%，至少 80% 采样在中位数的 ±15%，两遍中位数相差不超过合并中位数的 15%。未通过点最多重试至三批；边界加密后再次正反测量。不平滑原始中位数，不跨无效区间推断。
+  Each direction needs at least five accepted trials, MAD/median ≤8%, at least 80% within ±15%, and directional medians within 15% of the combined median. Failed points get at most three batches; refinement points are measured bidirectionally. Raw medians are not smoothed and invalid gaps are not bridged.
+- RAM 带宽以 GB/s 表示，拷贝按读取与写入合计；延迟固定单线程、64 B 节点跨度，单位 ns。默认 64 MiB 工作集不保证绕过所有系统级缓存，因此不能把该值直接解释为裸 DRAM 极限。CPU 结果验证不计入正式时间。
+  RAM bandwidth uses GB/s and copy counts reads plus writes. Latency uses one thread and a 64 B node stride in ns. The default 64 MiB working set is not guaranteed to bypass every system-level cache and is not a bare-DRAM peak claim. CPU validation is outside scored timing.
+- GPU 使用 `MTLCommandBuffer.gpuEndTime - gpuStartTime`，预热、CPU 编码和结果校验不混入主值；完整提交等待耗时另存。设备时间戳缺失则标记不可用，不用 CPU 耗时冒充 GPU 分数。检查输出样本后才接受成绩。
+  GPU scoring uses `MTLCommandBuffer.gpuEndTime - gpuStartTime`, excluding warmup, CPU encoding and validation. Full submit/wait time is recorded separately. Missing device timestamps make the result unavailable instead of substituting CPU wall time. Scores require output validation.
+- 存储使用 `F_NOCACHE` 提示并记录是否成功，写入时间包含末次 `fsync`。不宣称绕过所有硬件缓存或等同安卓 Direct I/O。测试只清理自身创建的文件，累计读写量与文件大小分开记录。
+  Storage requests `F_NOCACHE` and records success; write timing includes the final `fsync`. This does not imply bypassing all hardware caches or equivalence to Android Direct I/O. Only owned test files are removed; I/O volume and file size are recorded separately.
+
+跨平台协议并非完全相同，不应直接据分数判断平台优劣。模拟器始终显示提示，并在 JSON 标记 `simulator`；缩短的 UI 验证另有 `functional_test` 标记。模拟器的缓存、GPU、存储数据不代表目标手机或平板。
+
+Protocols are not fully equivalent across platforms and scores alone should not rank them. Simulator runs always show a warning and export `simulator`; shortened UI validation also marks `functional_test`. Simulator memory, GPU and storage results do not represent the target phone or tablet.
+
+## Windows 本地验证 / Local Windows validation
+
+Windows 可编辑全部源码，并编译运行共享 C++ 测量核心；不能运行苹果官方 iOS Simulator 或在本机完成 SwiftUI/Metal 的 iOS 构建。
+
+Windows can edit all sources and compile/run the shared C++ measurement core. It cannot run Apple's official iOS Simulator or locally build the iOS SwiftUI/Metal application.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/test-apple-core.ps1
+```
+
+该脚本使用本机 Android NDK Clang、Visual Studio C++ 工具链和 Windows SDK，输出到忽略的 `.local/apple-core`。检查索引链、取消、计数、CPU 参考值和文件归属清理；苹果专用加密与 Metal 在苹果 CI 中验证。
+
+The script uses installed Android NDK Clang, Visual Studio C++ tools and the Windows SDK, writing to ignored `.local/apple-core`. It checks index chains, cancellation, accounting, CPU references and owned-file cleanup. Apple-specific crypto and Metal are verified on Apple CI.
+
+## macOS 与云端构建 / macOS and cloud builds
+
+打开 `ios/BenchBridge.xcodeproj`，选择 `BenchBridge` Scheme。工程文件由无第三方依赖的脚本维护；修改文件列表后重新生成。
+
+Open `ios/BenchBridge.xcodeproj` and select the `BenchBridge` scheme. The project is maintained by a dependency-free generator; rerun it after changing the file list.
+
+```sh
+python3 tools/generate-apple-project.py
+python3 tools/test-apple.py --ci
+```
+
+[Apple CI](https://github.com/Hashiao/BenchBridge/actions/workflows/apple.yml) 在 macOS 15 / Xcode 16.4 与官方 `xcode-27` 环境执行：本机 C++ 测试、ARM64 iOS Release 编译、iPhone 和 iPad 模拟器单元及界面测试。选择与 SDK 兼容的已安装运行时；实际 Xcode、机型、系统、跳过项和结果写入 `verification.json`。日志、截图、xcresult 和未签名 IPA 保留在每次运行的附件中。
+
+[Apple CI](https://github.com/Hashiao/BenchBridge/actions/workflows/apple.yml) uses macOS 15 / Xcode 16.4 and the official `xcode-27` environment for native C++ tests, ARM64 iOS Release builds, and iPhone/iPad simulator unit/UI tests. It selects installed runtimes compatible with the SDK and records actual Xcode, models, systems, skips and outcomes in `verification.json`. Each run retains logs, screenshots, xcresult bundles and an unsigned IPA.
+
+测试覆盖 RAM 四项与计数、多个曲线转换、CPU 参考值及苹果加密、Metal 输出及设备计时、存储读写与清理、JSON 回读导出和中断恢复，以及 RAM/ROM/取消/历史界面流程。Metal 设备或时间戳不可用时明确跳过并记录，不算已验证性能。
+
+Tests cover RAM accounting, multiple curve transitions, CPU references/Apple crypto, Metal outputs/device timing, storage/cleanup, JSON roundtrip/export/recovery, and RAM/ROM/cancellation/history UI flows. Unavailable Metal devices or timestamps produce recorded skips, never a device-performance validation claim.
+
+## 安装与签名 / Installation and signing
+
+GitHub Release 的 `BenchBridge-iOS-unsigned.ipa` 是真实 iPhoneOS ARM64 构建，不是模拟器包，但没有 Apple 签名与 provisioning profile，不能直接点开安装。安装到 iPhone/iPad 前需要使用自己的 Apple 身份完成签名与配置；本仓库不包含账号、证书或私钥。
+
+The Release asset `BenchBridge-iOS-unsigned.ipa` is a real iPhoneOS ARM64 build, not a simulator package. It has no Apple signature or provisioning profile and cannot be installed by simply opening it. Device installation requires signing/provisioning with your own Apple identity. No account, certificate or private key is included.
+
+没有 Mac 不影响 Windows 编辑与云端编译，但真机验收仍需要在自己的设备上运行签名后的应用。TestFlight/App Store 分发还需符合 Apple 开发者计划要求；当前没有发布到 TestFlight，也未宣称已在用户的 iPhone/iPad 上验证。
+
+A Mac is not required for Windows editing and cloud compilation, but device acceptance still requires a signed app running on your hardware. TestFlight/App Store distribution also requires meeting Apple's developer-program requirements. This project has not been distributed through TestFlight or validated on the user's physical devices.

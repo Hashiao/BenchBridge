@@ -43,6 +43,7 @@ struct NativeMeasurement: Codable, Sendable {
     var wallNs: UInt64
     var checksum: UInt64
     var noCacheHint: Bool
+    var nodeStrideBytes: Int
     var trials: [RawTrial]
     init(_ result: BBResult) {
         var raw = result.trials
@@ -57,6 +58,7 @@ struct NativeMeasurement: Codable, Sendable {
         status = Int(result.status); verified = result.verified != 0; kind = Int(result.kind)
         threads = Int(result.threads); qos = Int(result.qos); workingSetBytes = result.working_set_bytes
         warmupOperations = result.warmup_operations; wallNs = result.wall_ns; checksum = result.checksum; noCacheHint = result.no_cache != 0
+        nodeStrideBytes = Int(result.node_stride_bytes)
     }
     var error: String? { switch status {
     case 0: nil; case 1: "测试已停止"; case 2: "参数不受支持"; case 3: "内存或线程资源不足"

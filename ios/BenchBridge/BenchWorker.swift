@@ -118,7 +118,9 @@ enum BenchWorker {
                     let qos = report.curves[group].qos
                     report.progress = "\(report.curves[group].title) · \(Statistics.size(bytes)) · 第 \(pass + 1) 遍"; await progress(report)
                     let seed = UInt64(419 + pass * 1009 + attempts * 7919)
-                    let measurement = NativeMeasurement(bb_cache_point(token.handle, bytes, 64, Int32(qos), seed))
+                    let reportedStride = Int(report.device.reportedLineBytes ?? 0)
+                    let stride = [32, 64, 128, 256].contains(reportedStride) ? reportedStride : 64
+                    let measurement = NativeMeasurement(bb_cache_point(token.handle, bytes, Int32(stride), Int32(qos), seed))
                     if measurement.status == 1 { try token.check(); throw BenchError.message("采样被中断") }
                     report.curves[group].batches.append(CurveBatch(bytes: bytes, pass: pass, attempt: attempts + 1, seed: seed, measurement: measurement))
                     Statistics.refresh(&report.curves[group]); try await publish()

@@ -9,12 +9,28 @@ if platform.system()!='Darwin':raise SystemExit('Requires macOS/Xcode. Windows n
 def run(command,log=None):
     print('+ '+' '.join(map(str,command)),flush=True)
     if log:
-        with (OUT/log).open('w') as stream:r=subprocess.run(command,cwd=ROOT,stdout=stream,stderr=subprocess.STDOUT)
+        with (OUT/log).open('w') as stream:
+            process=subprocess.Popen(command,cwd=ROOT,stdout=stream,stderr=subprocess.STDOUT)
+            previous=0
+            # 定期给出真实日志进度，限制单步挂起；完整输出仍保留。 / Report actual log progress periodically and bound hangs; retain full output.
+            for _ in range(40):
+                try:process.wait(timeout=30)
+                except subprocess.TimeoutExpired:pass
+                lines=(OUT/log).read_text(errors='replace').splitlines()
+                if len(lines)>previous:print('\n'.join(lines[max(previous,len(lines)-8):]),flush=True)
+                previous=len(lines)
+                if process.poll() is not None:break
+            else:
+                process.terminate()
+                try:process.wait(timeout=10)
+                except subprocess.TimeoutExpired:process.kill();process.wait()
+                raise RuntimeError(f'{log} exceeded 20 minutes')
+            r=process
         if r.returncode:
             lines=(OUT/log).read_text(errors='replace').splitlines();print('\n'.join(lines[-100:]),flush=True)
             raise RuntimeError(f'{command[0]} failed ({r.returncode}); see {log}')
         return ''
-    return subprocess.check_output(command,cwd=ROOT,text=True).strip()
+    return subprocess.check_output(command,cwd=ROOT,text=True,timeout=300).strip()
 manifest={'host':platform.platform(),'status':'running','devices':[],'device_performance_verified':False}
 def save(): (OUT/'verification.json').write_text(json.dumps(manifest,indent=2)+'\n')
 save()
@@ -55,11 +71,14 @@ try:
         run(['xcrun','simctl','bootstatus',udid,'-b'])
         try:
             run(base+['-destination','id='+udid,'-derivedDataPath',str(OUT/'sim-build'),'-resultBundlePath',str(OUT/(family+'.xcresult')),
-                      '-parallel-testing-enabled','NO','test'],family+'-tests.log')
+                      '-parallel-testing-enabled','NO','-test-timeouts-enabled','YES',
+                      '-default-test-execution-time-allowance','180','-maximum-test-execution-time-allowance','300','test'],family+'-tests.log')
             entry['status']='passed'
             entry['skipped_tests']=re.findall(r"Test Case .*skipped.*",(OUT/(family+'-tests.log')).read_text(errors='replace'))
             run(['xcrun','simctl','io',udid,'screenshot',str(OUT/(family+'.png'))])
             # 保留测试记录、日志、IPA 与截图，不上传整个构建缓存。 / Keep results, logs, IPA and screenshots, not all build caches.
+        except Exception:
+            entry['status']='failed';raise
         finally:
             result=OUT/(family+'.xcresult')
             if result.exists():

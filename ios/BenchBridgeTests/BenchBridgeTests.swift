@@ -11,6 +11,9 @@ final class BenchBridgeTests: XCTestCase {
             if kind == 5 { XCTAssertGreaterThanOrEqual(result.warmupOperations, 1048576 / 64 * 2) }
             else { XCTAssertEqual(trial.logicalBytes, trial.operations * (kind == 2 ? 16 : 8)) }
         }
+        let curve = NativeMeasurement(bb_cache_point(token.handle, 65536, 128, 0, 419))
+        XCTAssertEqual(curve.status, 0); XCTAssertTrue(curve.verified)
+        XCTAssertEqual(curve.nodeStrideBytes, 128)
         token.cancel("test"); XCTAssertEqual(bb_memory(token.handle, 0, 1048576, 2, 5, 10, 0, 419).status, 1)
     }
     func testSharedCPUReferencesAndAppleCrypto() throws {

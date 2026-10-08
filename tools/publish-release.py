@@ -1,4 +1,4 @@
-"""发布已验证的签名 APK；不构建、不改标签。 / Publish a verified signed APK without building or moving tags."""
+"""发布已验证的签名 APK 与可选附件；不构建、不改标签。 / Publish a verified signed APK and optional assets without building or moving tags."""
 import argparse
 import hashlib
 import json
@@ -29,6 +29,7 @@ def main():
     parser.add_argument("--notes-file", required=True, type=Path)
     parser.add_argument("--sha256", required=True)
     parser.add_argument("--apk", type=Path, default=ROOT / "app/build/outputs/apk/release/app-release.apk")
+    parser.add_argument("--asset", type=Path, action="append", default=[], help="Additional verified release file (repeatable) / 额外已验证附件，可重复")
     parser.add_argument("--proxy", help="Optional HTTPS proxy URL / 可选 HTTPS 代理地址")
     args = parser.parse_args()
     if not re.fullmatch(r"v\d+\.\d+\.\d+", args.tag):
@@ -57,6 +58,17 @@ def main():
     digest = hashlib.sha256(payload).hexdigest()
     if digest != args.sha256.lower():
         raise RuntimeError("APK differs from the verified SHA-256")
+    files = [(NAME, payload, "application/vnd.android.package-archive"),
+             (NAME + ".sha256", (digest + "  " + NAME + "\n").encode(), "text/plain")]
+    names = {item[0] for item in files}
+    for path in args.asset:
+        name = path.name
+        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", name) or name in names or name + ".sha256" in names:
+            raise RuntimeError("Invalid or duplicate release asset: " + name)
+        data = path.read_bytes()
+        files.extend([(name, data, "application/octet-stream"),
+                      (name + ".sha256", (hashlib.sha256(data).hexdigest() + "  " + name + "\n").encode(), "text/plain")])
+        names.update((name, name + ".sha256"))
     notes = args.notes_file.read_text(encoding="utf-8")
     # 凭据只留在内存中；不写文件、不放进命令行或日志。
     # Keep credentials in memory, never in files, command arguments or logs.
@@ -97,8 +109,6 @@ def main():
                           name="BenchBridge " + args.tag[1:], body=notes, draft=True, prerelease=False))
     # 草稿可重试；已发布附件只能核对，不能替换。
     # Drafts may be resumed; published assets are verified, never replaced.
-    files = [(NAME, payload, "application/vnd.android.package-archive"),
-             (NAME + ".sha256", (digest + "  " + NAME + "\n").encode(), "text/plain")]
     for name, data, mime in files:
         asset = next((a for a in release["assets"] if a["name"] == name), None)
         if asset is None:
@@ -117,6 +127,11 @@ def main():
         downloaded = hashlib.file_digest(result, "sha256").hexdigest()
     if downloaded != digest:
         raise RuntimeError("Latest-download URL does not serve the verified APK")
+    for name, data, _ in files[2:]:
+        asset_url = "https://github.com/" + repo + "/releases/download/" + args.tag + "/" + name
+        with public.open(urllib.request.Request(asset_url, headers={"User-Agent": "BenchBridge-release-check"}), timeout=120) as result:
+            if hashlib.file_digest(result, "sha256").hexdigest() != hashlib.sha256(data).hexdigest():
+                raise RuntimeError("Public asset download mismatch: " + name)
     print(json.dumps(dict(release=release["html_url"], download=url, sha256=digest)))
 
 

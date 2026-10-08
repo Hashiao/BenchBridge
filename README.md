@@ -8,9 +8,19 @@ Android CPU、GPU、内存与存储基准测试工具，使用 Kotlin / Jetpack 
 
 An Android CPU, GPU, memory and storage benchmark with a Kotlin / Jetpack Compose interface, C++20 kernels and Vulkan compute shaders.
 
-本仓库公开当前 0.10.1 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
+本仓库公开当前 0.11.0 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
 
-This repository contains the current 0.10.1 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+This repository contains the current 0.11.0 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+
+## iPhone / iPad
+
+0.11.0 新增 [原生苹果端工程与构建说明](ios/README.md)，最低 iOS / iPadOS 18。包含 RAM 四项与缓存曲线、存储、CPU 和 Metal GPU 测试、历史与 JSON 导出。Windows 验证共享 C++ 核心，GitHub 的 macOS 环境编译并实跑 iPhone / iPad 模拟器；模拟器数值不代表真机性能。苹果端采用系统调度，不提供安卓式物理核心绑定。
+
+Version 0.11.0 adds a [native Apple project and build guide](ios/README.md) for iOS/iPadOS 18+, with RAM scores/cache curves, storage, CPU/Metal GPU tests, history and JSON export. Windows validates the shared C++ core; GitHub macOS runners build and run iPhone/iPad simulators. Simulator scores are not device-performance measurements. Apple uses system scheduling without Android-style physical-core pinning.
+
+[苹果端构建与测试 / Apple builds and tests](https://github.com/Hashiao/BenchBridge/actions/workflows/apple.yml)。Release 中的 `BenchBridge-iOS-unsigned.ipa` **需要另行签名才能安装**；GPU AES/SHA 首版未实现，FP64 GPU 项目不支持。下文的原有功能与参数描述适用于安卓端，苹果端差异见上方说明。
+
+[Apple builds and tests](https://github.com/Hashiao/BenchBridge/actions/workflows/apple.yml). The Release asset `BenchBridge-iOS-unsigned.ipa` **requires signing before installation**. GPU AES/SHA are not yet implemented; FP64 GPU tests are unavailable. The existing feature/parameter descriptions below concern Android; Apple differences are documented above.
 
 ## 功能 / Features
 

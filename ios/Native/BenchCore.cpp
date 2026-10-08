@@ -84,7 +84,7 @@ struct Chain {
     }
 };
 BBResult latency(BBSession* s,uint64_t bytes,int stride,int qos,uint64_t seed,int warm,int duration,int repeats) {
-    BBResult out{};out.kind=5;out.threads=1;out.qos=qos;out.working_set_bytes=bytes;
+    BBResult out{};out.kind=5;out.threads=1;out.qos=qos;out.working_set_bytes=bytes;out.node_stride_bytes=stride;
     if(!s||bytes<4096||bytes>256ULL*1048576||bytes%256||stride<32||stride>256||(stride&(stride-1))||qos<0||qos>1||duration<5||duration>5000||warm<0||warm>5000){out.status=2;return out;}
     const auto wall=now();
     std::thread worker([&]{try{

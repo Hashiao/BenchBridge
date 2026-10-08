@@ -13,7 +13,7 @@ typedef struct {
 typedef struct {
     // 0 成功，1 取消，2 参数无效，3 分配失败，4 校验失败，5 I/O 失败，6 未实现。
     // 0 completed, 1 cancelled, 2 invalid, 3 allocation, 4 verification, 5 I/O, 6 unavailable.
-    int32_t status, kind, trial_count, verified, threads, qos, no_cache;
+    int32_t status, kind, trial_count, verified, threads, qos, no_cache, node_stride_bytes;
     uint64_t working_set_bytes, warmup_operations, wall_ns, checksum;
     BBTrial trials[9];
 } BBResult;

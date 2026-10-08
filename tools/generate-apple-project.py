@@ -31,9 +31,9 @@ for target,files in sources.items():
         references.append(ref);builds.append(add('build:'+target+path,f'isa = PBXBuildFile; fileRef = {ref};'))
     resourceBuild=[]
     if target=='BenchBridge':
-        for path,filetype in [('BenchBridge/Info.plist','text.plist.xml'),('BenchBridge/PrivacyInfo.xcprivacy','text.xml')]:
+        for path,filetype in [('BenchBridge/Info.plist','text.plist.xml'),('BenchBridge/PrivacyInfo.xcprivacy','text.xml'),('BenchBridge/Assets.xcassets','folder.assetcatalog')]:
             ref=add('file:'+path,f'isa = PBXFileReference; lastKnownFileType = {q(filetype)}; path = {q(path)}; sourceTree = "<group>";');references.append(ref)
-            if path.endswith('xcprivacy'):resourceBuild.append(add('build:'+path,f'isa = PBXBuildFile; fileRef = {ref};'))
+            if path.endswith(('xcprivacy','xcassets')):resourceBuild.append(add('build:'+path,f'isa = PBXBuildFile; fileRef = {ref};'))
     groups.append(add('group:'+target,f'isa = PBXGroup; name = {q(target)}; children = {array(references)}; sourceTree = "<group>";'))
     product=add('product:'+target,f'isa = PBXFileReference; explicitFileType = {q("wrapper.application" if target=="BenchBridge" else "wrapper.cfbundle")}; includeInIndex = 0; path = {q(target+(".app" if target=="BenchBridge" else ".xctest"))}; sourceTree = BUILT_PRODUCTS_DIR;');products.append(product)
     sourcePhase=add('sources:'+target,f'isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = {array(builds)}; runOnlyForDeploymentPostprocessing = 0;')
@@ -41,9 +41,9 @@ for target,files in sources.items():
     resourcePhase=add('resources:'+target,f'isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = {array(resourceBuild)}; runOnlyForDeploymentPostprocessing = 0;')
     buildSettings=common|{'PRODUCT_NAME':target,'PRODUCT_BUNDLE_IDENTIFIER':'io.benchbridge.ios'+('' if target=='BenchBridge' else '.'+target.lower())}
     if target=='BenchBridge':
-        buildSettings|={'INFOPLIST_FILE':'BenchBridge/Info.plist','SWIFT_OBJC_BRIDGING_HEADER':'BenchBridge/BenchBridge-Bridging-Header.h',
+        buildSettings|={'INFOPLIST_FILE':'BenchBridge/Info.plist','ASSETCATALOG_COMPILER_APPICON_NAME':'AppIcon','SWIFT_OBJC_BRIDGING_HEADER':'BenchBridge/BenchBridge-Bridging-Header.h',
             'HEADER_SEARCH_PATHS':['$(inherited)','$(SRCROOT)/Native'],'OTHER_CPLUSPLUSFLAGS':['$(inherited)','-fno-lto'],
-            'OTHER_LDFLAGS':['$(inherited)','-lc++'],'LD_RUNPATH_SEARCH_PATHS':['$(inherited)','@executable_path/Frameworks']}
+            'LD_RUNPATH_SEARCH_PATHS':['$(inherited)','@executable_path/Frameworks']}
     else:
         buildSettings|={'GENERATE_INFOPLIST_FILE':'YES','LD_RUNPATH_SEARCH_PATHS':['$(inherited)','@executable_path/Frameworks','@loader_path/Frameworks']}
         if target=='BenchBridgeTests':buildSettings|={'TEST_HOST':'$(BUILT_PRODUCTS_DIR)/BenchBridge.app/BenchBridge','BUNDLE_LOADER':'$(TEST_HOST)',
