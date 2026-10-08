@@ -27,8 +27,13 @@ jobs:
         run: python3 tools/test-apple.py --ci
       - uses: actions/upload-artifact@v4
         if: always()
+        timeout-minutes: 5
         with:
           name: apple-${{ matrix.image }}
-          path: .local/apple-ci
+          path: |
+            .local/apple-ci
+            !.local/apple-ci/device-build/**
+            !.local/apple-ci/sim-build/**
+            !.local/apple-ci/native-files/**
           if-no-files-found: error
           retention-days: 14
