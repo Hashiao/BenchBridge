@@ -42,6 +42,15 @@ release-signing.properties
 Thumbs.db
 Desktop.ini
 
+# Apple 本机构建、用户设置和签名材料 / Apple local builds, user settings and signing material
+DerivedData/
+**/xcuserdata/
+*.xcuserstate
+*.ipa
+*.mobileprovision
+*.provisionprofile
+*.p8
+
 # 本机开发与验收记录；公开文档另行维护 / Local development records; public docs are maintained separately
 /VERIFICATION.md
 /docs/ENVIRONMENT*.md
