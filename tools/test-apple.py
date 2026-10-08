@@ -57,6 +57,9 @@ try:
             run(['xcrun','simctl','io',udid,'screenshot',str(OUT/(family+'.png'))])
             # 保留测试记录、日志、IPA 与截图，不上传整个构建缓存。 / Keep results, logs, IPA and screenshots, not all build caches.
         finally:
+            result=OUT/(family+'.xcresult')
+            if result.exists():
+                subprocess.run(['xcrun','xcresulttool','export','attachments','--path',str(result),'--output-path',str(OUT/(family+'-screenshots'))],check=False)
             subprocess.run(['xcrun','simctl','shutdown',udid],check=False);save()
     manifest['status']='passed';save()
 except Exception as error:

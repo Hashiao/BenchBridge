@@ -135,9 +135,15 @@ enum BenchWorker {
                     }
                     Statistics.analyze(&report.curves[group])
                     let original = report.curves[group].plannedSizes
-                    let extra = Array(Set(report.curves[group].transitions.flatMap { edge in
-                        (1...3).map { (edge.lowerBytes + (edge.upperBytes - edge.lowerBytes) * UInt64($0) / 4) / 256 * 256 }
-                    })).filter { !original.contains($0) }.sorted()
+                    var refinement = Set<UInt64>()
+                    for edge in report.curves[group].transitions {
+                        let span = edge.upperBytes - edge.lowerBytes
+                        for fraction: UInt64 in 1...3 {
+                            let bytes = (edge.lowerBytes + span * fraction / 4) / 256 * 256
+                            if !original.contains(bytes) { refinement.insert(bytes) }
+                        }
+                    }
+                    let extra = refinement.sorted()
                     report.curves[group].plannedSizes = (original + extra).sorted()
                     for bytes in extra { for pass in 0...1 { try await measure(group, bytes, pass) } }
                     Statistics.analyze(&report.curves[group]); try await publish()
