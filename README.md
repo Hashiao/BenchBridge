@@ -14,6 +14,12 @@ This repository contains the current 0.11.0 implementation. The app interface is
 
 ## iPhone / iPad
 
+**[下载 iPhone/iPad IPA（未签名） / Download unsigned IPA](https://github.com/Hashiao/BenchBridge/releases/latest/download/BenchBridge-iOS-unsigned.ipa)** · **[安装、真机测试与 App Store 上架指引 / Installation, device testing and App Store guide](docs/APPLE_DISTRIBUTION.md)**
+
+首次测试：将设备用 USB 接到身边的 Windows 电脑 → 按指引用自己的 Apple 账号签名安装 → 开启需要的开发者模式 → 在设备上分别跑 RAM、ROM、GPGPU → 导出 JSON。**下载 IPA 不等于已经能安装；当前没有 TestFlight 邀请。**免费个人签名有有效期；iOS 27 的实际侧载安装仍待真机确认。
+
+First device test: connect the device to a nearby Windows PC over USB → sign/install using your own Apple account as described in the guide → enable Developer Mode when required → run RAM, ROM and GPGPU on-device → export JSON. **Downloading the IPA does not make it installable; there is no TestFlight invitation yet.** Free personal signing expires; actual sideload installation on iOS 27 remains unverified.
+
 0.11.0 新增 [原生苹果端工程与构建说明](ios/README.md)，最低 iOS / iPadOS 18。包含 RAM 四项与缓存曲线、存储、CPU 和 Metal GPU 测试、历史与 JSON 导出。Windows 验证共享 C++ 核心，GitHub 的 macOS 环境编译并实跑 iPhone / iPad 模拟器；模拟器数值不代表真机性能。苹果端采用系统调度，不提供安卓式物理核心绑定。
 
 Version 0.11.0 adds a [native Apple project and build guide](ios/README.md) for iOS/iPadOS 18+, with RAM scores/cache curves, storage, CPU/Metal GPU tests, history and JSON export. Windows validates the shared C++ core; GitHub macOS runners build and run iPhone/iPad simulators. Simulator scores are not device-performance measurements. Apple uses system scheduling without Android-style physical-core pinning.
