@@ -85,9 +85,13 @@ private struct Dashboard: View {
         .background(Color(uiColor: .systemGroupedBackground))
         .toolbar { Button { settings = true } label: { Image(systemName: "gearshape") }.disabled(model.running).accessibilityIdentifier("settings") }
         .safeAreaInset(edge: .bottom) {
-            Button(model.running ? "停止测试" : "开始测试") { if model.running { model.stop() } else { model.start(family) } }
-                .buttonStyle(.borderedProminent).controlSize(.large).frame(maxWidth: .infinity).padding(10).background(.bar)
-                .accessibilityIdentifier(model.running ? "stop-test" : "start-test")
+            HStack {
+                Spacer()
+                Button(model.running ? "停止测试" : "开始测试") { if model.running { model.stop() } else { model.start(family) } }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .accessibilityIdentifier(model.running ? "stop-test" : "start-test")
+                Spacer()
+            }.padding(10).background(.bar)
         }
         .sheet(isPresented: $settings) { SettingsPage(model: model) }
     }
