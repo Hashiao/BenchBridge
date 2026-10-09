@@ -70,10 +70,14 @@ class MemoryMatrixTest {
     }
 
     @Test fun fixedDefaultsPreserve64MiBAcrossCorePlansAndLegacyRemainsReadable() {
-        val config=RamConfig.aida64(3)
+        val config=RamConfig.aida64()
         assertEquals(64,config.workingSetMiB);assertEquals(64,config.latencySetMiB);assertEquals(64,config.curveMaxMiB)
+        assertEquals(1,config.threads);assertFalse(config.automaticThreads)
+        assertEquals(config,config.resolveThreads(16))
         val topology=fixture().copy(cores=(0..2).map(::cpu),caches=listOf(CpuCache("huge",3,128L*1048576,64,listOf(0,1,2),"test")))
         for(kind in MemoryPlanner.columns) {
+            val candidates=MemoryPlanner.candidates(topology,config,"RAM",kind,1024L*1048576)
+            assertTrue(candidates.isNotEmpty());assertTrue(candidates.all { it.cpus.size==1 && it.bytes==64L*1048576 })
             val plan=MemoryPlanner.plan(topology,config,"RAM",kind,if(kind==5)listOf(0)else listOf(0,1,2),1024L*1048576)!!
             assertEquals(64L*1048576,plan.bytes)
         }

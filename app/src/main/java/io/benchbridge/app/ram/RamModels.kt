@@ -43,7 +43,7 @@ data class RamConfig(
     fun sameParameters(other: RamConfig): Boolean = copy(presetId = "") == other.copy(presetId = "")
     fun recognizedPresetId(): String = when {
         sameParameters(matrixQuick().copy(threads = threads)) -> "cache-curve-quick-v1"
-        sameParameters(aida64(threads)) -> "cache-curve-standard-v2"
+        sameParameters(aida64()) -> "cache-curve-standard-v3"
         sameParameters(quick()) -> "ram-quick-dev-v1"
         else -> "ram-custom-v1"
     }
@@ -110,8 +110,8 @@ data class RamConfig(
     }
 
     companion object {
-        fun aida64(allowedCpus: Int = 1) = standard().copy(kinds = listOf(0, 1, 2, 5),
-            threads = allowedCpus.coerceIn(1, 16), automaticThreads = true, cacheMatrix = true, cacheCurve = true, curveIncludeRam=true, presetId = "cache-curve-standard-v2")
+        fun aida64() = standard().copy(kinds = listOf(0, 1, 2, 5),
+            threads = 1, automaticThreads = false, cacheMatrix = true, cacheCurve = true, curveIncludeRam=true, presetId = "cache-curve-standard-v3")
         fun matrixQuick() = RamConfig(kinds = listOf(0, 1, 2, 5), workingSetMiB = 16, latencySetMiB = 8,
             warmupMs = 25, durationMs = 150, rounds = 1, latencyRounds = 1, cooldownMs = 0,
             automaticThreads = true, cacheMatrix = true, cacheCurve = true, curveIncludeRam=true, curveSteps=4, curveMaxMiB=64, calibrationMs = 50, presetId = "cache-curve-quick-v1")

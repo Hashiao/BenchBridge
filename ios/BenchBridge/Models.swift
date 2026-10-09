@@ -30,7 +30,7 @@ struct BenchConfig: Codable, Equatable, Sendable {
     }
     static var quick: Self {
         var value = Self(memoryMiB: 16, durationMs: 100, repeats: 1, cacheMaxMiB: 16, stepsPerOctave: 4, storageMiB: 64)
-        value.ram = RAMParameters(memoryMiB: 16, latencyMiB: 16, warmupMs: 25, durationMs: 150, repeats: 1, latencyRepeats: 1, intervalMs: 0)
+        value.ram = RAMParameters(memoryMiB: 16, latencyMiB: 16, automaticThreads: true, warmupMs: 25, durationMs: 150, repeats: 1, latencyRepeats: 1, intervalMs: 0)
         value.storage = StorageParameters(fileMiB: 64, repeats: 1, warmupMs: 100, durationMs: 600, intervalMs: 100)
         return value
     }
@@ -73,7 +73,7 @@ struct RAMParameters: Codable, Equatable, Sendable {
     var memoryMiB = 64
     var latencyMiB = 64
     var threads = 1
-    var automaticThreads = true
+    var automaticThreads = false
     var warmupMs = 1000
     var durationMs = 3000
     var repeats = 3

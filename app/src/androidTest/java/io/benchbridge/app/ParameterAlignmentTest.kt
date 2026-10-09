@@ -182,7 +182,8 @@ class ParameterAlignmentTest {
         node("ram_settings").click()
         assertTrue(node("ram_aida").isChecked)
         assertTrue(node("curve_include_ram").isChecked)
-        assertTrue(node("ram_threads_auto", true).isChecked)
+        assertTrue(node("ram_threads_1", true).isChecked)
+        assertFalse(node("ram_threads_auto", true).isChecked)
         assertTrue(node("ram_bandwidth_rounds_3", true).isChecked)
         assertTrue(node("ram_latency_rounds_5", true).isChecked)
         node("ram_bandwidth_rounds_1", true).click()
@@ -223,7 +224,7 @@ class ParameterAlignmentTest {
     }
 
     @Test fun workerResolvesAutoThreadsAndRecordsRequestedVersusEffectivePlan() = runBlocking {
-        val requested = RamConfig.aida64(16).copy(cacheMatrix = false, kinds = listOf(0), workingSetMiB = 4,
+        val requested = RamConfig.aida64().copy(threads = 16, automaticThreads = true, cacheMatrix = false, kinds = listOf(0), workingSetMiB = 4,
             warmupMs = 0, durationMs = 75, rounds = 1, cooldownMs = 0)
         val reply = JSONObject(client.service().startRam(requested.toJson().toString()))
         assertTrue(reply.toString(), reply.getBoolean("accepted"))

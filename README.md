@@ -8,9 +8,13 @@ Android、iPhone 与 iPad 的 CPU、GPU、内存与存储基准测试工具。�
 
 A CPU, GPU, memory and storage benchmark for Android, iPhone and iPad. Android uses Kotlin / Jetpack Compose and Vulkan; Apple uses SwiftUI and Metal, with C++20 measurement kernels.
 
-本仓库公开当前 0.12.0 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
+本仓库公开当前 0.12.1 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
 
-This repository contains the current 0.12.0 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+This repository contains the current 0.12.1 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+
+0.12.1 将安卓与苹果 RAM 的读取、写入、延迟、拷贝标准默认值统一为 **64 MiB、T1**，默认关闭带宽线程自动校准；手动多线程和自动校准仍可选。
+
+0.12.1 sets the standard RAM read/write/latency/copy defaults to **64 MiB, T1** on Android and Apple. Bandwidth thread-count calibration is off by default; manual multithreading and automatic calibration remain available.
 
 0.12.0 对齐安卓与苹果的默认 RAM 64 MiB、单线程 4 KiB–64 MiB 曲线和 DiskMark ROM 配置，并统一主要操作布局。详见 [跨平台默认参数与能力边界](docs/CROSS_PLATFORM_DEFAULTS.md)。
 

@@ -1,8 +1,8 @@
 # 苹果端安装、真机测试与上架 / Apple installation, device testing and distribution
 
-适用于 BenchBridge 0.12.0；资料核对日期 2026-10-08。应用最低 iOS/iPadOS 18.0，当前是供真机验收的首版，不是已经上架 App Store 的成品。
+适用于 BenchBridge 0.12.1；资料核对日期 2026-10-08。应用最低 iOS/iPadOS 18.0，当前是供真机验收的首版，不是已经上架 App Store 的成品。
 
-For BenchBridge 0.12.0; references checked on 2026-10-08. Minimum iOS/iPadOS 18.0. This first version is ready for device acceptance testing; it is not already an App Store release.
+For BenchBridge 0.12.1; references checked on 2026-10-08. Minimum iOS/iPadOS 18.0. This first version is ready for device acceptance testing; it is not already an App Store release.
 
 ## 1. 下载哪一个文件 / Choose the download
 
@@ -36,8 +36,8 @@ When required, follow [Apple's Developer Mode instructions](https://developer.ap
    Record model, OS and app version on each device. Let it cool, disable Low Power Mode, keep the app foregrounded and avoid other heavy work.
 2. 设置中先选“快速测试”，分别运行 RAM、ROM、GPGPU，确认能结束、停止、查看历史和导出 JSON。RAM 应先出现读、写、延迟、拷贝四项，曲线随后扫描。
    Start with the Quick preset for RAM, ROM and GPGPU. Check completion, stop, history and JSON export. Four RAM scores appear before curve scanning.
-3. 分别在 RAM、ROM 页面恢复“标准测试”：RAM 带宽和延迟均为 64 MiB，单线程曲线为 4 KiB–64 MiB；ROM 为 1 GiB、3 次、四行 Q8T1/Q1T1/Q32T1/Q1T1。0.12.0 的预设仅影响当前测试类型。用标准配置测完整曲线，冷却后按相同参数复测；各类结果分别保存，不拿模拟器成绩与真机比较。
-   Restore Standard separately on RAM and ROM: 64 MiB RAM bandwidth/latency, a single-worker 4 KiB–64 MiB sweep, and a 1 GiB storage file with three repetitions across Q8T1/Q1T1/Q32T1/Q1T1 rows. In 0.12.0 presets affect only the current family. Run the complete standard curve and repeat after cooling with identical parameters; save each report and do not compare simulator scores with device performance.
+3. 分别在 RAM、ROM 页面恢复“标准测试”：RAM 读取、写入、延迟、拷贝均为 64 MiB、T1（自动线程关闭），单线程曲线为 4 KiB–64 MiB；ROM 为 1 GiB、3 次、四行 Q8T1/Q1T1/Q32T1/Q1T1。0.12.0 的预设仅影响当前测试类型。用标准配置测完整曲线，冷却后按相同参数复测；各类结果分别保存，不拿模拟器成绩与真机比较。
+   Restore Standard separately on RAM and ROM: 64 MiB/T1 RAM read/write/latency/copy with automatic threads off, a single-worker 4 KiB–64 MiB sweep, and a 1 GiB storage file with three repetitions across Q8T1/Q1T1/Q32T1/Q1T1 rows. In 0.12.0 presets affect only the current family. Run the complete standard curve and repeat after cooling with identical parameters; save each report and do not compare simulator scores with device performance.
 4. 每项结束后“导出 JSON”，将 iPhone/iPad 各自的文件连同异常截图提供给开发者；附上插电状态、低电量模式、是否切后台及复现步骤。后台/锁屏会停止本版苹果端测试，已完成数据仍保存。
    Export each report and provide per-device JSON plus issue screenshots, power state, Low Power Mode, backgrounding and reproduction steps. Backgrounding/locking stops this Apple version while retaining completed data.
 5. 更新、换签名方式或移除应用前先导出历史；不同 Bundle ID 的安装可能使用不同数据目录。

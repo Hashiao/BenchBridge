@@ -10,9 +10,9 @@ See [aligned defaults and platform differences](../docs/CROSS_PLATFORM_DEFAULTS.
 
 ## 功能与范围 / Features and scope
 
-| 项目 / Area | 0.12.0 实现 / Implementation |
+| 项目 / Area | 0.12.1 实现 / Implementation |
 |---|---|
-| RAM | 先测读取、写入、延迟、拷贝，首页保留四项摘要；可配置工作集、线程、时长、重复次数。 / Read, write, latency and copy first, with a four-score dashboard row and configurable working set, threads, duration and repeats. |
+| RAM | 标准默认四项均为 64 MiB、T1，关闭自动线程；先测读取、写入、延迟、拷贝，首页保留四项摘要；可配置工作集、线程、时长、重复次数。 / Standard defaults are 64 MiB/T1 for all four scores, with automatic threads off. Read, write, latency and copy first, with a four-score dashboard row and configurable working set, threads, duration and repeats. |
 | 缓存曲线 / Cache curve | 默认 4 KiB–64 MiB、每倍容量 8 个间隔、正反扫描与有限复测；显示实测点和多个持续转换区间。 / Default 4 KiB–64 MiB, eight intervals per octave, forward/reverse sweeps and bounded rechecks; measured points and multiple sustained transitions. |
 | ROM | 1 GiB 文件，SEQ 1 MiB Q8T1/Q1T1、RND 4 KiB Q32T1/Q1T1，支持块/Q/T 设置。 / 1 GiB file, SEQ 1 MiB Q8T1/Q1T1 and RND 4 KiB Q32T1/Q1T1 with configurable block/Q/T. |
 | CPU | 12 项，包括内存、浮点、整数、AES-256、SHA-1、Julia 与 Mandelbrot。 / Twelve tests covering memory, floating point, integers, AES-256, SHA-1, Julia and Mandelbrot. |

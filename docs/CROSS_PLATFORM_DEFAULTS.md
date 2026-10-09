@@ -1,15 +1,15 @@
 # 跨平台默认参数 / Cross-platform defaults
 
-0.12.0 起统一下列默认值；历史记录保持原参数与计分方式。MB/s、GB/s 为十进制，MiB、GiB 为二进制容量。
+0.12.1 标准预设统一下列默认值，RAM 四项均为 64 MiB、T1；历史记录保持原参数与计分方式。MB/s、GB/s 为十进制，MiB、GiB 为二进制容量。
 
-From 0.12.0, the defaults below are shared. Historical records retain their original parameters and aggregation. MB/s and GB/s are decimal; MiB and GiB are binary capacities.
+The 0.12.1 standard preset shares the defaults below: all four RAM scores use 64 MiB and T1. Historical records retain their original parameters and aggregation. MB/s and GB/s are decimal; MiB and GiB are binary capacities.
 
 | 项目 / Test | Android、iPhone、iPad 默认 / Shared default |
 |---|---|
 | RAM 读、写、拷贝 / Read, write, copy | 64 MiB 总工作集；拷贝为源与目标合计 / Total footprint, source plus destination for copy |
 | RAM 延迟 / Latency | 64 MiB，单线程 / One worker |
 | RAM 重复与计时 / Repetition and timing | 带宽 3 次、延迟 5 次，取中位数；预热 1 s、测量 3 s、间隔 2 s / 3 bandwidth and 5 latency rounds, median; 1 s warmup, 3 s measurement, 2 s interval |
-| RAM 带宽线程 / Bandwidth threads | 自动校准最多 16 线程；校准不计分 / Calibrate up to 16 workers; calibration is not scored |
+| RAM 带宽线程 / Bandwidth threads | T1，默认关闭线程数自动校准；可手动启用多线程或自动校准 / T1, automatic thread-count calibration off by default; multithreading/calibration remain opt-in |
 | 块大小—延迟 / Working-set latency | 4 KiB–64 MiB，单线程，每倍容量 8 个间隔，正反遍及有限补测 / One worker, 8 intervals per octave, forward/reverse and bounded rechecks |
 | ROM 文件 / Storage file | 1 GiB，预先完整初始化一次 / Fully initialized once per run |
 | ROM 四行 / Four storage rows | SEQ 1 MiB Q8T1、SEQ 1 MiB Q1T1、RND 4 KiB Q32T1、RND 4 KiB Q1T1 |

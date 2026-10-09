@@ -5,6 +5,7 @@ final class BenchBridgeTests: XCTestCase {
     func testAlignedDefaultsAndLegacyDecoding() throws {
         let config = BenchConfig()
         XCTAssertEqual(config.ramSettings.memoryMiB, 64); XCTAssertEqual(config.ramSettings.latencyMiB, 64)
+        XCTAssertEqual(config.ramSettings.threads, 1); XCTAssertFalse(config.ramSettings.automaticThreads)
         XCTAssertEqual(config.cacheMaxMiB, 64); XCTAssertTrue(config.backgroundCurve)
         XCTAssertEqual(config.storageSettings.fileMiB, 1024); XCTAssertEqual(config.storageSettings.repeats, 3)
         XCTAssertEqual(config.storageSettings.cases.map(\.queueDepth), [8,1,32,1])

@@ -42,7 +42,8 @@ class CacheCurveIntegrationTest {
         lateinit var model:RamViewModel
         scenario.scenario.onActivity { model=ViewModelProvider(it)[RamViewModel::class.java] }
         withTimeout(15000){while(model.state.value.capabilities==null)delay(30)}
-        scenario.scenario.onActivity { model.configure(RamConfig.matrixQuick().copy(curveMaxMiB=1,curveSteps=2));model.start() }
+        scenario.scenario.onActivity { model.configure(RamConfig.aida64().copy(warmupMs=25,durationMs=150,
+            rounds=1,latencyRounds=1,cooldownMs=0,calibrationMs=50,curveMaxMiB=1,curveSteps=2));model.start() }
         withTimeout(15000){while(model.state.value.report==null){check(model.state.value.error==null){model.state.value.error!!};delay(30)}}
         val id=model.state.value.report!!.getString("run_id");owned+=id
         withTimeout(90000) { while(model.state.value.report?.optString("phase")!="CACHE_PROBING") {
@@ -53,6 +54,8 @@ class CacheCurveIntegrationTest {
         assertEquals("RAM",early.getJSONArray("stage_order").getString(0))
         assertEquals("cache_curve",early.getJSONArray("stage_order").getString(1))
         for(kind in MemoryPlanner.columns) {
+            val measured=RamResults.validRounds(early,kind).single()
+            assertEquals(1,measured.getInt("threads"));assertEquals(64L*1048576,measured.getLong("working_set_bytes"))
             val expected="%.2f".format(Locale.US,RamResults.statistics(early,kind)!!.median)
             assertTrue(device.wait(Until.hasObject(By.res("curve_ram_$kind").text(expected)),5000))
         }
