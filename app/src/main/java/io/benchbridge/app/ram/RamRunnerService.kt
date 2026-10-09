@@ -112,7 +112,8 @@ class RamRunnerService : Service() {
                     require(requested.sameParameters(RamConfig.fromJson(it.getJSONObject("config").toString()))) { "续测参数与原记录不一致" }
                 }
                 val caps = capabilityReport()
-                val config = requested.copy(curveProtocol = CacheProbe.METHOD).resolveThreads(caps.optInt("allowed_cpus", 1)).normalized()
+                val config = requested.copy(curveProtocol = requested.curveProtocol.takeIf(CacheProbe::supported) ?: CacheProbe.METHOD)
+                    .resolveThreads(caps.optInt("allowed_cpus", 1)).normalized()
                 require(config.estimatedBytes() <= caps.getLong("memory_budget_bytes")) {
                     "RAM_BUDGET：需要约 ${config.estimatedBytes() / 1048576} MiB，当前预算 ${caps.getLong("memory_budget_bytes") / 1048576} MiB；请明确选择较小工作集"
                 }

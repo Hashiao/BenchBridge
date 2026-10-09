@@ -435,6 +435,13 @@ Java_io_benchbridge_app_ram_RamNative_runLatencyPoint(JNIEnv* env,jobject,jlong 
     return env->NewStringUTF(result.c_str());
 }
 extern "C" JNIEXPORT jstring JNICALL
+Java_io_benchbridge_app_ram_RamNative_runLatencyPointOnce(JNIEnv* env,jobject,jlong handle,jint cpu,jlong bytes,jint stride,jlong seed) {
+    const auto session=session_for(handle);std::string result;
+    try { result=session?bb_latency_point(session->cancel,session->phase,cpu,bytes,stride,seed,true):"{\"status\":\"FAILED\",\"error\":\"SESSION_NOT_FOUND\"}"; }
+    catch(const std::exception&) { result="{\"status\":\"FAILED\",\"error\":\"PROBE_WORKER_FAILED\"}"; }
+    return env->NewStringUTF(result.c_str());
+}
+extern "C" JNIEXPORT jstring JNICALL
 Java_io_benchbridge_app_ram_RamNative_capabilities(JNIEnv* env, jobject) {
     cpu_set_t mask;
     CPU_ZERO(&mask);

@@ -8,9 +8,9 @@ The 0.12.1 standard preset shares the defaults below: all four RAM scores use 64
 |---|---|
 | RAM 读、写、拷贝 / Read, write, copy | 64 MiB 总工作集；拷贝为源与目标合计 / Total footprint, source plus destination for copy |
 | RAM 延迟 / Latency | 64 MiB，单线程 / One worker |
-| RAM 重复与计时 / Repetition and timing | 带宽 3 次、延迟 5 次，取中位数；预热 1 s、测量 3 s、间隔 2 s / 3 bandwidth and 5 latency rounds, median; 1 s warmup, 3 s measurement, 2 s interval |
+| RAM 重复与计时 / Repetition and timing | 四项各 3 次，取算术平均值；预热 1 s、测量 3 s、间隔 2 s / 3 rounds for every score, arithmetic mean; 1 s warmup, 3 s measurement, 2 s interval |
 | RAM 带宽线程 / Bandwidth threads | T1，默认关闭线程数自动校准；可手动启用多线程或自动校准 / T1, automatic thread-count calibration off by default; multithreading/calibration remain opt-in |
-| 块大小—延迟 / Working-set latency | 4 KiB–64 MiB，单线程，每倍容量 8 个间隔，正反遍及有限补测 / One worker, 8 intervals per octave, forward/reverse and bounded rechecks |
+| 块大小—延迟 / Working-set latency | 4 KiB–64 MiB，单线程，每倍容量 8 个间隔，单遍、每块仅采样 1 次，无复测和补点 / One worker, 8 intervals per octave, one sweep/sample per block, no rechecks or refinement |
 | ROM 文件 / Storage file | 1 GiB，预先完整初始化一次 / Fully initialized once per run |
 | ROM 四行 / Four storage rows | SEQ 1 MiB Q8T1、SEQ 1 MiB Q1T1、RND 4 KiB Q32T1、RND 4 KiB Q1T1 |
 | ROM 重复与计时 / Repetition and timing | 读写各 3 次，取最佳完整轮次；预热、测量、间隔各 5 s / 3 rounds per direction, maximum valid complete round; 5 s each for warmup, measurement and interval |
@@ -33,9 +33,9 @@ The Apple catalog exactly matches 102 identifiers across 64 models, including iP
 
 Apple requests high and background priority for the same single-worker sweep. **QoS is not physical affinity and does not establish P/E placement.** No private affinity API or catalog-generated curve substitutes for measurement. JSON retains raw samples, thread CPU/wall times, stride and requested QoS. Runtime cache capacities add sampling anchors, not synthetic latencies.
 
-曲线每个方向至少 5 次有效样本，MAD/中位数 ≤6%，至少 80% 样本在 ±12% 内，两遍差异 ≤12%。不平滑数据、不跨验证缺口连线或推断；保留多个持续转换。不同操作系统、页大小、缓存行与调度机制仍会影响成绩。
+默认曲线保留预热、依赖链校验和每块约 30 ms 的一次正式采样，直接显示实测值；不做重复性验证。可关闭“每块仅测一次”启用原双向复核模式：每个方向至少 5 次有效样本，MAD/中位数 ≤6%，至少 80% 样本在 ±12% 内，两遍差异 ≤12%。不平滑数据、不跨验证缺口连线或推断；保留多个持续转换。不同操作系统、页大小、缓存行与调度机制仍会影响成绩。
 
-Each direction requires at least 5 accepted samples, MAD/median ≤6%, at least 80% within ±12%, and directional agreement within 12%. Data is not smoothed and invalid gaps are not connected or inferred across. Multiple sustained transitions are retained. OS, page size, line size and scheduling still influence results.
+The default curve retains warmup, chain validation and one approximately 30 ms formal sample per block, displaying measured values without repeatability validation. Disable “one sample per block” to use the original bidirectional mode: each direction requires at least 5 accepted samples, MAD/median ≤6%, at least 80% within ±12%, and directional agreement within 12%. Data is not smoothed and invalid gaps are not connected or inferred across. Multiple sustained transitions are retained. OS, page size, line size and scheduling still influence results.
 
 ## ROM 后端 / Storage backends
 
@@ -57,9 +57,9 @@ Both use the same 64 MiB SplitMix64 pattern pool/seed with fully initialized fil
 
 Both retain RAM/ROM/GPGPU/history/device navigation, the read/write/latency/copy RAM row and four storage rows with read/write columns. Family-specific presets/settings avoid changing unrelated workloads. iOS retains native navigation, forms, sharing and iPad layout; Android retains Material controls.
 
-iOS 新报告使用 schema 2：`config.ram` 为 RAM 摘要参数，`config.storage` 为 ROM 参数，`config.cache_max_mi_b` 等为曲线设置；原顶层内存/时长/次数字段保留给 GPGPU 与旧记录兼容。`measurements.working_set_bytes`、`threads` 和 `storage_samples` 记录实际执行值。文件大小不等于累计读写量，拷贝成绩中的字节数按读写合计。旧 schema 1 报告仍按原字段与中位数显示。
+iOS 新报告使用 schema 2：`config.ram` 为 RAM 摘要参数，`config.storage` 为 ROM 参数，`config.cache_max_mi_b` 等为曲线设置；原顶层内存/时长/次数字段保留给 GPGPU 与旧记录兼容。`measurements.working_set_bytes`、`threads` 和 `storage_samples` 记录实际执行值。文件大小不等于累计读写量，拷贝成绩中的字节数按读写合计。RAM 的 `aggregation` 标明计分方式；缺失时按旧中位数处理。`single_curve_sample` / 安卓 `cache_probe_method` 记录曲线协议，旧历史保持原语义。
 
-New iOS reports use schema 2: `config.ram` holds RAM score parameters, `config.storage` storage parameters, and fields such as `config.cache_max_mi_b` the curve settings. Original top-level memory/duration/repeat fields remain for GPGPU and legacy decoding. Measurement `working_set_bytes`, `threads` and `storage_samples` retain actual execution values. File size is distinct from cumulative I/O; copy counts reads plus writes. Schema 1 reports retain their original fields and median aggregation.
+New iOS reports use schema 2: `config.ram` holds RAM score parameters, `config.storage` storage parameters, and fields such as `config.cache_max_mi_b` the curve settings. Original top-level memory/duration/repeat fields remain for GPGPU and legacy decoding. Measurement `working_set_bytes`, `threads` and `storage_samples` retain actual execution values. File size is distinct from cumulative I/O; copy counts reads plus writes. RAM `aggregation` records scoring; missing values retain legacy median scoring. `single_curve_sample` / Android `cache_probe_method` identify the curve protocol; historical reports retain original semantics.
 
 `storage_samples` 同时记录实际在途深度、`start_delay_ns`（唤醒后开始执行前的等待）及 `minimum_worker_operations`（各工作线程完成数的最小值）。极短测试仍提交首批请求，超出目标窗口的等待按真实耗时计入，不能用目标时长冒充实测时间。`error_phase` 为 1 准备、2 预热、3 测量、4 同步、5 校验，成功为 0；配合系统错误码排查，不把零次操作误报为磁盘故障。
 

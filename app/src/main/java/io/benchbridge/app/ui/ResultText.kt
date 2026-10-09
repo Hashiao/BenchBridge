@@ -39,13 +39,14 @@ internal fun resultText(report: JSONObject): String = buildString {
         appendLine("主值：最高完整轮次")
     } else {
         val config = RamConfig.fromJson(report.getJSONObject("config").toString())
-        appendLine("每轮 ${BenchmarkFormat.duration(config.durationMs)} · 中位数")
+        appendLine("每轮 ${BenchmarkFormat.duration(config.durationMs)} · ${config.statisticLabel}")
         if(config.curveMode)report.optJSONObject("cache_probe")?.let { probe->
             appendLine("缓存曲线 · 工作集大小 / 延迟 ns · ${probe.optString("state")}")
             val groups=probe.optJSONArray("groups")
             if(groups!=null)for(i in 0 until groups.length()) {
                 val group=groups.getJSONObject(i);val edges=group.optJSONArray("transitions")
-                appendLine("CPU ${group.optInt("cpu_id")} · ${group.optInt("stable_points")} / ${group.optJSONArray("points")?.length()?:0} 稳定点")
+                val pointLabel=if(probe.optString("method")==io.benchbridge.app.ram.CacheProbe.FAST_METHOD)"有效采样点"else"稳定点"
+                appendLine("CPU ${group.optInt("cpu_id")} · ${group.optInt("stable_points")} / ${group.optJSONArray("points")?.length()?:0} $pointLabel")
                 appendLine(group.optJSONObject("analysis")?.optString("summary")?:"旧协议记录 / 扫描未完成")
                 if(edges!=null)for(j in 0 until edges.length()) {
                     val edge=edges.getJSONObject(j)
@@ -57,7 +58,7 @@ internal fun resultText(report: JSONObject): String = buildString {
         config.kinds.forEach { code ->
             val kind = RamKind.entries.first { it.code == code }
             val stats = RamResults.statistics(report, code, level)
-            val score = stats?.let { "%.2f %s".format(Locale.US, it.median * if (code == 5) 1 else 1000, if (code == 5) "ns" else "MB/s") } ?: "—"
+            val score = stats?.let { "%.2f %s".format(Locale.US, it.score * if (code == 5) 1 else 1000, if (code == 5) "ns" else "MB/s") } ?: "—"
             appendLine("$level ${kind.title}${if (code == 2) "（读写合计）" else ""}：$score")
             val cell = RamResults.cell(report, level, code)
             val plan = cell?.optJSONObject("plan")

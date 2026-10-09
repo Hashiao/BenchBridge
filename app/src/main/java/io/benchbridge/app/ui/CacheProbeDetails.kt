@@ -37,6 +37,7 @@ private fun sizeLabel(bytes: Long): String = if(bytes>=1048576)"%.3g MiB".format
 @Composable
 internal fun CacheLatencyPanel(report: JSONObject?, modifier: Modifier = Modifier, compact: Boolean = false) {
     val probe=report?.optJSONObject("cache_probe")
+    val single=(probe?.optString("method")?:report?.optJSONObject("config")?.optString("cache_probe_method")?:CacheProbe.FAST_METHOD)==CacheProbe.FAST_METHOD
     val groups=objects(probe?.optJSONArray("groups"))
     var selectedCpu by rememberSaveable(report?.optString("run_id")) { mutableIntStateOf(-1) }
     var selectedBytes by rememberSaveable(report?.optString("run_id"),selectedCpu) { mutableLongStateOf(0) }
@@ -153,21 +154,22 @@ internal fun CacheLatencyPanel(report: JSONObject?, modifier: Modifier = Modifie
         }
         val targetBytes=selectedBytes.takeIf { it>0 }?:points.lastOrNull()?.optLong("working_set_bytes")
         val selected=visible.mapNotNull { g->samples(g).firstOrNull { it.optLong("working_set_bytes")==targetBytes }?.let { g.optInt("cpu_id") to it } }
-        Text(if(selected.isEmpty())"固定核心 · 随机依赖访问 · 原始中位数"else "${sizeLabel(targetBytes!!)} · "+selected.joinToString(" / "){(cpu,p)->"CPU $cpu %.2f ns".format(Locale.US,p.getDouble("latency_ns"))},
+        Text(if(selected.isEmpty())"固定核心 · 随机依赖访问 · "+if(single)"单次采样"else"原始中位数" else "${sizeLabel(targetBytes!!)} · "+selected.joinToString(" / "){(cpu,p)->"CPU $cpu %.2f ns".format(Locale.US,p.getDouble("latency_ns"))},
             fontSize=if(compact)8.sp else 10.sp,lineHeight=if(compact)11.sp else 13.sp,maxLines=2,modifier=Modifier.testTag("curve_selected_point"))
-        if(!compact)Text(if(group!=null)group.optJSONObject("analysis")?.optString("summary")?:if(probe?.optString("method")==CacheProbe.METHOD)"正在完成整段扫描与交叉验证"else"旧协议记录，保留原始曲线"
-            else if(probe?.optString("state")=="COMPLETED")"所有核心组已完成 · 分段结论见详情"else"正反两遍扫描 · 自动复核 · 点按核心查看结论",
+        if(!compact)Text(if(group!=null)group.optJSONObject("analysis")?.optString("summary")?:if(single)"正在单遍扫描"else if(probe?.optString("method")==CacheProbe.METHOD)"正在完成整段扫描与交叉验证"else"旧协议记录，保留原始曲线"
+            else if(probe?.optString("state")=="COMPLETED")"所有核心组已完成 · 分段结论见详情"else if(single)"单遍扫描 · 每块 1 次 · 点按核心查看结论"else"正反两遍扫描 · 自动复核 · 点按核心查看结论",
             fontSize=9.sp,lineHeight=12.sp,maxLines=3,modifier=Modifier.testTag("curve_transitions"))
     }
 }
 
 @Composable
 internal fun CacheTopologyDetails(report: JSONObject) {
+    val single=report.optJSONObject("cache_probe")?.optString("method")==CacheProbe.FAST_METHOD
     SectionCard("工作集大小—访问延迟") {
         CacheLatencyPanel(report,Modifier.fillMaxWidth().height(360.dp))
-        Text("实线连接实测中位数；空心点未通过一致性验证，未用于分段结论。误差线为 10–90% 分位区间。不同核心共享坐标轴，线性和对数纵轴均以 ns 为单位。",style=MaterialTheme.typography.bodySmall)
+        Text(if(single)"单遍扫描，每块采样 1 次；实线连接实测值，不复测或补造数据。不同核心共享坐标轴，单位为 ns。"else"实线连接实测中位数；空心点未通过一致性验证，未用于分段结论。误差线为 10–90% 分位区间。不同核心共享坐标轴，线性和对数纵轴均以 ns 为单位。",style=MaterialTheme.typography.bodySmall)
         report.optJSONObject("cache_probe")?.let { probe->
-            if(probe.optString("method")!=CacheProbe.METHOD)Text("旧协议记录：仅保留原始曲线。",style=MaterialTheme.typography.bodySmall)
+            if(!CacheProbe.supported(probe.optString("method")))Text("旧协议记录：仅保留原始曲线。",style=MaterialTheme.typography.bodySmall)
             objects(probe.optJSONArray("groups")).forEach { g->
                 HorizontalDivider()
                 Text("CPU ${g.optInt("cpu_id")} · %.2f GHz 上限".format(Locale.US,g.optLong("max_khz")/1000000.0),style=MaterialTheme.typography.titleSmall)
@@ -186,7 +188,7 @@ internal fun CacheTopologyDetails(report: JSONObject) {
             }
         }
         Text("结论描述实测访问层次，不将曲线转换直接等同于 L1/L2/L3 容量。系统页大小、TLB、预取和频率均可影响曲线。参考线仅代表系统或资料库容量。",style=MaterialTheme.typography.bodySmall)
-        Text("本版采用高熵数据上的 32 位依赖索引链（含地址计算），普通系统页。原始计时、线程实际运行时间、频率及正反两遍结果均保存在 JSON，比较其他工具时需使用相同访问模式。",style=MaterialTheme.typography.bodySmall)
+        Text("本版采用高熵数据上的 32 位依赖索引链（含地址计算），普通系统页。原始计时、线程实际运行时间、频率及采样结果均保存在 JSON，比较其他工具时需使用相同访问模式。",style=MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -220,7 +222,7 @@ internal fun RamSummaryRow(report: JSONObject?, config: RamConfig, unit: String 
             Column(Modifier.weight(1f).padding(vertical=if(compact)1.dp else 3.dp)) {
                 val label=when(kind){0->"读取";1->"写入";5->"延迟";else->"拷贝"}
                 Text(if(compact)"$label · ${if(kind==5)"ns"else unit}"else label,fontSize=if(compact)7.sp else 10.sp,lineHeight=if(compact)10.sp else 13.sp,maxLines=1)
-                ScoreNumber(stats?.let { "%.2f".format(Locale.US,it.median*if(kind==5||unit=="GB/s")1 else 1000) }?:"—",
+                ScoreNumber(stats?.let { "%.2f".format(Locale.US,it.score*if(kind==5||unit=="GB/s")1 else 1000) }?:"—",
                     stats!=null,"curve_ram_$kind",if(compact)12 else 17,Modifier.fillMaxWidth(),TextAlign.Start,8)
                 if(!compact)Text(if(kind==5)"ns"else unit,fontSize=9.sp,lineHeight=12.sp,maxLines=1)
                 if(!compact || stats==null)Text(hint,fontSize=8.sp,lineHeight=11.sp,maxLines=1,modifier=Modifier.testTag("curve_ram_hint_$kind"))

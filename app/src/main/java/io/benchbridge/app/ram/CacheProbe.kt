@@ -6,10 +6,12 @@ import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.*
 
-/** 双向全网格扫描，逐点持久化并在结论前自动复核。
- * Bidirectional full-grid sweeps with per-point checkpoints and automatic verification before conclusions. */
+/** 默认单次全网格扫描，可选双向复核；逐点持久化。
+ * Single-sample full-grid sweep by default, optional bidirectional checks and per-point checkpoints. */
 object CacheProbe {
     const val METHOD="dense-index-curve-v3"
+    const val FAST_METHOD="single-pass-index-curve-v1"
+    fun supported(method:String)=method in setOf(METHOD,FAST_METHOD)
     data class Point(val bytes:Long,val latency:Double,val stable:Boolean,val low:Double=latency,
                      val high:Double=latency,val trials:Int=0,val passMedians:List<Double> = emptyList()) {
         fun toJson()=JSONObject().put("working_set_bytes",bytes).put("latency_ns",latency).put("stable",stable)
@@ -48,22 +50,27 @@ object CacheProbe {
         return Point(bytes,center,stable(a)&&stable(b)&&agrees,sorted[(sorted.size-1)/10],sorted[(sorted.size-1)*9/10],all.size,centers)
     }
     fun canResume(report:JSONObject):Boolean = report.optString("state") in listOf("INTERRUPTED","CANCELLED") &&
-        report.optJSONObject("cache_probe")?.optString("method")==METHOD && report.optJSONObject("config")?.optBoolean("curve_include_ram",true)==false
+        supported(report.optJSONObject("cache_probe")?.optString("method").orEmpty()) && report.optJSONObject("config")?.optBoolean("curve_include_ram",true)==false
 
     fun run(topology:CpuTopology,memoryBudget:Long,shouldStop:()->Boolean,
             sample:(cpu:Int,bytes:Long,stride:Int,seed:Long)->JSONObject,progress:(JSONObject)->Unit,
             config:RamConfig=RamConfig.matrixQuick(),previous:JSONObject?=null):JSONObject {
+        val single=config.singleCurveSample
+        val passes=if(single)1 else 2
+        val method=if(single)FAST_METHOD else METHOD
         val limit=minOf(config.curveMaxMiB*1048576L,((memoryBudget-40L*1048576).coerceAtLeast(0)*8/9)/256*256)
         val cores=representatives(topology)
         val signature=cores.joinToString(";"){"${it.id}:${it.maxKhz}:${it.frequencyDomain}"}
-        if(previous!=null)require(previous.optString("method")==METHOD&&previous.optString("topology_signature")==signature&&previous.optInt("steps_per_octave")==config.curveSteps&&previous.optLong("requested_maximum_bytes")==config.curveMaxMiB*1048576L&&previous.optLong("maximum_working_set_bytes")<=limit) { "核心环境、内存预算或测试协议变化，请重新测试" }
-        val report=previous?:JSONObject().put("method",METHOD).put("groups",JSONArray()).put("scored",false)
-            .put("topology_signature",signature).put("steps_per_octave",config.curveSteps).put("passes",2)
+        if(previous!=null)require(previous.optString("method")==method&&previous.optString("topology_signature")==signature&&previous.optInt("steps_per_octave")==config.curveSteps&&previous.optLong("requested_maximum_bytes")==config.curveMaxMiB*1048576L&&previous.optLong("maximum_working_set_bytes")<=limit) { "核心环境、内存预算或测试协议变化，请重新测试" }
+        val report=previous?:JSONObject().put("method",method).put("groups",JSONArray()).put("scored",false)
+            .put("topology_signature",signature).put("steps_per_octave",config.curveSteps).put("passes",passes)
+            .put("sampling_mode",if(single)"single-sample"else"bidirectional-repeated")
+            .put("automatic_rechecks",!single).put("automatic_refinement",!single)
             .put("requested_maximum_bytes",config.curveMaxMiB*1048576L).put("maximum_working_set_bytes",limit)
             .put("kernel","dependent-index32-v1").put("data_pattern","global-random-high-entropy")
         report.put("state","RUNNING")
         val groups=report.getJSONArray("groups")
-        val commonGrid=sizes(limit,topology.caches.map { it.bytes },config.curveSteps)
+        val commonGrid=sizes(limit,if(single)emptyList()else topology.caches.map { it.bytes },config.curveSteps)
         if(groups.length()==0)cores.forEach { core->
             val grid=commonGrid
             groups.put(JSONObject().put("cpu_id",core.id).put("max_khz",core.maxKhz).put("frequency_domain",core.frequencyDomain)
@@ -82,10 +89,12 @@ object CacheProbe {
         }
         fun latest(g:JSONObject,bytes:Long,pass:Int)=batches[Triple(g.getInt("cpu_id"),bytes,pass)]
         fun refresh(g:JSONObject):List<Point> {
-            val pts=grid(g).mapNotNull { bytes->point(bytes,latest(g,bytes,0),latest(g,bytes,1)) }
+            val pts=grid(g).mapNotNull { bytes->if(single)latest(g,bytes,0)?.let(::values)?.singleOrNull()?.let {
+                Point(bytes,it,true,trials=1,passMedians=listOf(it))
+            }else point(bytes,latest(g,bytes,0),latest(g,bytes,1)) }
             g.put("points",JSONArray(pts.map(Point::toJson))).put("stable_points",pts.count { it.stable })
-            report.put("planned_points",(0 until groups.length()).sumOf { grid(groups.getJSONObject(it)).size*2 })
-                .put("completed_points",(0 until groups.length()).sumOf { i->val x=groups.getJSONObject(i);grid(x).sumOf { b->(0..1).count { latest(x,b,it)!=null } } })
+            report.put("planned_points",(0 until groups.length()).sumOf { grid(groups.getJSONObject(it)).size*passes })
+                .put("completed_points",(0 until groups.length()).sumOf { i->val x=groups.getJSONObject(i);grid(x).sumOf { b->(0 until passes).count { latest(x,b,it)!=null } } })
             return pts
         }
         fun measure(g:JSONObject,bytes:Long,pass:Int,force:Boolean=false) {
@@ -93,7 +102,7 @@ object CacheProbe {
             val records=g.getJSONArray("samples")
             val key=Triple(g.getInt("cpu_id"),bytes,pass)
             val attempt=(attempts[key]?:0)+1
-            if(attempt>3)return
+            if(attempt>(if(single)1 else 3))return
             report.put("current_cpu_id",g.getInt("cpu_id")).put("current_working_set_bytes",bytes).put("current_pass",pass+1)
             report.put("checkpoint",false);progress(report)
             val result=sample(g.getInt("cpu_id"),bytes,g.getInt("node_stride_bytes"),0xB16B00B5L+pass*1009+attempt*7919)
@@ -105,7 +114,7 @@ object CacheProbe {
         for(i in 0 until groups.length())refresh(groups.getJSONObject(i))
         report.put("stage","SWEEPING").put("checkpoint",true);progress(report)
         // 第二遍反转大小和核心组顺序，用独立排列交叉验证。 / Reverse sizes and group order with independent permutations on pass two.
-        for(pass in 0..1)for(i in if(pass==0)(0 until groups.length()).toList()else(groups.length()-1 downTo 0).toList()) {
+        for(pass in 0 until passes)for(i in if(pass==0)(0 until groups.length()).toList()else(groups.length()-1 downTo 0).toList()) {
             if(shouldStop())break
             val g=groups.getJSONObject(i);val list=grid(g).let { if(pass==0)it else it.reversed() }
             list.forEach { if(!shouldStop())measure(g,it,pass) }
@@ -115,13 +124,13 @@ object CacheProbe {
             val g=groups.getJSONObject(i)
             // 对不一致点有界复核，不选择最快结果；最新一批替换该遍的旧批次，原始数据仍保留。
             // Bounded rechecks replace the latest batch rather than selecting the fastest; retain every raw batch.
-            for(recheck in 0..1) {
+            for(recheck in 0 until (if(single)0 else 2)) {
                 report.put("stage","VERIFYING")
                 val invalid=grid(g).filter { bytes->point(bytes,latest(g,bytes,0),latest(g,bytes,1))?.stable!=true }
                 invalid.forEach { bytes->for(pass in 0..1)if(!shouldStop())measure(g,bytes,pass,true) }
                 if(shouldStop())break
             }
-            if(!shouldStop()) {
+            if(!single&&!shouldStop()) {
                 val analysis=LatencyAnalysis.analyze(refresh(g),grid(g))
                 val edges=analysis.getJSONArray("transitions")
                 val extra=(0 until edges.length()).flatMap { index->val e=edges.getJSONObject(index);(1..3).map { n->(e.getLong("lower_bytes")+(e.getLong("upper_bytes")-e.getLong("lower_bytes"))*n/4)/256*256 } }
@@ -136,6 +145,12 @@ object CacheProbe {
             }
             val finalPoints=refresh(g)
             val analysis=LatencyAnalysis.analyze(finalPoints,grid(g))
+            if(single) {
+                analysis.put("sampling_mode","single-sample").put("summary",analysis.optString("summary")
+                    .replace("点通过验证","个有效采样点").replace("稳定点","有效点").replace("完整曲线尚未通过验证","曲线尚未完整采集"))
+                val edges=analysis.getJSONArray("transitions")
+                for(e in 0 until edges.length())edges.getJSONObject(e).put("confidence","single-sample")
+            }
             g.put("analysis",analysis).put("transitions",analysis.getJSONArray("transitions"))
                 .put("state",if(shouldStop())"CANCELLED"else if(analysis.optString("status")=="COMPLETE")"COMPLETED"else"INCOMPLETE")
             progress(report)

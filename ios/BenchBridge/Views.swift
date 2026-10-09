@@ -46,7 +46,7 @@ private struct Dashboard: View {
                 if family == .memory {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("RAM · 读取 / 写入 / 延迟 / 拷贝").font(.caption)
-                        RAMRow(scores: report?.scores ?? BenchWorker.scorePlan(.memory))
+                        RAMRow(scores: report?.scores ?? BenchWorker.scorePlan(.memory, config: model.config))
                         Divider()
                         CurveChart(groups: report?.curves ?? [], maximumMiB: report?.config.cacheMaxMiB ?? model.config.cacheMaxMiB,
                                    height: sizeClass == .regular ? 340 : 200)
@@ -144,6 +144,7 @@ private struct CurveChart: View {
     @State private var selected = -1
     @State private var selectedBytes: Double?
     private var visible: [CurveGroup] { groups.filter { selected < 0 || $0.qos == selected } }
+    private var singleSample: Bool { !groups.isEmpty && groups.allSatisfy { $0.singleSample == true } }
     private var axisValues: [Double] {
         let maximum = Double(maximumMiB) * 1048576.0
         let candidates: [Double] = [4096, 32768, 262144, 2097152, 16777216, maximum]
@@ -213,7 +214,7 @@ private struct CurveChart: View {
         VStack(alignment: .leading, spacing: 4) {
             if groups.flatMap(\.points).isEmpty { Text("RAM 四项完成后开始扫描；图中仅显示实测值。").font(.caption).foregroundStyle(.secondary) }
             else {
-                Text("按住曲线查看采样；浅色点未通过重复性验证，不跨缺口连线；误差线为 10–90% 分位。").font(.caption2).foregroundStyle(.secondary)
+                Text(singleSample ? "单遍扫描，每块采样 1 次；按住曲线查看实测值。" : "按住曲线查看采样；浅色点未通过重复性验证，不跨缺口连线；误差线为 10–90% 分位。").font(.caption2).foregroundStyle(.secondary)
                 ForEach(visible) { group in
                     if let label = sampleLabel(group) { Text(label).font(.caption).monospacedDigit() }
                 }
@@ -224,7 +225,7 @@ private struct CurveChart: View {
         guard let target = selectedBytes, target > 0 else { return nil }
         let nearest = group.points.min { abs(log(Double($0.bytes) / target)) < abs(log(Double($1.bytes) / target)) }
         guard let point = nearest else { return nil }
-        return group.title + " · " + Statistics.size(point.bytes) + String(format: " · %.2f ns · ", point.latencyNs) + (point.stable ? "通过验证" : "未通过验证")
+        return group.title + " · " + Statistics.size(point.bytes) + String(format: " · %.2f ns · ", point.latencyNs) + (group.singleSample == true ? "单次采样" : point.stable ? "通过验证" : "未通过验证")
     }
     private func axisLabel(_ bytes: Double?) -> some View {
         let label = bytes.map { Statistics.size(UInt64($0)) } ?? ""
@@ -311,10 +312,12 @@ private struct SettingsPage: View {
             }
             Section("块大小—延迟曲线") {
                 Toggle("扫描缓存曲线", isOn: $model.config.includeCurve)
+                Toggle("每块仅测一次", isOn: Binding(get: { model.config.singleCurveSample == true }, set: { model.config.singleCurveSample = $0 }))
                 sizePicker("曲线最大工作集", value: $model.config.cacheMaxMiB)
                 Picker("每倍容量采样间隔", selection: $model.config.stepsPerOctave) { ForEach([1,2,4,8], id: \.self) { Text("\($0)").tag($0) } }
                 Toggle("增加后台优先级曲线", isOn: $model.config.backgroundCurve)
-                Text("从 4 KiB 起，单线程正反扫描、自动复核。两条优先级曲线用于观察调度差异，无法保证分别覆盖两个物理核心簇。").font(.caption)
+                Text(model.config.singleCurveSample == true ? "从 4 KiB 起，单线程扫描一遍，每块 1 次，不复测或加密补点。" : "从 4 KiB 起，单线程正反扫描、自动复核。").font(.caption)
+                Text("两条优先级曲线用于观察调度差异，无法保证分别覆盖两个物理核心簇。").font(.caption)
             }
             } else if family == .storage {
                 Section("ROM · DiskMark 默认配置") {
@@ -356,6 +359,7 @@ private struct SettingsPage: View {
         switch family {
         case .memory: model.config.ram = value.ram; model.config.cacheMaxMiB = value.cacheMaxMiB; model.config.includeCurve = value.includeCurve
             model.config.backgroundCurve = value.backgroundCurve; model.config.stepsPerOctave = value.stepsPerOctave
+            model.config.singleCurveSample = value.singleCurveSample
         case .storage: model.config.storage = value.storage
         case .compute: model.config.memoryMiB = value.memoryMiB; model.config.threads = value.threads; model.config.durationMs = value.durationMs; model.config.repeats = value.repeats
         }

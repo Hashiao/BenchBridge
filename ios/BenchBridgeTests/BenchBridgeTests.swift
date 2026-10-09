@@ -6,18 +6,21 @@ final class BenchBridgeTests: XCTestCase {
         let config = BenchConfig()
         XCTAssertEqual(config.ramSettings.memoryMiB, 64); XCTAssertEqual(config.ramSettings.latencyMiB, 64)
         XCTAssertEqual(config.ramSettings.threads, 1); XCTAssertFalse(config.ramSettings.automaticThreads)
+        XCTAssertEqual(config.ramSettings.repeats, 3); XCTAssertEqual(config.ramSettings.latencyRepeats, 3)
+        XCTAssertTrue(config.singleCurveSample == true); XCTAssertEqual(config.ramSettings.aggregation, "arithmetic_mean")
         XCTAssertEqual(config.cacheMaxMiB, 64); XCTAssertTrue(config.backgroundCurve)
         XCTAssertEqual(config.storageSettings.fileMiB, 1024); XCTAssertEqual(config.storageSettings.repeats, 3)
         XCTAssertEqual(config.storageSettings.cases.map(\.queueDepth), [8,1,32,1])
         XCTAssertEqual(config.storageSettings.cases.map(\.threads), [1,1,1,1])
         XCTAssertEqual(BenchWorker.initial(.storage, config: config).plannedRounds, 24)
-        XCTAssertEqual(BenchWorker.initial(.memory, config: config).plannedRounds, 14)
+        XCTAssertEqual(BenchWorker.initial(.memory, config: config).plannedRounds, 12)
         let old = """
         {"memory_mi_b":64,"threads":1,"duration_ms":500,"repeats":3,"cache_max_mi_b":128,"steps_per_octave":8,
          "include_curve":true,"background_curve":false,"storage_mi_b":64,"functional_test":false}
         """.data(using: .utf8)!
         let legacy = try ReportStore.decoder().decode(BenchConfig.self, from: old)
         XCTAssertNil(legacy.ram); XCTAssertNil(legacy.storage); XCTAssertEqual(legacy.storageSettings.fileMiB, 64)
+        XCTAssertNil(legacy.singleCurveSample); XCTAssertEqual(legacy.ramSettings.aggregation, "median")
         XCTAssertEqual(legacy.ramSettings.durationMs, 500); XCTAssertEqual(legacy.cacheMaxMiB, 128)
         let decoded = try ReportStore.decoder().decode(BenchConfig.self, from: ReportStore.encoder().encode(config))
         XCTAssertEqual(config, decoded)
@@ -32,6 +35,8 @@ final class BenchBridgeTests: XCTestCase {
         custom.cases[0] = custom.cases[1]; XCTAssertThrowsError(try custom.normalized.validate())
         var score = ScoreItem(id: "rom", title: "ROM", unit: "MB/s", values: [1,2,3])
         XCTAssertEqual(score.score, 2); score.aggregation = "maximum_completed_round"; XCTAssertEqual(score.score, 3)
+        score.values = [1,2,9]; score.aggregation = "arithmetic_mean"; XCTAssertEqual(score.score, 4)
+        score.aggregation = nil; XCTAssertEqual(score.score, 2)
     }
     func testAppleCatalogIsExactAndKeepsBinnedVariants() {
         XCTAssertEqual(AppleCatalog.lookup("iPhone19,2")?.soc, "A20 Pro")
@@ -76,6 +81,12 @@ final class BenchBridgeTests: XCTestCase {
         let curve = NativeMeasurement(bb_cache_point(token.handle, 65536, 128, 0, 419))
         XCTAssertEqual(curve.status, 0); XCTAssertTrue(curve.verified)
         XCTAssertEqual(curve.nodeStrideBytes, 128)
+        let once = NativeMeasurement(bb_cache_point_once(token.handle, 65536, 128, 0, 419))
+        XCTAssertTrue(once.verified); XCTAssertEqual(once.trials.count, 1)
+        var single = CurveGroup(qos: 0, plannedSizes: [65536], singleSample: true)
+        single.batches = [CurveBatch(bytes: 65536, pass: 0, attempt: 1, seed: 419, measurement: once)]
+        Statistics.refresh(&single); XCTAssertEqual(single.points.count, 1)
+        XCTAssertEqual(single.points[0].latencyNs, once.trials[0].latency)
         token.cancel("test"); XCTAssertEqual(bb_memory(token.handle, 0, 1048576, 2, 5, 10, 0, 419).status, 1)
     }
     func testSharedCPUReferencesAndAppleCrypto() throws {

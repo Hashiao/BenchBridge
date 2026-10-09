@@ -12,9 +12,9 @@ A CPU, GPU, memory and storage benchmark for Android, iPhone and iPad. Android u
 
 This repository contains the current 0.12.1 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
 
-0.12.1 将安卓与苹果 RAM 的读取、写入、延迟、拷贝标准默认值统一为 **64 MiB、T1**，默认关闭带宽线程自动校准；手动多线程和自动校准仍可选。
+0.12.1 将安卓与苹果 RAM 的读取、写入、延迟、拷贝标准默认值统一为 **64 MiB、T1**，四项各测 **3 次取算术平均值**；曲线默认**单遍、每块 1 次**，关闭复测与加密补点。默认关闭带宽线程自动校准；手动多线程、自动校准及双向复核仍可选。
 
-0.12.1 sets the standard RAM read/write/latency/copy defaults to **64 MiB, T1** on Android and Apple. Bandwidth thread-count calibration is off by default; manual multithreading and automatic calibration remain available.
+0.12.1 sets the standard RAM read/write/latency/copy defaults to **64 MiB, T1** on Android and Apple. Each score uses **three rounds and their arithmetic mean**; curves default to **one sweep and one sample per block**, without rechecks or refinement. Thread-count calibration is off; manual multithreading, calibration and bidirectional verification remain optional.
 
 0.12.0 对齐安卓与苹果的默认 RAM 64 MiB、单线程 4 KiB–64 MiB 曲线和 DiskMark ROM 配置，并统一主要操作布局。详见 [跨平台默认参数与能力边界](docs/CROSS_PLATFORM_DEFAULTS.md)。
 
@@ -42,8 +42,8 @@ Version 0.11.0 adds a [native Apple project and build guide](ios/README.md) for 
 
 ## 功能 / Features
 
-- **缓存与 RAM：**不同核心组在同一坐标叠加工作集大小—延迟曲线，默认 4 KiB–64 MiB、每倍容量 8 个间隔、正反扫描和自动补测。先测 RAM 读取、写入、延迟、拷贝四项，首页和详情均保留一行摘要；再扫描曲线并给出多个转换结论。可手动关闭 RAM；旧版纯曲线记录明确显示 RAM 未测，历史保持原协议。
-  **Cache and RAM:** overlay core-group size/latency curves on shared axes, normally covering 4 KiB–64 MiB with eight intervals per octave, reverse sweeps and automatic rechecks. Measure RAM read/write/latency/copy first and retain a four-score row on the dashboard and in details, then scan and analyze the curves. RAM can be disabled explicitly; historical curve-only records show RAM as unmeasured without rewriting history.
+- **缓存与 RAM：**不同核心组在同一坐标叠加工作集大小—延迟曲线，默认 4 KiB–64 MiB、每倍容量 8 个间隔、单遍扫描且每块采样 1 次。先测 RAM 读取、写入、延迟、拷贝四项，首页和详情均保留一行摘要；再扫描曲线并给出多个转换结论。可手动关闭 RAM；旧版纯曲线记录明确显示 RAM 未测，历史保持原协议。
+  **Cache and RAM:** overlay core-group size/latency curves on shared axes, normally covering 4 KiB–64 MiB with eight intervals per octave and one sweep/sample per block. Measure RAM read/write/latency/copy first and retain a four-score row on the dashboard and in details, then scan and analyze the curves. RAM can be disabled explicitly; historical curve-only records show RAM as unmeasured without rewriting history.
 - **存储：**顺序和随机读写，可配置文件大小、块大小、队列深度、线程数与缓存模式。
   **Storage:** sequential and random I/O with configurable file size, block size, queue depth, thread count and cache mode.
 - **GPGPU：**独立分页，12 项 CPU / GPU 测试，包含各自内存读写、FP32 / FP64、整数运算、大块 AES-256 / SHA-1 与分形图像处理。成绩、单位和操作按钮同屏展示。
@@ -59,9 +59,9 @@ Version 0.11.0 adds a [native Apple project and build guide](ios/README.md) for 
 
 Version 0.10.1 restores the default four RAM measurements after 0.10.0's curve-only default removed the summary. Combined runs persist RAM scores before scanning so completed scores survive a later interruption. Read/write/copy use GB/s, latency uses ns, and copy counts both reads and writes. Curve repeatability issues are no longer labeled as unsupported features in details.
 
-0.10.0 的 `dense-index-curve-v3` 使用高熵缓冲区和 32 位依赖索引链。同一点复用内存与绑核线程，记录墙钟、线程 CPU 时间及频率，按正反两遍一致性自动复核。曲线显示实测中位数，分段分析区分平台和连续变化，不把未知转换直接命名为 L1/L2/L3。详细计时范围、判据和跨工具可比性见 [缓存曲线协议](docs/CACHE_CURVES.md)。
+0.12.1 默认 `single-pass-index-curve-v1` 逐块单次采样，不平滑数据，不做重复性筛选。可选的 0.10.0 `dense-index-curve-v3` 使用高熵缓冲区和 32 位依赖索引链。同一点复用内存与绑核线程，记录墙钟、线程 CPU 时间及频率，按正反两遍一致性自动复核。曲线显示实测中位数，分段分析区分平台和连续变化，不把未知转换直接命名为 L1/L2/L3。详细计时范围、判据和跨工具可比性见 [缓存曲线协议](docs/CACHE_CURVES.md)。
 
-Version 0.10.0's `dense-index-curve-v3` uses high-entropy buffers and dependent 32-bit index chains. Reuse each point's allocation and pinned thread, record wall/CPU time and frequency, and automatically recheck bidirectional consistency. Plot measured medians while segmentation distinguishes plateaus from continuous trends, without assigning unknown transitions to L1/L2/L3. See the [cache curve protocol](docs/CACHE_CURVES.md) for timing, criteria and comparability.
+The 0.12.1 default `single-pass-index-curve-v1` takes one sample per block without smoothing or repeatability filtering. The optional 0.10.0 `dense-index-curve-v3` uses high-entropy buffers and dependent 32-bit index chains. Reuse each point's allocation and pinned thread, record wall/CPU time and frequency, and automatically recheck bidirectional consistency. Plot measured medians while segmentation distinguishes plateaus from continuous trends, without assigning unknown transitions to L1/L2/L3. See the [cache curve protocol](docs/CACHE_CURVES.md) for timing, criteria and comparability.
 
 逐点保存完整记录，界面只传摘要；取消或进程中断后可继续纯曲线测试，原记录保留。支持系统进程退出原因记录。模拟器验证仅证明功能和数据流程，不代替目标手机的真实缓存曲线验收。
 

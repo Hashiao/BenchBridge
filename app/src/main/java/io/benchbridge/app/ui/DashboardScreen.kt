@@ -81,9 +81,9 @@ internal fun ResultDashboard(
                             style = MaterialTheme.typography.labelSmall, modifier = Modifier.testTag("storage_result_timing"))
                     } else if (ram.cacheMatrix) {
                         Text(if(ram.curveMode)if(compact)"核心组延迟曲线 · T1"else"缓存：各核心组完整延迟曲线"else"${if (ram.automaticThreads) "自动校准线程" else "带宽 T${ram.threads}"} · 延迟 T1", style = MaterialTheme.typography.labelMedium,maxLines=1)
-                        Text(if(ram.curveMode)if(ram.curveProtocol==CacheProbe.METHOD)"正反两遍 · 每倍容量 ${ram.curveSteps} 个间隔"else"旧版协议 · 原始测量记录"else"带宽 ${ram.rounds} 次 · 延迟 ${ram.latencyRounds} 次 · 中位数", style = MaterialTheme.typography.labelSmall,maxLines=1)
+                        Text(if(ram.curveMode)if(ram.singleCurveSample)"单遍扫描 · 每块 1 次"else if(ram.curveProtocol==CacheProbe.METHOD)"正反两遍 · 每倍容量 ${ram.curveSteps} 个间隔"else"旧版协议 · 原始测量记录"else"带宽 ${ram.rounds} 次 · 延迟 ${ram.latencyRounds} 次 · ${ram.statisticLabel}", style = MaterialTheme.typography.labelSmall,maxLines=1)
                     } else {
-                        Text("每轮 ${BenchmarkFormat.duration(ram.durationMs)} · 中位数", style = MaterialTheme.typography.labelMedium)
+                        Text("每轮 ${BenchmarkFormat.duration(ram.durationMs)} · ${ram.statisticLabel}", style = MaterialTheme.typography.labelMedium)
                         if (!compact) Text("工作集、线程和次数见各项", style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -181,7 +181,7 @@ internal fun ResultDashboard(
                                 Column(Modifier.weight(1.7f).fillMaxHeight().padding(start = 8.dp,
                                     top = if (compact) 2.dp else 6.dp, bottom = if (compact) 2.dp else 6.dp),
                                     verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.End) {
-                                    ScoreNumber(stats?.let { "%.2f".format(Locale.US, it.median * scale) } ?: "—", stats != null,
+                                    ScoreNumber(stats?.let { "%.2f".format(Locale.US, it.score * scale) } ?: "—", stats != null,
                                         "result_$code", if (rowDense || compact) 32 else 42, Modifier.fillMaxWidth().weight(1f, fill = false))
                                     Text(if (latency) "ns" else unit, fontSize = 11.sp, lineHeight = 14.sp,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -239,7 +239,7 @@ private fun ColumnScope.MemoryMatrix(report: JSONObject?, config: RamConfig, uni
                 val scale = if (kind == 5 || unit == "GB/s") 1.0 else 1000.0
                 Column(Modifier.weight(1f).padding(horizontal = 2.dp), horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(if (compact) 2.dp else 5.dp)) {
-                    ScoreNumber(stats?.let { "%.2f".format(Locale.US, it.median * scale) } ?: "—", stats != null,
+                    ScoreNumber(stats?.let { "%.2f".format(Locale.US, it.score * scale) } ?: "—", stats != null,
                         "matrix_${level}_$kind", 18, Modifier.fillMaxWidth(), TextAlign.Center, 9)
                     val hint = when {
                         plan != null -> "T${plan.optInt("threads")}"

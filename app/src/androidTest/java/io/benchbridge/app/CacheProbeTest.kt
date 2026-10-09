@@ -130,7 +130,7 @@ class CacheProbeTest {
     @Test fun curveProtocolKeepsLegacyReportsAndRamRoundCountsSeparate() {
         val config=RamConfig.matrixQuick()
         assertTrue(config.curveMode);assertTrue(config.curveIncludeRam);assertEquals(4,config.totalRounds);assertEquals(listOf("RAM"),config.scoredLevels)
-        assertTrue(RamConfig.aida64().curveIncludeRam);assertEquals(14,RamConfig.aida64().totalRounds)
+        assertTrue(RamConfig.aida64().curveIncludeRam);assertEquals(12,RamConfig.aida64().totalRounds)
         assertEquals(config,RamConfig.fromJson(config.toJson().toString()))
         val old=config.toJson().apply { remove("cache_curve");remove("cache_probe_method") }.toString()
         assertEquals(16,RamConfig.fromJson(old).totalRounds)

@@ -43,36 +43,40 @@ class CacheCurveIntegrationTest {
         scenario.scenario.onActivity { model=ViewModelProvider(it)[RamViewModel::class.java] }
         withTimeout(15000){while(model.state.value.capabilities==null)delay(30)}
         scenario.scenario.onActivity { model.configure(RamConfig.aida64().copy(warmupMs=25,durationMs=150,
-            rounds=1,latencyRounds=1,cooldownMs=0,calibrationMs=50,curveMaxMiB=1,curveSteps=2));model.start() }
+            cooldownMs=0,calibrationMs=50,curveMaxMiB=1,curveSteps=2));model.start() }
         withTimeout(15000){while(model.state.value.report==null){check(model.state.value.error==null){model.state.value.error!!};delay(30)}}
         val id=model.state.value.report!!.getString("run_id");owned+=id
         withTimeout(90000) { while(model.state.value.report?.optString("phase")!="CACHE_PROBING") {
             check(model.state.value.running) { model.state.value.report.toString() };delay(30)
         } }
         val early=store.read(id)!!
-        assertEquals(4,early.getInt("completed_rounds"));assertEquals(4,early.getJSONArray("rounds").length())
+        assertEquals(12,early.getInt("completed_rounds"));assertEquals(12,early.getJSONArray("rounds").length())
         assertEquals("RAM",early.getJSONArray("stage_order").getString(0))
         assertEquals("cache_curve",early.getJSONArray("stage_order").getString(1))
         for(kind in MemoryPlanner.columns) {
-            val measured=RamResults.validRounds(early,kind).single()
-            assertEquals(1,measured.getInt("threads"));assertEquals(64L*1048576,measured.getLong("working_set_bytes"))
-            val expected="%.2f".format(Locale.US,RamResults.statistics(early,kind)!!.median)
+            val measured=RamResults.validRounds(early,kind);assertEquals(3,measured.size)
+            measured.forEach { assertEquals(1,it.getInt("threads"));assertEquals(64L*1048576,it.getLong("working_set_bytes")) }
+            assertEquals(measured.map(RamResults::value).average(),RamResults.statistics(early,kind)!!.score,1e-9)
+            val expected="%.2f".format(Locale.US,RamResults.statistics(early,kind)!!.score)
             assertTrue(device.wait(Until.hasObject(By.res("curve_ram_$kind").text(expected)),5000))
         }
         val report=terminal(id)
         assertTrue(report.toString(),report.getString("state") in listOf("COMPLETED","PARTIAL"))
-        assertEquals(4,report.getInt("total_rounds"));assertEquals(4,report.getInt("completed_rounds"))
+        assertEquals(12,report.getInt("total_rounds"));assertEquals(12,report.getInt("completed_rounds"))
         assertEquals(4,report.getJSONArray("cells").length())
         assertEquals(early.getJSONArray("rounds").toString(),report.getJSONArray("rounds").toString())
-        val probe=report.getJSONObject("cache_probe");assertEquals(CacheProbe.METHOD,probe.getString("method"))
+        val probe=report.getJSONObject("cache_probe");assertEquals(CacheProbe.FAST_METHOD,probe.getString("method"))
+        assertEquals(1,probe.getInt("passes"));assertFalse(probe.getBoolean("automatic_rechecks"));assertFalse(probe.getBoolean("automatic_refinement"))
         val groups=probe.getJSONArray("groups");assertTrue(groups.length()>0)
         for(i in 0 until groups.length()) {
             val group=groups.getJSONObject(i);val samples=group.getJSONArray("samples")
             assertTrue(samples.length()>0)
+            assertEquals(group.getJSONArray("planned_sizes").length(),samples.length())
             for(j in 0 until samples.length()) {
                 val sample=samples.getJSONObject(j)
-                assertTrue(sample.getInt("pass") in 0..1);assertTrue(sample.getInt("attempt") in 1..3)
+                assertEquals(0,sample.getInt("pass"));assertEquals(1,sample.getInt("attempt"))
                 assertTrue(sample.getJSONObject("result").has("trials"))
+                assertEquals(1,sample.getJSONObject("result").getJSONArray("trials").length())
             }
         }
         withTimeout(10000){while(model.state.value.running)delay(30)}
@@ -99,7 +103,7 @@ class CacheCurveIntegrationTest {
         File(context.cacheDir,"curve-verification.json").writeText(report.toString())
         device.findObject(By.res("result_details")).click()
         for(kind in MemoryPlanner.columns) {
-            val expected="%.2f".format(Locale.US,RamResults.statistics(report,kind)!!.median)
+            val expected="%.2f".format(Locale.US,RamResults.statistics(report,kind)!!.score)
             assertTrue(device.wait(Until.hasObject(By.res("curve_ram_$kind").text(expected)),5000))
         }
         assertTrue(device.takeScreenshot(File(context.cacheDir,"ram-summary-details.png")))

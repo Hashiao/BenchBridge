@@ -73,6 +73,8 @@ class MemoryMatrixTest {
         val config=RamConfig.aida64()
         assertEquals(64,config.workingSetMiB);assertEquals(64,config.latencySetMiB);assertEquals(64,config.curveMaxMiB)
         assertEquals(1,config.threads);assertFalse(config.automaticThreads)
+        assertEquals(3,config.rounds);assertEquals(3,config.latencyRounds);assertEquals(12,config.totalRounds)
+        assertEquals("arithmetic_mean",config.aggregation);assertTrue(config.singleCurveSample)
         assertEquals(config,config.resolveThreads(16))
         val topology=fixture().copy(cores=(0..2).map(::cpu),caches=listOf(CpuCache("huge",3,128L*1048576,64,listOf(0,1,2),"test")))
         for(kind in MemoryPlanner.columns) {
@@ -82,8 +84,14 @@ class MemoryMatrixTest {
             assertEquals(64L*1048576,plan.bytes)
         }
         assertEquals(config,RamConfig.fromJson(config.toJson().toString()))
-        val old=config.toJson().apply{remove("expand_ram_working_set");put("working_set_mib",512);put("latency_set_mib",256)}
+        val old=config.toJson().apply{remove("expand_ram_working_set");remove("aggregation");put("working_set_mib",512);put("latency_set_mib",256)}
         val legacy=RamConfig.fromJson(old.toString());assertTrue(legacy.expandRamWorkingSet);assertEquals(512,legacy.workingSetMiB)
+        assertEquals("median",legacy.aggregation)
+        val samples=JSONArray(listOf(1L,2L,9L).map { value->JSONObject().put("kind",0).put("status","COMPLETED")
+            .put("verified",true).put("elapsed_ns",1000000000L).put("operations",1).put("logical_bytes",value*1000000000L) })
+        val saved=JSONObject().put("config",config.toJson()).put("rounds",samples)
+        assertEquals(4.0,RamResults.statistics(saved,0)!!.score,0.0)
+        saved.put("config",old);assertEquals(2.0,RamResults.statistics(saved,0)!!.score,0.0)
     }
 
     @Test fun catalogRequiresUnambiguousIdentityAndMatchingTopology() {

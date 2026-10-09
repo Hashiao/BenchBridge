@@ -26,6 +26,8 @@ BBResult bb_memory(BBSession* session, int32_t kind, uint64_t bytes, int32_t thr
                    int32_t warmup_ms, int32_t duration_ms, int32_t qos, uint64_t seed);
 BBResult bb_cache_point(BBSession* session, uint64_t bytes, int32_t stride,
                         int32_t qos, uint64_t seed);
+BBResult bb_cache_point_once(BBSession* session, uint64_t bytes, int32_t stride,
+                             int32_t qos, uint64_t seed);
 BBResult bb_storage(BBSession* session, const char* path, int32_t write_test, int32_t random_access,
                     uint64_t file_bytes, int32_t block_bytes, int32_t duration_ms);
 typedef struct BBStorage BBStorage;

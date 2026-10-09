@@ -32,7 +32,11 @@ internal fun RamSettingsPage(state: RamUiState, model: RamViewModel) {
                     FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                         listOf(64,128,256).forEach { mib->FilterChip(config.curveMaxMiB==mib,{edit(config.copy(curveMaxMiB=mib))},{Text("$mib MiB")}) }
                     }
-                    Text("每倍容量 ${config.curveSteps} 个间隔 · 正反两遍 · 自动复核",style=MaterialTheme.typography.bodySmall)
+                    Row {
+                        Text("每块仅测一次",Modifier.weight(1f))
+                        Switch(config.singleCurveSample,{edit(config.copy(curveProtocol=if(it)CacheProbe.FAST_METHOD else CacheProbe.METHOD))})
+                    }
+                    Text("每倍容量 ${config.curveSteps} 个间隔 · "+if(config.singleCurveSample)"单遍扫描，每块 1 次"else"正反两遍 · 自动复核",style=MaterialTheme.typography.bodySmall)
                     Row {
                         Text("同时测试 RAM 四项（先测）",Modifier.weight(1f))
                         Switch(config.curveIncludeRam,{edit(config.copy(curveIncludeRam=it))},modifier=Modifier.testTag("curve_include_ram"))

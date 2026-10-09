@@ -224,16 +224,16 @@ private fun ResultCard(report: JSONObject, kind: RamKind, level: String = "RAM")
             Text("绑核、工作集及各次校准结果保存在导出 JSON 中。", style = MaterialTheme.typography.bodySmall)
         }
         Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stats?.let { "%.2f".format(Locale.US, it.median * if (kind == RamKind.LATENCY) 1 else 1000) } ?: "—", style = MaterialTheme.typography.headlineLarge,
+            Text(stats?.let { "%.2f".format(Locale.US, it.score * if (kind == RamKind.LATENCY) 1 else 1000) } ?: "—", style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary, modifier = Modifier.testTag("result_${kind.code}"))
             Text(if (kind == RamKind.LATENCY) "ns" else "MB/s", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 6.dp))
         }
         stats?.let {
-            Text("${it.count} 个有效轮次的中位数" + (it.cvPercent?.let { cv -> " · CV %.1f%%".format(Locale.US, cv) } ?: ""), style = MaterialTheme.typography.bodySmall)
+            Text("${it.count} 个有效轮次的${RamResults.statisticLabel(report)}" + (it.cvPercent?.let { cv -> " · CV %.1f%%".format(Locale.US, cv) } ?: ""), style = MaterialTheme.typography.bodySmall)
             TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "收起原始轮次" else "查看原始轮次") }
             if (expanded) {
                 Text(if (kind == RamKind.LATENCY && cell != null) "单线程依赖指针链，随机遍历每条缓存行。" else kind.explanation, style = MaterialTheme.typography.bodySmall)
-                if (kind == RamKind.COPY) Text("单向复制量：%.2f MB/s".format(Locale.US, it.median * 500), style = MaterialTheme.typography.bodySmall)
+                if (kind == RamKind.COPY) Text("单向复制量：%.2f MB/s".format(Locale.US, it.score * 500), style = MaterialTheme.typography.bodySmall)
                 val scale = if (kind == RamKind.LATENCY) 1 else 1000
                 val unit = if (kind == RamKind.LATENCY) "ns" else "MB/s"
                 Text("最小 / 最大：%.2f / %.2f $unit".format(Locale.US, it.minimum * scale, it.maximum * scale), style = MaterialTheme.typography.bodySmall)

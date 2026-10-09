@@ -167,6 +167,11 @@ extern "C" int32_t bb_validate_chain(uint64_t bytes,int32_t stride,uint64_t seed
     try{BBSession s;Chain c(&s,bytes,stride,seed);return c.nodes==bytes/uint64_t(stride);}catch(...){return 0;}
 }
 extern "C" BBResult bb_cache_point(BBSession* s,uint64_t bytes,int32_t stride,int32_t qos,uint64_t seed)try{return latency(s,bytes,stride,qos,seed,40,30,7);}catch(...){BBResult r{};r.status=3;return r;}
+extern "C" BBResult bb_cache_point_once(BBSession* s,uint64_t bytes,int32_t stride,int32_t qos,uint64_t seed)try{
+    auto result=latency(s,bytes,stride,qos,seed,40,30,1);
+    if(result.status==0&&result.verified&&result.trial_count==1)result.trials[0].accepted=result.trials[0].elapsed_ns>0&&result.trials[0].operations>0;
+    return result;
+}catch(...){BBResult result{};result.status=3;return result;}
 extern "C" BBResult bb_memory(BBSession* s,int32_t kind,uint64_t bytes,int32_t threads,int32_t warm,int32_t duration,int32_t qos,uint64_t seed)try{
     if(kind==5){if(threads!=1){BBResult invalid{};invalid.status=2;return invalid;}return latency(s,bytes,64,qos,seed,warm,duration,1);}
     BBResult out{};out.kind=kind;out.threads=threads;out.qos=qos;

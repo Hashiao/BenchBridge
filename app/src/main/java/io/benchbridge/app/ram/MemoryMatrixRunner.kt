@@ -79,7 +79,8 @@ class MemoryMatrixRunner(private val context: Context, private val config: RamCo
         if (shouldStop()) return
         report.put("phase", "CACHE_PROBING")
         CacheProbe.run(topology, memoryBudget, ::shouldStop,
-            sample = { cpu, bytes, stride, seed -> JSONObject(RamNative.runLatencyPoint(handle, cpu, bytes, stride, seed)) },
+            sample = { cpu, bytes, stride, seed -> JSONObject(if(config.singleCurveSample)RamNative.runLatencyPointOnce(handle, cpu, bytes, stride, seed)
+                else RamNative.runLatencyPoint(handle, cpu, bytes, stride, seed)) },
             progress = { probe -> report.put("cache_probe", probe); publish(probe.optBoolean("checkpoint")) },
             config = config, previous = report.optJSONObject("cache_probe"))
         publish(true)

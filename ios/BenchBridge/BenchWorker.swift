@@ -16,7 +16,7 @@ enum BenchWorker {
     static func computeUnit(_ kind: Int) -> String { kind <= 2 || kind == 8 || kind == 9 ? "GB/s" : kind <= 4 ? "GFLOPS" : kind <= 7 ? "GIOPS" : "MPix/s" }
     static func scorePlan(_ family: BenchFamily, config: BenchConfig = BenchConfig()) -> [ScoreItem] {
         switch family {
-        case .memory: return [(0, "读取"), (1, "写入"), (5, "延迟"), (2, "拷贝")].map { ScoreItem(id: "ram-\($0.0)", title: $0.1, unit: $0.0 == 5 ? "ns" : "GB/s") }
+        case .memory: return [(0, "读取"), (1, "写入"), (5, "延迟"), (2, "拷贝")].map { ScoreItem(id: "ram-\($0.0)", title: $0.1, unit: $0.0 == 5 ? "ns" : "GB/s", aggregation: config.ramSettings.aggregation) }
         case .storage: return config.storageSettings.cases.flatMap { test in (0...1).map { operation in
             ScoreItem(id: "\(test.id)-\(operation)", title: "\(test.title) · \(operation == 0 ? "读取" : "写入")", unit: "MB/s", aggregation: "maximum_completed_round")
         } }
@@ -160,31 +160,34 @@ enum BenchWorker {
                 }
             }
             if report.family == .memory && config.includeCurve {
+                let single = config.singleCurveSample == true
                 let anchors = (report.device.performanceLevels ?? []).flatMap { [$0.l1DataBytes, $0.l2Bytes].compactMap { $0 } } +
                     [report.device.reportedL1Bytes, report.device.reportedL2Bytes, report.device.reportedL3Bytes].compactMap { $0 }
-                let sizes = Statistics.grid(maximum: UInt64(config.cacheMaxMiB) * 1048576, steps: config.stepsPerOctave, anchors: anchors)
-                report.curves = (config.backgroundCurve ? [0, 1] : [0]).map { CurveGroup(qos: $0, plannedSizes: sizes) }
+                let sizes = Statistics.grid(maximum: UInt64(config.cacheMaxMiB) * 1048576, steps: config.stepsPerOctave, anchors: single ? [] : anchors)
+                report.curves = (config.backgroundCurve ? [0, 1] : [0]).map { CurveGroup(qos: $0, plannedSizes: sizes, singleSample: single) }
                 try await publish()
                 func measure(_ group: Int, _ bytes: UInt64, _ pass: Int) async throws {
                     try token.check(); try budget(bytes * 9 / 8)
                     let attempts = report.curves[group].batches.filter { $0.bytes == bytes && $0.pass == pass }.count
-                    guard attempts < 3 else { return }
+                    guard attempts < (single ? 1 : 3) else { return }
                     let qos = report.curves[group].qos
                     report.progress = "\(report.curves[group].title) · \(Statistics.size(bytes)) · 第 \(pass + 1) 遍"; await progress(report)
                     let seed = UInt64(0xB16B00B5 + pass * 1009 + (attempts + 1) * 7919)
                     let reportedStride = Int(report.device.reportedLineBytes ?? 0)
                     let stride = [32, 64, 128, 256].contains(reportedStride) ? reportedStride : 64
-                    let measurement = NativeMeasurement(bb_cache_point(token.handle, bytes, Int32(stride), Int32(qos), seed))
+                    let measurement = NativeMeasurement(single ? bb_cache_point_once(token.handle, bytes, Int32(stride), Int32(qos), seed)
+                                                        : bb_cache_point(token.handle, bytes, Int32(stride), Int32(qos), seed))
                     if measurement.status == 1 { try token.check(); throw BenchError.message("采样被中断") }
                     report.curves[group].batches.append(CurveBatch(bytes: bytes, pass: pass, attempt: attempts + 1, seed: seed, measurement: measurement))
                     Statistics.refresh(&report.curves[group]); try await publish()
                 }
-                for pass in 0...1 {
+                for pass in 0..<(single ? 1 : 2) {
                     for group in (pass == 0 ? Array(report.curves.indices) : Array(report.curves.indices.reversed())) {
                         for bytes in (pass == 0 ? sizes : Array(sizes.reversed())) { try await measure(group, bytes, pass) }
                     }
                 }
                 for group in report.curves.indices {
+                    if single { Statistics.analyze(&report.curves[group]); try await publish(); continue }
                     for _ in 0..<2 {
                         let valid = Set(report.curves[group].points.filter(\.stable).map(\.bytes))
                         for bytes in report.curves[group].plannedSizes where !valid.contains(bytes) { for pass in 0...1 { try await measure(group, bytes, pass) } }

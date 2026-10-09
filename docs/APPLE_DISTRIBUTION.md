@@ -36,16 +36,16 @@ When required, follow [Apple's Developer Mode instructions](https://developer.ap
    Record model, OS and app version on each device. Let it cool, disable Low Power Mode, keep the app foregrounded and avoid other heavy work.
 2. 设置中先选“快速测试”，分别运行 RAM、ROM、GPGPU，确认能结束、停止、查看历史和导出 JSON。RAM 应先出现读、写、延迟、拷贝四项，曲线随后扫描。
    Start with the Quick preset for RAM, ROM and GPGPU. Check completion, stop, history and JSON export. Four RAM scores appear before curve scanning.
-3. 分别在 RAM、ROM 页面恢复“标准测试”：RAM 读取、写入、延迟、拷贝均为 64 MiB、T1（自动线程关闭），单线程曲线为 4 KiB–64 MiB；ROM 为 1 GiB、3 次、四行 Q8T1/Q1T1/Q32T1/Q1T1。0.12.0 的预设仅影响当前测试类型。用标准配置测完整曲线，冷却后按相同参数复测；各类结果分别保存，不拿模拟器成绩与真机比较。
-   Restore Standard separately on RAM and ROM: 64 MiB/T1 RAM read/write/latency/copy with automatic threads off, a single-worker 4 KiB–64 MiB sweep, and a 1 GiB storage file with three repetitions across Q8T1/Q1T1/Q32T1/Q1T1 rows. In 0.12.0 presets affect only the current family. Run the complete standard curve and repeat after cooling with identical parameters; save each report and do not compare simulator scores with device performance.
+3. 分别在 RAM、ROM 页面恢复“标准测试”：RAM 读取、写入、延迟、拷贝均为 64 MiB、T1（自动线程关闭），四项各 3 次取算术平均值；曲线为 4 KiB–64 MiB、T1、单遍且每块 1 次；ROM 为 1 GiB、3 次、四行 Q8T1/Q1T1/Q32T1/Q1T1。0.12.0 的预设仅影响当前测试类型。用标准配置测完整曲线，冷却后按相同参数复测；各类结果分别保存，不拿模拟器成绩与真机比较。
+   Restore Standard separately on RAM and ROM: 64 MiB/T1 RAM read/write/latency/copy with automatic threads off and the arithmetic mean of three rounds per score, plus a single-worker 4 KiB–64 MiB sweep with one sample per block, and a 1 GiB storage file with three repetitions across Q8T1/Q1T1/Q32T1/Q1T1 rows. In 0.12.0 presets affect only the current family. Run the complete standard curve and repeat after cooling with identical parameters; save each report and do not compare simulator scores with device performance.
 4. 每项结束后“导出 JSON”，将 iPhone/iPad 各自的文件连同异常截图提供给开发者；附上插电状态、低电量模式、是否切后台及复现步骤。后台/锁屏会停止本版苹果端测试，已完成数据仍保存。
    Export each report and provide per-device JSON plus issue screenshots, power state, Low Power Mode, backgrounding and reproduction steps. Backgrounding/locking stops this Apple version while retaining completed data.
 5. 更新、换签名方式或移除应用前先导出历史；不同 Bundle ID 的安装可能使用不同数据目录。
    Export history before updates, changing signing methods or uninstalling; different bundle IDs may use separate data containers.
 
-“部分测量未通过验证”表示部分曲线点重复性不足或某项失败，应结合详情和原始采样判断。系统不会为了让曲线好看而补造分数。当前无法固定到指定物理核心，优先级曲线不能当作大小核曲线；GPU AES/SHA 未实现、GPU FP64 不支持是已知边界，CPU 对应项目已实现。完整协议见 [苹果端工程说明](../ios/README.md)。
+“部分测量未通过验证”表示某项失败或部分曲线点缺测（双向复核模式还会检查重复性），应结合详情和原始采样判断。系统不会为了让曲线好看而补造分数。当前无法固定到指定物理核心，优先级曲线不能当作大小核曲线；GPU AES/SHA 未实现、GPU FP64 不支持是已知边界，CPU 对应项目已实现。完整协议见 [苹果端工程说明](../ios/README.md)。
 
-“Some measurements did not pass verification” can mean inconsistent curve points or failed workloads; inspect details/raw samples. Scores are not invented to beautify a curve. Physical-core pinning is unavailable; priority curves are not P/E-core curves. GPU AES/SHA are unimplemented and GPU FP64 unavailable; CPU counterparts are implemented. See the [Apple engineering guide](../ios/README.md) for the protocol.
+“Some measurements did not pass verification” can mean missing curve points or failed workloads (bidirectional mode also checks repeatability); inspect details/raw samples. Scores are not invented to beautify a curve. Physical-core pinning is unavailable; priority curves are not P/E-core curves. GPU AES/SHA are unimplemented and GPU FP64 unavailable; CPU counterparts are implemented. See the [Apple engineering guide](../ios/README.md) for the protocol.
 
 ## 4. 真机通过后提交 App Store / App Store after device acceptance
 

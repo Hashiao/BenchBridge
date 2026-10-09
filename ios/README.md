@@ -12,8 +12,8 @@ See [aligned defaults and platform differences](../docs/CROSS_PLATFORM_DEFAULTS.
 
 | 项目 / Area | 0.12.1 实现 / Implementation |
 |---|---|
-| RAM | 标准默认四项均为 64 MiB、T1，关闭自动线程；先测读取、写入、延迟、拷贝，首页保留四项摘要；可配置工作集、线程、时长、重复次数。 / Standard defaults are 64 MiB/T1 for all four scores, with automatic threads off. Read, write, latency and copy first, with a four-score dashboard row and configurable working set, threads, duration and repeats. |
-| 缓存曲线 / Cache curve | 默认 4 KiB–64 MiB、每倍容量 8 个间隔、正反扫描与有限复测；显示实测点和多个持续转换区间。 / Default 4 KiB–64 MiB, eight intervals per octave, forward/reverse sweeps and bounded rechecks; measured points and multiple sustained transitions. |
+| RAM | 标准默认四项均为 64 MiB、T1，关闭自动线程，四项各测 3 次取算术平均值；先测读取、写入、延迟、拷贝，首页保留四项摘要；可配置工作集、线程、时长、重复次数。 / Standard defaults are 64 MiB/T1 for all four scores, with automatic threads off and the arithmetic mean of three rounds per score. Read, write, latency and copy first, with a four-score dashboard row and configurable working set, threads, duration and repeats. |
+| 缓存曲线 / Cache curve | 默认 4 KiB–64 MiB、每倍容量 8 个间隔，单遍、每块仅采样 1 次，无复测和补点；显示实测点和多个持续转换区间。 / Default 4 KiB–64 MiB, eight intervals per octave, one sweep/sample per block without rechecks or refinement; measured points and multiple sustained transitions. |
 | ROM | 1 GiB 文件，SEQ 1 MiB Q8T1/Q1T1、RND 4 KiB Q32T1/Q1T1，支持块/Q/T 设置。 / 1 GiB file, SEQ 1 MiB Q8T1/Q1T1 and RND 4 KiB Q32T1/Q1T1 with configurable block/Q/T. |
 | CPU | 12 项，包括内存、浮点、整数、AES-256、SHA-1、Julia 与 Mandelbrot。 / Twelve tests covering memory, floating point, integers, AES-256, SHA-1, Julia and Mandelbrot. |
 | GPU | Metal 内存读写拷贝、FP32、INT24/32/64、Julia；FP64 与 Mandelbrot FP64 不支持，AES/SHA 首版未实现，界面和导出明确记录原因。 / Metal memory read/write/copy, FP32, INT24/32/64 and Julia; FP64/Mandelbrot FP64 unavailable and GPU AES/SHA not yet implemented, with explicit reasons in UI/export. |
@@ -25,10 +25,10 @@ This version does not pin physical cores or lock frequency. High and background 
 
 ## 测量协议 / Measurement protocol
 
-- 缓存使用高熵缓冲区与随机 32 位依赖索引链；优先采用系统报告的缓存行粒度（32/64/128/256 B），缺失时显式采用 64 B，原始记录保存 `node_stride_bytes`。同一点保持内存与工作线程，预热至少两遍链和 40 ms，然后采集 7 次约 30 ms 正式采样；单独保留墙钟和线程 CPU 时间。
-  Cache measurements use high-entropy buffers and a shuffled dependent 32-bit index chain. Use the reported cache line size when it is 32/64/128/256 B, otherwise a 64 B fallback, exported as `node_stride_bytes`. Keep allocation and worker for a point, warm for at least two chain cycles and 40 ms, then collect seven approximately 30 ms trials, retaining wall and thread CPU time separately.
-- 正反遍分别至少 5 次有效采样；MAD/中位数不超过 6%，至少 80% 采样在中位数的 ±12%，两遍中位数相差不超过合并中位数的 12%。未通过点最多重试至三批；边界加密后再次正反测量。不平滑原始中位数，不跨无效区间推断。
-  Each direction needs at least five accepted trials, MAD/median ≤6%, at least 80% within ±12%, and directional medians within 12% of the combined median. Failed points get at most three batches; refinement points are measured bidirectionally. Raw medians are not smoothed and invalid gaps are not bridged.
+- 缓存使用高熵缓冲区与随机 32 位依赖索引链；优先采用系统报告的缓存行粒度（32/64/128/256 B），缺失时显式采用 64 B，原始记录保存 `node_stride_bytes`。同一点保持内存与工作线程，预热至少两遍链和 40 ms，然后默认采集 1 次约 30 ms 正式采样（可选双向模式每批 7 次）；单独保留墙钟和线程 CPU 时间。
+  Cache measurements use high-entropy buffers and a shuffled dependent 32-bit index chain. Use the reported cache line size when it is 32/64/128/256 B, otherwise a 64 B fallback, exported as `node_stride_bytes`. Keep allocation and worker for a point, warm for at least two chain cycles and 40 ms, then collect one approximately 30 ms trial by default (seven per batch in optional bidirectional mode), retaining wall and thread CPU time separately.
+- 默认单次采样不判断重复性，不复测或补点。关闭“每块仅测一次”后启用原双向复核：正反遍分别至少 5 次有效采样；MAD/中位数不超过 6%，至少 80% 采样在中位数的 ±12%，两遍中位数相差不超过合并中位数的 12%。未通过点最多重试至三批；边界加密后再次正反测量。不平滑原始中位数，不跨无效区间推断。
+  Single-sample mode does not judge repeatability, recheck or refine. Disable “one sample per block” to enable the original bidirectional checks: each direction needs at least five accepted trials, MAD/median ≤6%, at least 80% within ±12%, and directional medians within 12% of the combined median. Failed points get at most three batches; refinement points are measured bidirectionally. Raw medians are not smoothed and invalid gaps are not bridged.
 - RAM 带宽以 GB/s 表示，拷贝按读取与写入合计；延迟固定单线程、64 B 节点跨度，单位 ns。默认 64 MiB 工作集不保证绕过所有系统级缓存，因此不能把该值直接解释为裸 DRAM 极限。CPU 结果验证不计入正式时间。
   RAM bandwidth uses GB/s and copy counts reads plus writes. Latency uses one thread and a 64 B node stride in ns. The default 64 MiB working set is not guaranteed to bypass every system-level cache and is not a bare-DRAM peak claim. CPU validation is outside scored timing.
 - GPU 使用 `MTLCommandBuffer.gpuEndTime - gpuStartTime`，预热、CPU 编码和结果校验不混入主值；完整提交等待耗时另存。设备时间戳缺失则标记不可用，不用 CPU 耗时冒充 GPU 分数。检查输出样本后才接受成绩。

@@ -42,7 +42,7 @@ struct Free { void operator()(std::uint32_t* p)const{std::free(p);} };
 }
 
 std::string bb_latency_point(std::atomic<bool>& cancelled,std::atomic<int>& phase,int cpu,
-                            std::uint64_t bytes,int stride,std::uint64_t seed) {
+                            std::uint64_t bytes,int stride,std::uint64_t seed,bool single_sample) {
     if(cpu<0||cpu>=CPU_SETSIZE||bytes<4096||bytes>256ULL*1048576||bytes%256||stride<32||stride>256||(stride&(stride-1)))
         return "{\"status\":\"FAILED\",\"error\":\"PROBE_PARAMETERS\"}";
     std::string output;
@@ -88,14 +88,15 @@ std::string bb_latency_point(std::atomic<bool>& cancelled,std::atomic<int>& phas
             bool warmStable=false;
             do {
                 const auto t=block(20);warmed+=t.hops;
+                if(single_sample){if(warmed>=nodes*2 && clock_ns(CLOCK_MONOTONIC_RAW)-warmStart>=40000000)break;else continue;}
                 if(t.wall<35000000)warmValues.push_back(double(t.wall)/t.hops);
                 if(warmValues.size()>=3){auto a=warmValues.end()-3;const auto range=std::minmax_element(a,warmValues.end());warmStable=(*range.second-*range.first)/median(std::vector<double>(a,warmValues.end()))<=0.08;}
                 if(warmed>=nodes*2 && warmStable && clock_ns(CLOCK_MONOTONIC_RAW)-warmStart>=60000000)break;
             }while(clock_ns(CLOCK_MONOTONIC_RAW)-warmStart<500000000ULL || (warmed<nodes*2 && clock_ns(CLOCK_MONOTONIC_RAW)-warmStart<2500000000ULL));
             const auto warmElapsed=clock_ns(CLOCK_MONOTONIC_RAW)-warmStart;
             phase.store(3);std::vector<Trial> trials;std::vector<double> values;
-            for(int i=0;i<9;++i){
-                auto t=block(30);t.accepted=t.accepted&&warmed>=nodes*2;trials.push_back(t);
+            for(int i=0;i<(single_sample?1:9);++i){
+                auto t=block(30);t.accepted=(single_sample?(t.wall>0&&t.hops>0):t.accepted)&&warmed>=nodes*2;trials.push_back(t);
                 if(t.accepted)values.push_back(double(t.wall)/t.hops);
                 if(values.size()>=5){const auto range=std::minmax_element(values.begin(),values.end());if((*range.second-*range.first)/median(values)<=0.10)break;}
             }
@@ -105,6 +106,7 @@ std::string bb_latency_point(std::atomic<bool>& cancelled,std::atomic<int>& phas
                 <<",\"working_set_bytes\":"<<bytes<<",\"node_stride_bytes\":"<<stride<<",\"node_count\":"<<nodes<<",\"page_size_bytes\":"<<page
                 <<",\"kernel\":\"dependent-index32-v1\",\"pattern\":\"global-random-high-entropy\",\"seed\":"<<seed
                 <<",\"chain_verified_nodes\":"<<nodes<<",\"warmup_operations\":"<<warmed<<",\"warmup_elapsed_ns\":"<<warmElapsed
+                <<",\"sampling_mode\":\""<<(single_sample?"single-sample":"repeated")<<"\""
                 <<",\"warmup_stable\":"<<(warmStable?"true":"false")<<",\"allocation_count\":1,\"trials\":[";
             for(std::size_t i=0;i<trials.size();++i){const auto& t=trials[i];if(i)s<<',';
                 s<<"{\"elapsed_ns\":"<<t.wall<<",\"cpu_elapsed_ns\":"<<t.cpu<<",\"operations\":"<<t.hops

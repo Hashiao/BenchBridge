@@ -23,6 +23,8 @@ int main(int argc,char** argv){try{
     require(bb_memory(s.get(),5,4096,2,5,15,0,1).status==2,"latency is single-threaded");
     const auto point=bb_cache_point(s.get(),65536,64,1,37);require(point.verified&&point.trial_count==7,"repeated point");
     for(int i=0;i<7;++i)require(point.trials[i].elapsed_ns>0&&point.trials[i].operations>0,"raw point samples");
+    const auto singlePoint=bb_cache_point_once(s.get(),65536,64,1,37);
+    require(singlePoint.verified&&singlePoint.trial_count==1&&singlePoint.trials[0].accepted,"single-sample curve has exactly one valid measurement");
     for(int kind=3;kind<=7;++kind){auto r=bb_cpu_compute(s.get(),kind,5);require(r.verified&&r.trials[0].operations>0,"CPU scalar reference");
         uint32_t output[8]{};require(bb_compute_reference(kind,13,1024,output)&&bb_check_compute(kind,13,1024,output),"shared compute reference");output[0]^=0x40000000;require(!bb_check_compute(kind,13,1024,output),"reject corrupt compute");}
     for(auto kind:{10,11})require(bb_cpu_compute(s.get(),kind,5).verified,"fractal reference");

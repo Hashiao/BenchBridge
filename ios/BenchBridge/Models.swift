@@ -15,12 +15,13 @@ struct BenchConfig: Codable, Equatable, Sendable {
     var backgroundCurve = true
     var storageMiB = 1024
     var functionalTest = false
+    var singleCurveSample: Bool? = true
     // 可选版本化配置兼容旧记录；缺失时恢复旧协议，不套用新默认。 / Missing versioned settings retain the legacy protocol.
     var ram: RAMParameters? = RAMParameters()
     var storage: StorageParameters? = StorageParameters()
     var ramSettings: RAMParameters {
         get { ram ?? RAMParameters(memoryMiB: memoryMiB, latencyMiB: memoryMiB, threads: threads, automaticThreads: false,
-                                   warmupMs: 60, durationMs: durationMs, repeats: repeats, latencyRepeats: repeats, intervalMs: 0) }
+                                   warmupMs: 60, durationMs: durationMs, repeats: repeats, latencyRepeats: repeats, intervalMs: 0, aggregation: "median") }
         set { ram = newValue }
     }
     var storageSettings: StorageParameters {
@@ -29,8 +30,8 @@ struct BenchConfig: Codable, Equatable, Sendable {
         set { storage = newValue }
     }
     static var quick: Self {
-        var value = Self(memoryMiB: 16, durationMs: 100, repeats: 1, cacheMaxMiB: 16, stepsPerOctave: 4, storageMiB: 64)
-        value.ram = RAMParameters(memoryMiB: 16, latencyMiB: 16, automaticThreads: true, warmupMs: 25, durationMs: 150, repeats: 1, latencyRepeats: 1, intervalMs: 0)
+        var value = Self(memoryMiB: 16, durationMs: 100, repeats: 1, cacheMaxMiB: 16, stepsPerOctave: 4, storageMiB: 64, singleCurveSample: false)
+        value.ram = RAMParameters(memoryMiB: 16, latencyMiB: 16, automaticThreads: true, warmupMs: 25, durationMs: 150, repeats: 1, latencyRepeats: 1, intervalMs: 0, aggregation: "median")
         value.storage = StorageParameters(fileMiB: 64, repeats: 1, warmupMs: 100, durationMs: 600, intervalMs: 100)
         return value
     }
@@ -48,8 +49,8 @@ struct BenchConfig: Codable, Equatable, Sendable {
         switch family {
         case .memory:
             let p = ramSettings
-            return "RAM 带宽 \(p.memoryMiB) MiB · 延迟 \(p.latencyMiB) MiB / T1 · \(p.automaticThreads ? "带宽线程自动校准" : "带宽 T\(p.threads)")\n带宽 \(p.repeats) 次 · 延迟 \(p.latencyRepeats) 次 · \(p.durationMs) ms / 轮" +
-                (includeCurve ? "\n曲线：4 KiB–\(cacheMaxMiB) MiB · T1 · 正反扫描" : "")
+            return "RAM 带宽 \(p.memoryMiB) MiB · 延迟 \(p.latencyMiB) MiB / T1 · \(p.automaticThreads ? "带宽线程自动校准" : "带宽 T\(p.threads)")\n带宽 \(p.repeats) 次 · 延迟 \(p.latencyRepeats) 次 · \(p.aggregation == "arithmetic_mean" ? "平均值" : "中位数") · \(p.durationMs) ms / 轮" +
+                (includeCurve ? "\n曲线：4 KiB–\(cacheMaxMiB) MiB · T1 · \(singleCurveSample == true ? "每块 1 次" : "正反扫描")" : "")
         case .storage:
             let p = storageSettings
             return "\(Statistics.size(UInt64(p.fileMiB) * 1048576)) · \(p.repeats) 次 · \(p.durationMs) ms / 轮\n预热 \(p.warmupMs) ms · 间隔 \(p.intervalMs) ms · \(storage == nil ? "旧版中位数" : "最佳完整轮次")"
@@ -77,12 +78,13 @@ struct RAMParameters: Codable, Equatable, Sendable {
     var warmupMs = 1000
     var durationMs = 3000
     var repeats = 3
-    var latencyRepeats = 5
+    var latencyRepeats = 3
     var intervalMs = 2000
+    var aggregation: String? = "arithmetic_mean"
     func validate() throws {
         guard (1...256).contains(memoryMiB), (1...256).contains(latencyMiB), (1...16).contains(threads),
               (0...5000).contains(warmupMs), (5...5000).contains(durationMs), (1...10).contains(repeats),
-              (1...10).contains(latencyRepeats), (0...30000).contains(intervalMs) else { throw BenchError.message("RAM 参数超出范围") }
+              (1...10).contains(latencyRepeats), (0...30000).contains(intervalMs), aggregation == nil || ["arithmetic_mean","median"].contains(aggregation!) else { throw BenchError.message("RAM 参数超出范围") }
     }
 }
 struct StorageCase: Codable, Equatable, Identifiable, Sendable {
@@ -179,8 +181,8 @@ struct ScoreItem: Codable, Identifiable, Sendable {
     var storageSamples: [StorageSample]?
     var calibration: [NativeMeasurement]?
     var median: Double? { Statistics.median(values) }
-    var score: Double? { aggregation == "maximum_completed_round" ? values.filter { $0.isFinite && $0 > 0 }.max() : median }
-    var aggregationTitle: String { aggregation == "maximum_completed_round" ? "最佳完整轮次" : "中位数" }
+    var score: Double? { aggregation == "maximum_completed_round" ? values.filter { $0.isFinite && $0 > 0 }.max() : aggregation == "arithmetic_mean" ? Statistics.mean(values) : median }
+    var aggregationTitle: String { aggregation == "maximum_completed_round" ? "最佳完整轮次" : aggregation == "arithmetic_mean" ? "平均值" : "中位数" }
 }
 struct StorageSample: Codable, Sendable {
     var queueDepth: Int
@@ -249,6 +251,7 @@ struct CurveTransition: Codable, Sendable, Identifiable {
 struct CurveGroup: Codable, Identifiable, Sendable {
     var qos: Int
     var plannedSizes: [UInt64]
+    var singleSample: Bool?
     var batches: [CurveBatch] = []
     var points: [CurvePoint] = []
     var regions: [CurveRegion] = []
@@ -282,13 +285,17 @@ struct BenchReport: Codable, Identifiable, Sendable {
     var thermalAtEnd: Int?
     var qualityFlags: [String]
     var curvePairs: Int { curves.reduce(0) { $0 + Set($1.batches.map { "\($0.bytes)-\($0.pass)" }).count } }
-    var plannedCurvePairs: Int { curves.reduce(0) { $0 + $1.plannedSizes.count * 2 } }
+    var plannedCurvePairs: Int { curves.reduce(0) { $0 + $1.plannedSizes.count * ($1.singleSample == true ? 1 : 2) } }
     var statusTitle: String { switch state {
     case "running": "测试中"; case "completed": "已完成"; case "partial": "部分测量未通过验证"
     case "cancelled": "已停止"; case "interrupted": "运行中断，已保存采样"; default: "未完成"
     } }
 }
 enum Statistics {
+    static func mean(_ input: [Double]) -> Double? {
+        let values = input.filter { $0.isFinite && $0 > 0 }
+        return values.isEmpty ? nil : values.reduce(0, +) / Double(values.count)
+    }
     static func median(_ input: [Double]) -> Double? {
         let values = input.filter { $0.isFinite && $0 > 0 }.sorted()
         guard !values.isEmpty else { return nil }
@@ -315,6 +322,11 @@ enum Statistics {
         var latest: [String: NativeMeasurement] = [:]
         for batch in group.batches { latest["\(batch.bytes)-\(batch.pass)"] = batch.measurement }
         group.points = group.plannedSizes.compactMap { bytes in
+            if group.singleSample == true {
+                guard let raw = latest["\(bytes)-0"], raw.status == 0, raw.verified, raw.trials.count == 1,
+                      let trial = raw.trials.first, trial.accepted, let value = trial.latency else { return nil }
+                return CurvePoint(bytes: bytes, latencyNs: value, lowNs: value, highNs: value, stable: true, passMedians: [value])
+            }
             let passes: [[Double]] = (0...1).map { pass in
                 guard let raw = latest["\(bytes)-\(pass)"], raw.status == 0, raw.verified else { return [] }
                 return raw.trials.filter(\.accepted).compactMap(\.latency)
@@ -351,7 +363,7 @@ enum Statistics {
             group.regions.append(CurveRegion(lowerBytes: points[start].bytes, upperBytes: points.last!.bytes, medianNs: median(points[start...].map(\.latencyNs))!))
         }
         let valid = group.points.filter(\.stable).count
-        group.summary = "\(valid)/\(group.plannedSizes.count) 点通过验证；\(group.regions.count) 个连续区间，\(group.transitions.count) 处持续转换。" + (valid == group.plannedSizes.count ? "" : "未通过范围不推断边界。")
+        group.summary = "\(valid)/\(group.plannedSizes.count) \(group.singleSample == true ? "个有效采样点" : "点通过验证")；\(group.regions.count) 个连续区间，\(group.transitions.count) 处持续转换。" + (valid == group.plannedSizes.count ? "" : "缺测范围不推断边界。")
     }
     static func size(_ bytes: UInt64) -> String {
         if bytes >= 1073741824 { return String(format: "%.3g GiB", Double(bytes) / 1073741824) }
