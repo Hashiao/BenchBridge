@@ -87,6 +87,7 @@ BBResult latency(BBSession* s,uint64_t bytes,int stride,int qos,uint64_t seed,in
     BBResult out{};out.kind=5;out.threads=1;out.qos=qos;out.working_set_bytes=bytes;out.node_stride_bytes=stride;
     if(!s||bytes<4096||bytes>256ULL*1048576||bytes%256||stride<32||stride>256||(stride&(stride-1))||qos<0||qos>1||duration<5||duration>5000||warm<0||warm>5000){out.status=2;return out;}
     const auto wall=now();
+    std::mutex completionMutex;std::condition_variable completed;bool done=false;
     std::thread worker([&]{try{
         priority(qos);Chain chain(s,bytes,stride,seed);
         out.warmup_operations=chain.chase(s,warm,2*chain.nodes);
@@ -96,7 +97,12 @@ BBResult latency(BBSession* s,uint64_t bytes,int stride,int qos,uint64_t seed,in
             out.trial_count=i+1;
         }
         check(s);out.checksum=chain.cursor;out.verified=1;
-    }catch(int error){out.status=error;}catch(const std::bad_alloc&){out.status=3;}catch(...){out.status=4;}});
+    }catch(int error){out.status=error;}catch(const std::bad_alloc&){out.status=3;}catch(...){out.status=4;}
+        {std::lock_guard guard(completionMutex);done=true;}completed.notify_one();
+    });
+    // 测量期间不直接 join 低优先级线程，避免等待者的优先级继承影响对照。
+    // Avoid joining a low-QoS worker while timing, preventing join-related priority inheritance from affecting the comparison.
+    {std::unique_lock guard(completionMutex);completed.wait(guard,[&]{return done;});}
     worker.join();out.wall_ns=now()-wall;return out;
 }
 struct File {
