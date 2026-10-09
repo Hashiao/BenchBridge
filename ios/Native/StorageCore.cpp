@@ -154,10 +154,10 @@ extern "C" BBStorageResult bb_storage_run(BBStorage* storage,int32_t writeTest,i
         measurement.working_set_bytes=storage->bytes;out.prepare_bytes=storage->bytes;check(storage->session);
         auto stage=[&](int milliseconds,bool scored){
             if(milliseconds==0)return;
-            std::mutex mutex;std::condition_variable condition;bool go=false;int ready=0;uint64_t start=0;
+            std::mutex mutex;std::condition_variable condition;bool go=false,verifyGo=false;int ready=0,measured=0;uint64_t start=0;
             std::atomic<bool> stop{false};std::vector<std::thread> workers;std::vector<WorkerResult> results(size_t(threads),WorkerResult{});
             std::vector<Failure> errors(size_t(threads),Failure{0,0});std::vector<int> hints(size_t(threads),0);
-            try{for(int id=0;id<threads;++id)workers.emplace_back([&,id]{bool arrived=false;try{
+            try{for(int id=0;id<threads;++id)workers.emplace_back([&,id]{bool arrived=false,counted=false;try{
                 File file(storage->path,false,storage->bypass);hints[size_t(id)]=file.noCache;
                 std::vector<std::unique_ptr<Slot>> slots;for(int i=0;i<depth;++i)slots.push_back(std::make_unique<Slot>(size_t(block)));
                 {std::unique_lock lock(mutex);++ready;arrived=true;condition.notify_all();condition.wait(lock,[&]{return go;});}
@@ -196,12 +196,15 @@ extern "C" BBStorageResult bb_storage_run(BBStorage* storage,int32_t writeTest,i
                     for(auto& slot:slots)if(slot->active)try{if(slot->finish(file,true)){++result.operations;result.ended=clockNs();}}catch(...){}
                     throw;
                 }
+                // 所有线程结束 I/O 后再校验，避免干扰仍在计时的线程。 / Validate only after every worker stops timed I/O.
+                {std::unique_lock lock(mutex);++measured;counted=true;condition.notify_all();condition.wait(lock,[&]{return verifyGo;});}
                 if(!writeTest)for(auto& slot:slots)if(slot->completed&&!storage->valid(slot->buffer.data(),slot->offset,size_t(block)))throw Failure{4,0};
             }catch(const Failure& e){errors[size_t(id)]=e;stop=true;}catch(...){errors[size_t(id)]={3,0};stop=true;}
-                if(!arrived){std::lock_guard lock(mutex);++ready;condition.notify_all();}
+                {std::lock_guard lock(mutex);if(!arrived)++ready;if(!counted)++measured;condition.notify_all();}
             });
-            {std::unique_lock lock(mutex);condition.wait(lock,[&]{return ready==threads;});start=clockNs();go=true;condition.notify_all();}
-            }catch(...){stop=true;{std::lock_guard lock(mutex);go=true;condition.notify_all();}for(auto& worker:workers)worker.join();throw;}
+            {std::unique_lock lock(mutex);condition.wait(lock,[&]{return ready==threads;});start=clockNs();go=true;condition.notify_all();
+                condition.wait(lock,[&]{return measured==threads;});verifyGo=true;condition.notify_all();}
+            }catch(...){stop=true;{std::lock_guard lock(mutex);go=true;verifyGo=true;condition.notify_all();}for(auto& worker:workers)worker.join();throw;}
             for(auto& worker:workers)worker.join();
             uint64_t operations=0,ended=start;double area=0;int maximum=0;
             for(const auto& r:results){operations+=r.operations;ended=std::max(ended,r.ended);area+=r.queueArea;maximum=std::max(maximum,r.maximum);}

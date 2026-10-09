@@ -54,7 +54,13 @@ enum BenchWorker {
             try config.validate(); try await publish()
             if report.family == .storage {
                 let parameters = config.storageSettings
-                try budget(UInt64(64 * 1048576 + (parameters.cases.map { $0.blockKiB * 1024 * $0.queueDepth * $0.threads }.max() ?? 0)))
+                var maximumBuffers: UInt64 = 0
+                for test in parameters.cases {
+                    let requestBytes = UInt64(test.blockKiB) * 1024
+                    let buffers = requestBytes * UInt64(test.queueDepth) * UInt64(test.threads)
+                    maximumBuffers = max(maximumBuffers, buffers)
+                }
+                try budget(67108864 + maximumBuffers)
                 try FileManager.default.createDirectory(at: storageFolder, withIntermediateDirectories: true)
                 let capacity = try storageFolder.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey]).volumeAvailableCapacityForImportantUsage ?? 0
                 guard capacity > Int64(parameters.fileMiB) * 1048576 + 128 * 1048576 else { throw BenchError.message("可用存储空间不足") }
