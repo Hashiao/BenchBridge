@@ -89,3 +89,9 @@ The final 0.12.0 application source is `297161462c683e11eb6c3e30f3f4f89f61db252c
 最终应用源码为 `0afe9a49f18b60cc0956e44f7649f6cbbb04b1cd`，发布标签只补充验收说明。[本次 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37880887441) 完成 iOS 18.5/27.0 各自 iPhone/iPad 共 44 项测试，无跳过，包含图表拖动选点和标准时长取消。最低系统已从 18.0 降至 16.0，并同时校验 IPA 的 MinimumOSVersion 和 Mach-O minos。当前模拟器运行记录不包含 iOS 16，不宣称已在 iOS 16 真机或模拟器完成专项验收。安卓 37 项、构建/Lint、签名及覆盖启动通过；RAM 均值、单次曲线和 ROM 1/5/1 秒默认已包含在本版。
 
 Final application source is `0afe9a49f18b60cc0956e44f7649f6cbbb04b1cd`; the release tag adds acceptance notes only. [Matching CI](https://github.com/Hashiao/BenchBridge/actions/runs/37880887441) passed 44 iPhone/iPad tests on iOS 18.5/27.0 with no skips, including chart point selection and cancellation under standard timing. The minimum OS drops from 18.0 to 16.0, checked in both IPA MinimumOSVersion and Mach-O minos. These simulator runs do not include iOS 16; dedicated iOS 16 device/simulator acceptance is not claimed. Android's 37 tests, builds/Lint, signing and upgrade/launch passed. This release includes RAM mean scoring, single-sample curves and ROM 1/5/1-second defaults.
+
+## 0.12.2 验收 / Acceptance
+
+应用源码 `e6fd56d028c84fba7bc9bc10fd816e5124bc0a25`，发布标签只补充验收文档。[本次 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37887942311) 两套工具链的原生缓存对照和 44 项 iPhone/iPad 测试通过。修复原理、驻留字节对照与真机复测方式见 [苹果 ROM 缓存修复](APPLE_STORAGE_CACHE.md)。
+
+Application source is `e6fd56d028c84fba7bc9bc10fd816e5124bc0a25`; the release tag adds acceptance documentation only. [Matching CI](https://github.com/Hashiao/BenchBridge/actions/runs/37887942311) passed native cache controls on both toolchains and 44 iPhone/iPad tests. See [Apple storage cache fix](APPLE_STORAGE_CACHE.md) for residency evidence and device retesting.

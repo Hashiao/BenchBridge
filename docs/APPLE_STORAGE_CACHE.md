@@ -21,6 +21,10 @@ The old path initialized the whole file with buffered pwrite, called fsync, and 
 - JSON 保存 `preparation_no_cache_hint`、`buffer_alignment_bytes`、`submitted_operations`、`completed_bytes` 和 `completion_wall_ns`。后者包含所有计时 I/O 完成前的等待，独立校验主计时范围。新后端标记为 `posix-aio-nocache-init-v2`，旧报告保持原值。
   JSON adds preparation policy, buffer alignment, submissions, completed bytes and completion_wall_ns. The completion clock independently encloses timed I/O. New samples identify posix-aio-nocache-init-v2; historical reports retain their original values.
 
+详情里的计数来自该项末轮；主成绩仍取最佳完整轮次。逐轮对照时使用 JSON 中对应索引的 values、measurements 和 storage_samples。
+
+Detail counters describe the last round, while the headline score remains the best complete round. For per-round comparisons, use matching indices in JSON values, measurements and storage_samples.
+
 ## 回归与真机复测 / Regression and device check
 
 苹果原生回归创建两个同大小文件，使用 mincore 查询初始化后的驻留页，不读取映射页；检查普通初始化保留缓存，而无缓存初始化不预先缓存整个文件。另检查 Q8/Q1 顺序读取、Q1/Q8/Q32 随机读写的字节账目、计时和取消清理。Windows 运行可移植计数/生命周期测试，不声称模拟苹果缓存行为。实际通过记录见对应 Release。
@@ -30,3 +34,9 @@ Apple native regression compares same-sized buffered and no-cache files with min
 修复不保证绕过全部硬件缓存，也不宣称与安卓 O_DIRECT 完全等价。请用同一手机、相同设置重新测试，并导出 ROM JSON 对照三轮结果；在收到修复版真机数据前，不宣称已验证该手机的实际闪存速度。
 
 This does not guarantee bypassing hardware caches or equivalence to Android O_DIRECT. Retest the same phone/settings and export ROM JSON for per-round comparison; the corrected phone's physical storage speed remains unverified until device results are received.
+
+## 0.12.2 验收记录 / Acceptance
+
+[最终 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37887942311) 的两套苹果工具链均通过；8 MiB 对照文件的初始化驻留字节（缓存写入 → 无缓存写入）分别为 **8388608 → 0 B / 8388608 → 0 B**。iPhone/iPad 共 44 项通过、无跳过。本地 C++ 与安卓 16 项、两种 Lint、签名覆盖安装通过。修复版手机实际性能仍待用户复测，不能把这些模拟器数据当作手机读速。
+
+Both Apple toolchains passed in [final CI](https://github.com/Hashiao/BenchBridge/actions/runs/37887942311). For 8 MiB control files, resident bytes after preparation (buffered → no-cache) were **8388608 → 0 B / 8388608 → 0 B**. All 44 iPhone/iPad tests passed with no skips, along with local C++, 16 Android tests, both Lints and signed upgrade/launch. Physical phone throughput remains pending; these simulator checks are not phone-performance claims.
