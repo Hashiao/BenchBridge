@@ -28,10 +28,12 @@ import Combine
     func start(_ family: BenchFamily) {
         guard !running else { return }
         do {
-            try config.validate()
+            var snapshot = config
+            if family == .storage { snapshot.storage = config.storageSettings.normalized }
+            try snapshot.validate()
             guard ProcessInfo.processInfo.thermalState.rawValue < ProcessInfo.ThermalState.serious.rawValue else { throw BenchError.message("设备需要降温") }
             let session = try CancellationToken(); token = session
-            let report = BenchWorker.initial(family, config: config); reports[family] = report
+            let report = BenchWorker.initial(family, config: snapshot); reports[family] = report
             running = true; activeFamily = family; error = nil; UIApplication.shared.isIdleTimerDisabled = true
             let destination = store
             let receiver = self

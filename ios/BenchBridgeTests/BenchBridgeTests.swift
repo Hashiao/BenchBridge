@@ -23,6 +23,9 @@ final class BenchBridgeTests: XCTestCase {
         var edited = config; edited.ramSettings.memoryMiB = 128
         XCTAssertEqual(edited.ramSettings.latencyMiB, 64); XCTAssertEqual(edited.storageSettings, config.storageSettings)
         XCTAssertEqual(edited.durationMs, 500)
+        var custom = config.storageSettings; custom.cases[0].blockKiB = 128; custom.cases[0].queueDepth = 4
+        XCTAssertEqual(custom.normalized.cases[0].id, "seq128k-q4t1")
+        custom.cases[0] = custom.cases[1]; XCTAssertThrowsError(try custom.normalized.validate())
         var score = ScoreItem(id: "rom", title: "ROM", unit: "MB/s", values: [1,2,3])
         XCTAssertEqual(score.score, 2); score.aggregation = "maximum_completed_round"; XCTAssertEqual(score.score, 3)
     }

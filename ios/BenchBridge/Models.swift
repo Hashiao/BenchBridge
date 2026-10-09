@@ -87,6 +87,12 @@ struct StorageCase: Codable, Equatable, Identifiable, Sendable {
     var queueDepth: Int
     var threads: Int
     var title: String { "\(random ? "RND" : "SEQ") \(blockKiB >= 1024 ? "\(blockKiB / 1024) MiB" : "\(blockKiB) KiB") Q\(queueDepth)T\(threads)" }
+    var canonical: Self {
+        var value = self
+        let block = blockKiB >= 1024 ? "\(blockKiB / 1024)m" : "\(blockKiB)k"
+        value.id = "\(random ? "rnd" : "seq")\(block)-q\(queueDepth)t\(threads)"
+        return value
+    }
     static let standard: [Self] = [
         Self(id: "seq1m-q8t1", random: false, blockKiB: 1024, queueDepth: 8, threads: 1),
         Self(id: "seq1m-q1t1", random: false, blockKiB: 1024, queueDepth: 1, threads: 1),
@@ -102,6 +108,7 @@ struct StorageParameters: Codable, Equatable, Sendable {
     var intervalMs = 5000
     var noCache = true
     var cases = StorageCase.standard
+    var normalized: Self { var value = self; value.cases = cases.map(\.canonical); return value }
     func validate() throws {
         guard (1...65536).contains(fileMiB), (1...9).contains(repeats), (0...10000).contains(warmupMs),
               (5...30000).contains(durationMs), (0...30000).contains(intervalMs), !cases.isEmpty, cases.count <= 8,
@@ -288,7 +295,11 @@ enum Statistics {
         guard maximum >= 4096, steps > 0 else { return [] }
         let count = Int(ceil(log2(Double(maximum) / 4096) * Double(steps)))
         let regular = (0...count).map { UInt64(4096 * pow(2, Double($0) / Double(steps))) / 256 * 256 }
-        let reference = anchors.filter { $0 <= 256 * 1048576 }.flatMap { [$0 * 15 / 16, $0, $0 * 17 / 16].map { $0 / 256 * 256 } }
+        var reference: [UInt64] = []
+        for anchor in anchors where anchor <= 268435456 {
+            let candidates: [UInt64] = [anchor * 15 / 16, anchor, anchor * 17 / 16]
+            for candidate in candidates { reference.append(candidate / 256 * 256) }
+        }
         return Array(Set((regular + reference + [maximum / 256 * 256]).filter { $0 >= 4096 && $0 <= maximum })).sorted()
     }
     static func refresh(_ group: inout CurveGroup) {
