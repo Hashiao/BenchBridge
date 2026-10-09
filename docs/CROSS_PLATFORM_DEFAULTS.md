@@ -57,6 +57,14 @@ Both use the same 64 MiB SplitMix64 pattern pool/seed with fully initialized fil
 
 Both retain RAM/ROM/GPGPU/history/device navigation, the read/write/latency/copy RAM row and four storage rows with read/write columns. Family-specific presets/settings avoid changing unrelated workloads. iOS retains native navigation, forms, sharing and iPad layout; Android retains Material controls.
 
+iOS 新报告使用 schema 2：`config.ram` 为 RAM 摘要参数，`config.storage` 为 ROM 参数，`config.cache_max_mi_b` 等为曲线设置；原顶层内存/时长/次数字段保留给 GPGPU 与旧记录兼容。`measurements.working_set_bytes`、`threads` 和 `storage_samples` 记录实际执行值。文件大小不等于累计读写量，拷贝成绩中的字节数按读写合计。旧 schema 1 报告仍按原字段与中位数显示。
+
+New iOS reports use schema 2: `config.ram` holds RAM score parameters, `config.storage` storage parameters, and fields such as `config.cache_max_mi_b` the curve settings. Original top-level memory/duration/repeat fields remain for GPGPU and legacy decoding. Measurement `working_set_bytes`, `threads` and `storage_samples` retain actual execution values. File size is distinct from cumulative I/O; copy counts reads plus writes. Schema 1 reports retain their original fields and median aggregation.
+
+`storage_samples` 同时记录实际在途深度、`start_delay_ns`（唤醒后开始执行前的等待）及 `minimum_worker_operations`（各工作线程完成数的最小值）。极短测试仍提交首批请求，超出目标窗口的等待按真实耗时计入，不能用目标时长冒充实测时间。`error_phase` 为 1 准备、2 预热、3 测量、4 同步、5 校验，成功为 0；配合系统错误码排查，不把零次操作误报为磁盘故障。
+
+`storage_samples` also retains actual outstanding depth, `start_delay_ns` (worker wakeup delay) and `minimum_worker_operations` (the minimum completed count across workers). Very short tests submit a first batch while retaining actual elapsed time, including deadline overshoot; the requested duration never substitutes for measured time. `error_phase` uses 1 preparation, 2 warmup, 3 measurement, 4 sync, 5 validation, and 0 success. Together with the OS error code, this distinguishes missing work from a file failure.
+
 新版本必须重新运行本地原生测试、安卓构建/Lint/设备用例和苹果两套工具链的 iPhone/iPad 模拟器用例；最终结果见对应 GitHub Release。已有 0.11.0 真机安装运行反馈不代替 0.12.0 新测量内核的真机验收。
 
 The release requires fresh native, Android build/Lint/device and both Apple toolchain iPhone/iPad simulator checks; final evidence belongs to the matching GitHub Release. Reported successful physical installation of 0.11.0 does not validate the new 0.12.0 measurement kernels on-device.

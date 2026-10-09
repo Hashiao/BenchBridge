@@ -4,9 +4,9 @@
 
 [全部版本与更新记录 / All releases and changes](https://github.com/Hashiao/BenchBridge/releases)
 
-Android CPU、GPU、内存与存储基准测试工具，使用 Kotlin / Jetpack Compose 构建界面，使用 C++20 和 Vulkan 计算着色器执行测量。
+Android、iPhone 与 iPad 的 CPU、GPU、内存与存储基准测试工具。安卓采用 Kotlin / Jetpack Compose 与 Vulkan，苹果采用 SwiftUI 与 Metal，底层测量使用 C++20。
 
-An Android CPU, GPU, memory and storage benchmark with a Kotlin / Jetpack Compose interface, C++20 kernels and Vulkan compute shaders.
+A CPU, GPU, memory and storage benchmark for Android, iPhone and iPad. Android uses Kotlin / Jetpack Compose and Vulkan; Apple uses SwiftUI and Metal, with C++20 measurement kernels.
 
 本仓库公开当前 0.12.0 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
 
@@ -15,6 +15,10 @@ This repository contains the current 0.12.0 implementation. The app interface is
 0.12.0 对齐安卓与苹果的默认 RAM 64 MiB、单线程 4 KiB–64 MiB 曲线和 DiskMark ROM 配置，并统一主要操作布局。详见 [跨平台默认参数与能力边界](docs/CROSS_PLATFORM_DEFAULTS.md)。
 
 0.12.0 aligns Android/Apple RAM defaults at 64 MiB, single-thread 4 KiB–64 MiB curves, DiskMark storage settings and main UI layouts. See [defaults and platform capabilities](docs/CROSS_PLATFORM_DEFAULTS.md).
+
+0.12.0 验证：安卓 Debug/签名 Release/androidTest 构建、两种 Lint、API 37 模拟器 37 项回归及 Release 覆盖安装启动通过。苹果 [本次 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37873837857) 在 Xcode 16.4/27、iOS 18.5/27.0 的 iPhone/iPad 上各通过 11 项，共 44 项，无跳过；两套 ARM64 真机构建与本地 C++ 验证通过。新版本真机性能仍待用户验收；SMB 按此前要求暂缓。
+
+0.12.0 verification: Android Debug/signed Release/androidTest builds, both Lint variants, 37 API 37 emulator regressions and a signed Release upgrade/launch passed. [Matching Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/37873837857) passed 11 tests on each iPhone/iPad for Xcode 16.4/27 and iOS 18.5/27.0, 44 total with no skips; both ARM64 device builds and local C++ checks passed. New-version device performance remains pending; SMB remains deferred as requested.
 
 ## iPhone / iPad
 

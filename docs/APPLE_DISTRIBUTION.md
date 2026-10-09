@@ -36,8 +36,8 @@ When required, follow [Apple's Developer Mode instructions](https://developer.ap
    Record model, OS and app version on each device. Let it cool, disable Low Power Mode, keep the app foregrounded and avoid other heavy work.
 2. 设置中先选“快速测试”，分别运行 RAM、ROM、GPGPU，确认能结束、停止、查看历史和导出 JSON。RAM 应先出现读、写、延迟、拷贝四项，曲线随后扫描。
    Start with the Quick preset for RAM, ROM and GPGPU. Check completion, stop, history and JSON export. Four RAM scores appear before curve scanning.
-3. 再选“标准测试”测 RAM 完整曲线，并在冷却后用相同参数复测。ROM 和 GPGPU 分别保存结果，不拿模拟器成绩与真机比较。
-   Use Standard for the full RAM curve and repeat after cooling with identical settings. Save separate storage/compute reports; do not compare simulator performance with devices.
+3. 分别在 RAM、ROM 页面恢复“标准测试”：RAM 带宽和延迟均为 64 MiB，单线程曲线为 4 KiB–64 MiB；ROM 为 1 GiB、3 次、四行 Q8T1/Q1T1/Q32T1/Q1T1。0.12.0 的预设仅影响当前测试类型。用标准配置测完整曲线，冷却后按相同参数复测；各类结果分别保存，不拿模拟器成绩与真机比较。
+   Restore Standard separately on RAM and ROM: 64 MiB RAM bandwidth/latency, a single-worker 4 KiB–64 MiB sweep, and a 1 GiB storage file with three repetitions across Q8T1/Q1T1/Q32T1/Q1T1 rows. In 0.12.0 presets affect only the current family. Run the complete standard curve and repeat after cooling with identical parameters; save each report and do not compare simulator scores with device performance.
 4. 每项结束后“导出 JSON”，将 iPhone/iPad 各自的文件连同异常截图提供给开发者；附上插电状态、低电量模式、是否切后台及复现步骤。后台/锁屏会停止本版苹果端测试，已完成数据仍保存。
    Export each report and provide per-device JSON plus issue screenshots, power state, Low Power Mode, backgrounding and reproduction steps. Backgrounding/locking stops this Apple version while retaining completed data.
 5. 更新、换签名方式或移除应用前先导出历史；不同 Bundle ID 的安装可能使用不同数据目录。
@@ -79,3 +79,7 @@ The Apple binary comes from commit `5a3748fa967f41837622dd1a388c1a8162966610` an
 0.12.0 的参数与能力见 [跨平台对齐说明](CROSS_PLATFORM_DEFAULTS.md)，构建/测试结果以对应新 Release 为准，不沿用上面的旧版通过记录。
 
 For 0.12.0, see [aligned defaults](CROSS_PLATFORM_DEFAULTS.md) and its matching Release for fresh build/test outcomes; the historical results above do not validate the new binary.
+
+0.12.0 最终应用源码为 `297161462c683e11eb6c3e30f3f4f89f61db252c`，[对应 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37873837857) 完成两套工具链真机 ARM64 构建，以及 iOS 18.5/27.0 各自 iPhone/iPad 共 44 项通过、无跳过。发布标签仅在其后补充验收文档，不改应用源码。安卓 37 项 API 37 模拟器回归、构建/Lint、签名与覆盖安装启动均通过；新版本手机性能仍需真机实测。
+
+The final 0.12.0 application source is `297161462c683e11eb6c3e30f3f4f89f61db252c`. [Matching CI](https://github.com/Hashiao/BenchBridge/actions/runs/37873837857) completed ARM64 device builds on both toolchains and 44 iPhone/iPad tests across iOS 18.5/27.0 with no skips. The release tag adds acceptance documentation only. Android's 37 API 37 emulator regressions, builds/Lint, signing and upgrade/launch passed; new-version phone performance still requires physical testing.
