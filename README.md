@@ -32,9 +32,9 @@ This repository contains the current 0.12.3 implementation. The app interface is
 
 0.12.0 aligns Android/Apple RAM defaults at 64 MiB, single-thread 4 KiB–64 MiB curves, DiskMark storage settings and main UI layouts. See [defaults and platform capabilities](docs/CROSS_PLATFORM_DEFAULTS.md).
 
-0.12.2 验证：安卓 Debug/签名 Release/androidTest 构建、两种 Lint、16 项 API 37 参数/存储回归及从 0.12.1 覆盖安装启动通过。苹果 [对应 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37887942311) 两套工具链原生缓存驻留/计数回归通过，iOS 18.5/27.0 的 iPhone/iPad 共 44 项通过、无跳过；IPA 与主程序最低系统均为 16.0。用户手机修复后的实际读速仍需 ROM JSON 复验；SMB 暂缓。
+0.12.3 验证：安卓 Debug/签名 Release/androidTest 构建、两种 Lint、39 项 API 37 回归及从 0.12.2 覆盖升级启动通过。苹果 [对应 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37942519682) 两套工具链的原生回归与 iPhone/iPad 共 44 项测试通过、无跳过；IPA 和主程序最低系统均为 16.0。故障手机仍需用新版导出 JSON 复验；SMB 按用户要求暂缓。
 
-0.12.2 verification: Android Debug/signed Release/androidTest builds, both Lints, 16 API 37 parameter/storage regressions and upgrade/launch from 0.12.1 passed. [Matching Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/37887942311) passed native cache-residency/accounting checks on both toolchains and 44 iPhone/iPad tests across iOS 18.5/27.0 with no skips. IPA/executable minimum OS is 16.0. Corrected phone throughput still needs device ROM JSON; SMB remains deferred.
+0.12.3 verification: Android Debug/signed Release/androidTest builds, both Lints, 39 API 37 regressions and upgrade/launch from 0.12.2 passed. [Matching Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/37942519682) passed native regressions on both toolchains and 44 iPhone/iPad tests with no skips; IPA/executable minimum OS is 16.0. The affected phone still needs a fresh diagnostic JSON; SMB remains deferred by user instruction.
 
 ## iPhone / iPad
 

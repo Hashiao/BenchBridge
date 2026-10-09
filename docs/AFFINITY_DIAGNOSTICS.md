@@ -45,3 +45,19 @@ Diagnostics read only this process's worker scheduling context, excluding comman
 `runtime_diagnostics` 保存报告创建、执行开始及结束时的系统版本、进程号、活动处理器数、省电与热状态。`affinity_capability=unavailable_system_scheduled_qos` 明确表示公开接口不提供安卓式绑核；已有采样保留请求的 QoS，不伪造物理核心编号或 Linux cpuset。新增字段可选，旧 JSON 继续可读。最低系统仍为 iOS/iPadOS 16.0。
 
 `runtime_diagnostics` records report creation, worker start and finish with OS version, PID, active processor count, low-power mode and thermal state. `affinity_capability=unavailable_system_scheduled_qos` explicitly records the lack of Android-style public affinity controls. Samples retain requested QoS without fabricated physical CPU IDs or Linux cpusets. New fields are optional for legacy JSON compatibility; iOS/iPadOS 16.0 remains the minimum.
+
+## 安卓验收 / Android acceptance
+
+应用源码 `da942eeef0c5b9c5b56def0656a53540035773d8`：Debug、签名 Release、androidTest 构建与两种 Lint 通过。API 37 模拟器 39 项测试通过，覆盖故障注入、失败保存/导出、正常绑核、取消、参数、曲线与存储；正式包从 0.12.2 覆盖升级启动通过。已核对真实导出中成功采样的核心集合及失败采样的返回码和 errno。ARM64 Release 的注入入口反汇编确认直接返回 false。
+
+Application source `da942eeef0c5b9c5b56def0656a53540035773d8` passed Debug, signed Release and androidTest builds plus both Lints. All 39 API 37 simulator tests passed, covering fault injection, failure persistence/export, valid affinity, cancellation, parameters, curves and storage. Signed upgrade/launch from 0.12.2 passed. Exported success masks and failure return codes/errno were checked; ARM64 Release disassembly confirms the injection entry returns false directly.
+
+这些是功能验收，不代表已在报错的 HyperOS 手机复现或修复其调度行为。原机仍需安装新版重新测试。
+
+These are functional checks, not a reproduction or scheduling-policy fix on the affected HyperOS phone. That device still needs a new run with this version.
+
+## 苹果验收 / Apple acceptance
+
+[对应源码 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37942519682) 的两套工具链均通过共享原生回归；iOS 18.5/27.0 的 iPhone/iPad 共 44 项通过、无跳过，包括报告导出、恢复及新旧 JSON 兼容。已核对真机 ARM64 IPA 与主程序最低系统均为 16.0。没有可用的 iOS 16 模拟器运行时，本次不宣称已在 iOS 16 或用户真机上执行测试。
+
+Both toolchains in [matching-source CI](https://github.com/Hashiao/BenchBridge/actions/runs/37942519682) passed shared native regressions and 44 iPhone/iPad tests on iOS 18.5/27.0 with no skips, including export/recovery and new/legacy JSON compatibility. The ARM64 device IPA and executable minimum OS were verified as 16.0. No iOS 16 simulator runtime was available; no iOS 16 runtime or physical-device test is claimed.
