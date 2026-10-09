@@ -1,8 +1,8 @@
 # 苹果端安装、真机测试与上架 / Apple installation, device testing and distribution
 
-适用于 BenchBridge 0.12.1；资料核对日期 2026-10-08。应用最低 iOS/iPadOS 16.0，当前是供真机验收的首版，不是已经上架 App Store 的成品。
+适用于 BenchBridge 0.12.1；资料核对日期 2026-10-08。应用最低 iOS/iPadOS 16.0，当前是供真机验收的测试版，不是已经上架 App Store 的成品。
 
-For BenchBridge 0.12.1; references checked on 2026-10-08. Minimum iOS/iPadOS 16.0. This first version is ready for device acceptance testing; it is not already an App Store release.
+For BenchBridge 0.12.1; references checked on 2026-10-08. Minimum iOS/iPadOS 16.0. This test build is ready for device acceptance testing; it is not already an App Store release.
 
 ## 1. 下载哪一个文件 / Choose the download
 
@@ -83,3 +83,9 @@ For 0.12.0, see [aligned defaults](CROSS_PLATFORM_DEFAULTS.md) and its matching 
 0.12.0 最终应用源码为 `297161462c683e11eb6c3e30f3f4f89f61db252c`，[对应 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37873837857) 完成两套工具链真机 ARM64 构建，以及 iOS 18.5/27.0 各自 iPhone/iPad 共 44 项通过、无跳过。发布标签仅在其后补充验收文档，不改应用源码。安卓 37 项 API 37 模拟器回归、构建/Lint、签名与覆盖安装启动均通过；新版本手机性能仍需真机实测。
 
 The final 0.12.0 application source is `297161462c683e11eb6c3e30f3f4f89f61db252c`. [Matching CI](https://github.com/Hashiao/BenchBridge/actions/runs/37873837857) completed ARM64 device builds on both toolchains and 44 iPhone/iPad tests across iOS 18.5/27.0 with no skips. The release tag adds acceptance documentation only. Android's 37 API 37 emulator regressions, builds/Lint, signing and upgrade/launch passed; new-version phone performance still requires physical testing.
+
+## 0.12.1 验收 / Acceptance
+
+最终应用源码为 `0afe9a49f18b60cc0956e44f7649f6cbbb04b1cd`，发布标签只补充验收说明。[本次 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37880887441) 完成 iOS 18.5/27.0 各自 iPhone/iPad 共 44 项测试，无跳过，包含图表拖动选点和标准时长取消。最低系统已从 18.0 降至 16.0，并同时校验 IPA 的 MinimumOSVersion 和 Mach-O minos。当前模拟器运行记录不包含 iOS 16，不宣称已在 iOS 16 真机或模拟器完成专项验收。安卓 37 项、构建/Lint、签名及覆盖启动通过；RAM 均值、单次曲线和 ROM 1/5/1 秒默认已包含在本版。
+
+Final application source is `0afe9a49f18b60cc0956e44f7649f6cbbb04b1cd`; the release tag adds acceptance notes only. [Matching CI](https://github.com/Hashiao/BenchBridge/actions/runs/37880887441) passed 44 iPhone/iPad tests on iOS 18.5/27.0 with no skips, including chart point selection and cancellation under standard timing. The minimum OS drops from 18.0 to 16.0, checked in both IPA MinimumOSVersion and Mach-O minos. These simulator runs do not include iOS 16; dedicated iOS 16 device/simulator acceptance is not claimed. Android's 37 tests, builds/Lint, signing and upgrade/launch passed. This release includes RAM mean scoring, single-sample curves and ROM 1/5/1-second defaults.

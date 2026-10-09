@@ -24,9 +24,9 @@ This repository contains the current 0.12.1 implementation. The app interface is
 
 0.12.0 aligns Android/Apple RAM defaults at 64 MiB, single-thread 4 KiB–64 MiB curves, DiskMark storage settings and main UI layouts. See [defaults and platform capabilities](docs/CROSS_PLATFORM_DEFAULTS.md).
 
-0.12.0 验证：安卓 Debug/签名 Release/androidTest 构建、两种 Lint、API 37 模拟器 37 项回归及 Release 覆盖安装启动通过。苹果 [本次 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37873837857) 在 Xcode 16.4/27、iOS 18.5/27.0 的 iPhone/iPad 上各通过 11 项，共 44 项，无跳过；两套 ARM64 真机构建与本地 C++ 验证通过。新版本真机性能仍待用户验收；SMB 按此前要求暂缓。
+0.12.1 验证：安卓 Debug/签名 Release/androidTest 构建、两种 Lint、API 37 模拟器 37 项回归及从 0.12.0 覆盖安装启动通过。苹果 [对应 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37880887441) 在 Xcode 16.4/27、iOS 18.5/27.0 的 iPhone/iPad 上共 44 项通过，无跳过；两套 ARM64 真机构建、IPA 与主程序二进制最低系统 16.0 检查、本地 C++ 检查通过。iOS 16 专项运行和新版本真机性能仍待验收；SMB 按此前要求暂缓。
 
-0.12.0 verification: Android Debug/signed Release/androidTest builds, both Lint variants, 37 API 37 emulator regressions and a signed Release upgrade/launch passed. [Matching Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/37873837857) passed 11 tests on each iPhone/iPad for Xcode 16.4/27 and iOS 18.5/27.0, 44 total with no skips; both ARM64 device builds and local C++ checks passed. New-version device performance remains pending; SMB remains deferred as requested.
+0.12.1 verification: Android Debug/signed Release/androidTest builds, both Lints, 37 API 37 emulator regressions and upgrade/launch from 0.12.0 passed. [Matching Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/37880887441) passed 44 iPhone/iPad tests across Xcode 16.4/27 and iOS 18.5/27.0 with no skips; both ARM64 device builds, IPA/executable minimum-OS 16.0 checks and local C++ checks passed. Dedicated iOS 16 runtime and new-version physical performance acceptance remain pending; SMB remains deferred as requested.
 
 ## iPhone / iPad
 
