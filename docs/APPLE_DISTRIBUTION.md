@@ -101,3 +101,9 @@ Application source is `e6fd56d028c84fba7bc9bc10fd816e5124bc0a25`; the release ta
 应用源码 `da942eeef0c5b9c5b56def0656a53540035773d8`，发布标签只补充验收文档。[本次 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37942519682) 两套苹果工具链和 44 项 iPhone/iPad 测试通过，最低系统仍为 16.0。新增诊断与复测步骤见 [RAM 绑核诊断](AFFINITY_DIAGNOSTICS.md)。IPA 为未签名真机包，仍须个人签名安装。
 
 Application source is `da942eeef0c5b9c5b56def0656a53540035773d8`; the release tag adds acceptance documentation only. [Matching CI](https://github.com/Hashiao/BenchBridge/actions/runs/37942519682) passed both Apple toolchains and 44 iPhone/iPad tests, retaining minimum OS 16.0. See [RAM diagnostics](AFFINITY_DIAGNOSTICS.md) for new evidence and retesting. The device IPA is unsigned and still requires personal signing.
+
+## 0.12.4 验收 / Acceptance
+
+应用源码 `dca04a3a5338378fabf35c353872d382e020a8cf`，标签仅补验收文档。[本次 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37976228323) 两套苹果工具链及 44 项 iPhone/iPad 测试通过。苹果端仅同步版本号，保留测量行为和 iOS/iPadOS 16.0 最低要求，IPA 仍须个人签名安装。
+
+Application source is `dca04a3a5338378fabf35c353872d382e020a8cf`; the tag adds acceptance documentation only. [Matching CI](https://github.com/Hashiao/BenchBridge/actions/runs/37976228323) passed both Apple toolchains and 44 iPhone/iPad tests. Apple synchronizes its version while retaining measurement behavior and minimum iOS/iPadOS 16.0. The IPA still requires personal signing.

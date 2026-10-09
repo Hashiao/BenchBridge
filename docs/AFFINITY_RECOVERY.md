@@ -42,3 +42,13 @@ Upgrade both the working 4.0.6 phone and the affected phone, rerun with matching
 iOS 0.12.4 为同步发版，保留现有系统 QoS 调度和测量行为；最低系统仍为 iOS/iPadOS 16.0。
 
 iOS 0.12.4 is a synchronized release retaining existing system QoS scheduling and measurement behavior, with iOS/iPadOS 16.0 as the minimum.
+
+## 0.12.4 验收 / Acceptance
+
+应用源码 `dca04a3a5338378fabf35c353872d382e020a8cf`。安卓 Debug/签名 Release/androidTest、两种 Lint 与最终 46 项 API 37 回归通过，包含九项诊断/恢复用例：正常候选顺序与参数保持一致、跨簇回读拒绝、同组替代、全部受限后完成 RAM、正式轮次重测不混算、数据校验仍失败、曲线替代后续测及中途失效。正常和受限模式的 JSON、截图及从 0.12.3 覆盖升级启动通过核验。APK 内六个原生库与 0.12.3 字节相同。
+
+Application source is `dca04a3a5338378fabf35c353872d382e020a8cf`. Android Debug/signed Release/androidTest builds, both Lints and the final 46 API 37 tests passed, including nine diagnostic/recovery tests for healthy candidate/parameter preservation, cross-group mask rejection, same-group replacement, all-restricted RAM completion, unmixed formal restarts, fatal data verification, replacement-curve resume and mid-curve loss. Healthy/restricted JSON and screenshots plus signed upgrade/launch from 0.12.3 were checked. All six APK native libraries are byte-identical to 0.12.3.
+
+[Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/37976228323) 双工具链原生检查及 iOS 18.5/27.0 的 iPhone/iPad 共 44 项通过、无跳过。真机 ARM64 IPA 与主程序最低系统均为 16.0；未提供 iOS 16 模拟器运行时，本版真机表现仍待复测。最终标签仅补验收文档。
+
+[Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/37976228323) passed native checks on both toolchains and 44 iPhone/iPad tests on iOS 18.5/27.0 with no skips. ARM64 device IPA/executable minimum OS is 16.0; no iOS 16 simulator runtime was available, and physical-device acceptance remains pending. The final tag adds acceptance documentation only.

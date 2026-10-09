@@ -36,9 +36,9 @@ This repository contains the current 0.12.4 implementation. The app interface is
 
 0.12.0 aligns Android/Apple RAM defaults at 64 MiB, single-thread 4 KiB–64 MiB curves, DiskMark storage settings and main UI layouts. See [defaults and platform capabilities](docs/CROSS_PLATFORM_DEFAULTS.md).
 
-0.12.3 验证：安卓 Debug/签名 Release/androidTest 构建、两种 Lint、39 项 API 37 回归及从 0.12.2 覆盖升级启动通过。苹果 [对应 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37942519682) 两套工具链的原生回归与 iPhone/iPad 共 44 项测试通过、无跳过；IPA 和主程序最低系统均为 16.0。故障手机仍需用新版导出 JSON 复验；SMB 按用户要求暂缓。
+0.12.4 验证：安卓构建、两种 Lint、46 项 API 37 回归及从 0.12.3 签名覆盖升级启动通过；六个原生库与 0.12.3 逐字节一致。苹果 [对应 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37976228323) 双工具链原生回归及 iPhone/iPad 共 44 项通过、无跳过，最低系统 16.0。正常 4.0.6 手机与受限手机仍需分别复测；SMB 按用户要求暂缓。
 
-0.12.3 verification: Android Debug/signed Release/androidTest builds, both Lints, 39 API 37 regressions and upgrade/launch from 0.12.2 passed. [Matching Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/37942519682) passed native regressions on both toolchains and 44 iPhone/iPad tests with no skips; IPA/executable minimum OS is 16.0. The affected phone still needs a fresh diagnostic JSON; SMB remains deferred by user instruction.
+0.12.4 verification: Android builds, both Lints, 46 API 37 regressions and signed upgrade/launch from 0.12.3 passed; all six native libraries are byte-identical to 0.12.3. [Matching Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/37976228323) passed native regressions on both toolchains and 44 iPhone/iPad tests with no skips, retaining minimum OS 16.0. Both the working 4.0.6 phone and restricted phone still require device retesting; SMB remains deferred.
 
 ## iPhone / iPad
 
