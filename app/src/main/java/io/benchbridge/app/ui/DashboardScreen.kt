@@ -282,7 +282,8 @@ private fun DashboardStatus(disk: Boolean, report: JSONObject?, running: Boolean
         val statusText=when {
             running && curve && report.optString("phase")=="CACHE_PROBING" -> "扫描 CPU ${probe?.optInt("current_cpu_id")} · ${BenchmarkFormat.bytes(probe?.optLong("current_working_set_bytes")?:0)}"
             running -> "$current$phase · $completed / $total 轮"
-            curve && state=="PARTIAL" -> "扫描结束 · 部分范围受干扰"
+            curve && state=="PARTIAL" -> if(report!=null&&RamResults.stateLabel(report)=="部分核心组无法固定绑定")
+                "部分核心组无法固定绑定" else "扫描结束 · 部分范围受干扰"
             else -> RamResults.stateLabel(state)
         }
         Text(statusText,

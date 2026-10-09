@@ -8,6 +8,10 @@ Native SwiftUI + C++20 + Metal application for iPhone and iPad, targeting iOS/iP
 
 See [aligned defaults and platform differences](../docs/CROSS_PLATFORM_DEFAULTS.md), including Apple model/core-group discovery.
 
+0.12.4 与安卓绑定兼容修复同步发版；苹果端保留现有 QoS 调度、运行诊断与测量行为，不实现 Linux 式物理核心绑定。详见 [兼容策略](../docs/AFFINITY_RECOVERY.md)。
+
+0.12.4 ships alongside Android affinity recovery. Apple retains existing QoS scheduling, runtime diagnostics and measurements without Linux-style physical CPU binding. See [recovery and platform limits](../docs/AFFINITY_RECOVERY.md).
+
 ## 功能与范围 / Features and scope
 
 | 项目 / Area | 0.12.4 实现 / Implementation |

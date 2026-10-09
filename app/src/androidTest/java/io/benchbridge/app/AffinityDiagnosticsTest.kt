@@ -103,6 +103,7 @@ class AffinityDiagnosticsTest {
             scenario.scenario.onActivity { model.selectHistory(report) }
             val device=UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
             device.wait(Until.findObject(By.res("tab_2")),5000).click()
+            assertTrue(device.wait(Until.hasObject(By.text("部分核心组无法固定绑定")),5000))
             for(kind in MemoryPlanner.columns)assertTrue(device.wait(Until.hasObject(By.res("curve_ram_binding_$kind").text("系统调度 · T1")),5000))
             device.takeScreenshot(File(context.cacheDir,"affinity-fallback.png"))
             val token = model.prepareExport(report)
