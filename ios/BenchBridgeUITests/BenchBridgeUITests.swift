@@ -38,7 +38,12 @@ final class BenchBridgeUITests: XCTestCase {
             }
         }
         screenshot("Storage", app: app)
-        tab("RAM", app: app); app.buttons["start-test"].tap()
+        tab("RAM", app: app)
+        // 使用标准时长验证取消，避免单次快测在点击前完成。 / Use standard timing so the single-sample quick run cannot finish before cancellation.
+        app.buttons["settings"].tap()
+        XCTAssertTrue(app.buttons["preset-standard"].waitForExistence(timeout: 10)); app.buttons["preset-standard"].tap()
+        app.buttons["settings-done"].tap()
+        app.buttons["start-test"].tap()
         XCTAssertTrue(app.buttons["stop-test"].waitForExistence(timeout: 10)); app.buttons["stop-test"].tap()
         XCTAssertTrue(app.buttons["start-test"].waitForExistence(timeout: 20))
         screenshot("Cancellation", app: app)
