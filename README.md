@@ -8,9 +8,13 @@ Android、iPhone 与 iPad 的 CPU、GPU、内存与存储基准测试工具。�
 
 A CPU, GPU, memory and storage benchmark for Android, iPhone and iPad. Android uses Kotlin / Jetpack Compose and Vulkan; Apple uses SwiftUI and Metal, with C++20 measurement kernels.
 
-本仓库公开当前 0.12.4 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
+本仓库公开当前 0.13.0 实现。Android 与 iPhone/iPad 根据手机首选语言自动显示简体中文或繁体中文，其他语言统一显示英文。繁中按语境使用「記憶體、快取、執行緒、頻寬、循序讀取、匯出」等术语；项目说明、关键代码注释和发布说明长期维护简体中文与英文双语。
 
-This repository contains the current 0.12.4 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+This repository contains the current 0.13.0 implementation. Android and iPhone/iPad automatically use Simplified or Traditional Chinese for the corresponding primary device language, and English for every other language. Traditional Chinese uses reviewed terminology such as 記憶體, 快取, 執行緒, 頻寬, 循序讀取 and 匯出. Project guides, key authored comments and release notes remain bilingual in Simplified Chinese and English.
+
+0.13.0 覆盖导航、设置、成绩、曲线、提示、通知、历史显示与导出说明。三语资源随安装包完整提供，旧记录的原始分数和机器字段保持原样。新增文案须同步维护三种语言，自动检查缺译与插值参数；详见 [长期语言约定与维护方式](docs/LOCALIZATION.md)。
+
+0.13.0 covers navigation, settings, results, curves, messages, notifications, history rendering and export summaries. All three locales ship in the app, preserving original historical scores and machine fields. New copy must include all three translations; automated checks detect missing translations and mismatched arguments. See [persistent language policy and maintenance](docs/LOCALIZATION.md).
 
 0.12.4 修复安卓绑定受限时整场 RAM 提前退出：仅在实际绑定失败后尝试同组其他核心；没有可用绑定计划时，RAM 四项明确使用系统调度 T1。中途换计划会完整重测该项，不混算不同核心的轮次；曲线受限组保留已验证点并继续其他组。正常绑核路径的候选顺序、校准、原生内核及默认参数保持不变。详见 [兼容策略、能力边界和真机复测](docs/AFFINITY_RECOVERY.md)。苹果同步版本号，测量行为不变，仍支持 iOS/iPadOS 16+。
 

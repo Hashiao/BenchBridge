@@ -6,6 +6,8 @@ Keep behavior changes, interface changes and documentation edits in separate com
 
 ## 代码与文档 / Code and documentation
 
+- 界面文案必须同步提供简体中文、经术语审校的繁体中文和英文，统一维护 `localization/catalog.json`；其他手机语言统一使用英文，不按第二语言回退中文。按 [语言维护指南](docs/LOCALIZATION.md) 生成资源并运行校验；新增功能遵循同样要求。
+  Provide Simplified Chinese, terminology-reviewed Traditional Chinese and English for all UI copy in `localization/catalog.json`. Every other primary device language uses English, without a secondary-Chinese fallback. Follow the [localization guide](docs/LOCALIZATION.md) to generate and check resources; this applies to every future feature.
 - 自有代码注释使用中英双语，解释约束和设计原因，避免复述代码。
   Write project-authored comments in Chinese and English. Explain constraints and design decisions rather than restating the code.
 - 保留上游生成文件和许可证的原始声明，不改写法律文本。

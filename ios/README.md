@@ -8,13 +8,13 @@ Native SwiftUI + C++20 + Metal application for iPhone and iPad, targeting iOS/iP
 
 See [aligned defaults and platform differences](../docs/CROSS_PLATFORM_DEFAULTS.md), including Apple model/core-group discovery.
 
-0.12.4 与安卓绑定兼容修复同步发版；苹果端保留现有 QoS 调度、运行诊断与测量行为，不实现 Linux 式物理核心绑定。详见 [兼容策略](../docs/AFFINITY_RECOVERY.md)。
+0.13.0 与安卓同步增加简体中文、经术语审校的繁体中文、英文；按手机首选语言选择，其他语言统一回退英文。设置、曲线、结果、历史和导出说明同步适配。详见 [长期语言约定](../docs/LOCALIZATION.md)。苹果端保留现有 QoS 调度、运行诊断与测量行为，不实现 Linux 式物理核心绑定；详见 [兼容策略](../docs/AFFINITY_RECOVERY.md)。
 
-0.12.4 ships alongside Android affinity recovery. Apple retains existing QoS scheduling, runtime diagnostics and measurements without Linux-style physical CPU binding. See [recovery and platform limits](../docs/AFFINITY_RECOVERY.md).
+0.13.0 adds Simplified Chinese, terminology-reviewed Traditional Chinese and English alongside Android. The primary device language selects Chinese when applicable; every other language uses English. Settings, curves, results, history and export summaries are covered; see the [persistent language policy](../docs/LOCALIZATION.md). Apple retains existing QoS scheduling, diagnostics and measurements without Linux-style physical CPU binding; see [recovery and limits](../docs/AFFINITY_RECOVERY.md).
 
 ## 功能与范围 / Features and scope
 
-| 项目 / Area | 0.12.4 实现 / Implementation |
+| 项目 / Area | 0.13.0 实现 / Implementation |
 |---|---|
 | RAM | 标准默认四项均为 64 MiB、T1，关闭自动线程，四项各测 3 次取算术平均值；先测读取、写入、延迟、拷贝，首页保留四项摘要；可配置工作集、线程、时长、重复次数。 / Standard defaults are 64 MiB/T1 for all four scores, with automatic threads off and the arithmetic mean of three rounds per score. Read, write, latency and copy first, with a four-score dashboard row and configurable working set, threads, duration and repeats. |
 | 缓存曲线 / Cache curve | 默认 4 KiB–64 MiB、每倍容量 8 个间隔，单遍、每块仅采样 1 次，无复测和补点；显示实测点和多个持续转换区间。 / Default 4 KiB–64 MiB, eight intervals per octave, one sweep/sample per block without rechecks or refinement; measured points and multiple sustained transitions. |
