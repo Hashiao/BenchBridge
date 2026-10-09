@@ -110,9 +110,9 @@ struct StorageParameters: Codable, Equatable, Sendable {
     var protocolId = "diskmark-default-v2-apple-aio"
     var fileMiB = 1024
     var repeats = 3
-    var warmupMs = 5000
+    var warmupMs = 1000
     var durationMs = 5000
-    var intervalMs = 5000
+    var intervalMs = 1000
     var noCache = true
     var cases = StorageCase.standard
     var normalized: Self { var value = self; value.cases = cases.map(\.canonical); return value }

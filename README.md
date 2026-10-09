@@ -16,6 +16,10 @@ This repository contains the current 0.12.1 implementation. The app interface is
 
 0.12.1 sets the standard RAM read/write/latency/copy defaults to **64 MiB, T1** on Android and Apple. Each score uses **three rounds and their arithmetic mean**; curves default to **one sweep and one sample per block**, without rechecks or refinement. Thread-count calibration is off; manual multithreading, calibration and bidirectional verification remain optional.
 
+0.12.1 同时将 ROM 预热和间隔各缩短至 1 秒，正式测量仍为每轮 5 秒。
+
+0.12.1 also shortens ROM warmup and interval to one second each, retaining five-second measured rounds.
+
 0.12.0 对齐安卓与苹果的默认 RAM 64 MiB、单线程 4 KiB–64 MiB 曲线和 DiskMark ROM 配置，并统一主要操作布局。详见 [跨平台默认参数与能力边界](docs/CROSS_PLATFORM_DEFAULTS.md)。
 
 0.12.0 aligns Android/Apple RAM defaults at 64 MiB, single-thread 4 KiB–64 MiB curves, DiskMark storage settings and main UI layouts. See [defaults and platform capabilities](docs/CROSS_PLATFORM_DEFAULTS.md).

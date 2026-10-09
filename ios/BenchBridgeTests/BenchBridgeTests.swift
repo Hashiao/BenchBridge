@@ -10,6 +10,8 @@ final class BenchBridgeTests: XCTestCase {
         XCTAssertTrue(config.singleCurveSample == true); XCTAssertEqual(config.ramSettings.aggregation, "arithmetic_mean")
         XCTAssertEqual(config.cacheMaxMiB, 64); XCTAssertTrue(config.backgroundCurve)
         XCTAssertEqual(config.storageSettings.fileMiB, 1024); XCTAssertEqual(config.storageSettings.repeats, 3)
+        XCTAssertEqual(config.storageSettings.warmupMs, 1000); XCTAssertEqual(config.storageSettings.intervalMs, 1000)
+        XCTAssertEqual(config.storageSettings.durationMs, 5000)
         XCTAssertEqual(config.storageSettings.cases.map(\.queueDepth), [8,1,32,1])
         XCTAssertEqual(config.storageSettings.cases.map(\.threads), [1,1,1,1])
         XCTAssertEqual(BenchWorker.initial(.storage, config: config).plannedRounds, 24)

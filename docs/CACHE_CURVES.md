@@ -1,5 +1,9 @@
 # 缓存延迟曲线 / Cache latency curves
 
+0.12.1 默认采用 `single-pass-index-curve-v1`：4 KiB–64 MiB、每倍容量 8 个间隔（113 点/核心组），每块预热后只测一次约 30 ms，不反向扫描、复测或加密补点。下文双向一致性规则仅适用于可选的 `dense-index-curve-v3` 和旧历史。默认模式直接绘制有效实测值，不平滑；导出中的 `stable` 表示该协议下可用于绘图/分析的点，不代表已通过重复性验证。跨平台 RAM 四项默认及曲线参数见 [对齐说明](CROSS_PLATFORM_DEFAULTS.md)。
+
+The 0.12.1 default is `single-pass-index-curve-v1`: 4 KiB–64 MiB, eight intervals per octave (113 points per core group), one approximately 30 ms sample after warmup per block, without reverse sweeps, rechecks or refinement. The bidirectional consistency rules below apply only to optional `dense-index-curve-v3` and historical reports. The default plots valid measurements without smoothing; exported `stable` denotes a usable point under this protocol, not repeatability validation. See [aligned defaults](CROSS_PLATFORM_DEFAULTS.md) for all four RAM scores and curve parameters.
+
 0.10.0 使用 `dense-index-curve-v3`。目标是比较不同核心组的完整访问曲线，而不是从少数采样点猜测三个缓存容量。旧版 JSON 和历史曲线保留原协议，不重新计算成新版成绩。
 
 Version 0.10.0 uses `dense-index-curve-v3` to compare full latency curves across core groups. It does not guess three cache capacities from a few points. Historical JSON and curves retain their original protocol and results.

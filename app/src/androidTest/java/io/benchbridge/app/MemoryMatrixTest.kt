@@ -164,6 +164,7 @@ class MemoryMatrixTest {
         withTimeout(15000) { while(model.state.value.report==null) { check(model.state.value.error==null) { model.state.value.error!! };delay(30) } }
         val id=model.state.value.report!!.getString("run_id");owned+=id
         val report=terminal(id)
+        java.io.File(context.cacheDir,"matrix-verification.json").writeText(report.toString())
         assertTrue(report.toString(),report.getString("state") in setOf("COMPLETED","PARTIAL"))
         assertEquals(16,report.getJSONArray("cells").length())
         val measured=report.getJSONArray("effective_plan").length()

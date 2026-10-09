@@ -129,7 +129,7 @@ class ParameterAlignmentTest {
         val config = model.state.value.storageConfig
         assertEquals(1024, config.fileMiB)
         assertEquals(3, config.rounds)
-        assertEquals(5000, config.durationMs); assertEquals(5000, config.warmupMs); assertEquals(5000, config.intervalMs)
+        assertEquals(5000, config.durationMs); assertEquals(1000, config.warmupMs); assertEquals(1000, config.intervalMs)
         assertEquals(listOf(1024, 1024, 4, 4), config.cases.map { it.blockKiB })
         assertEquals(listOf(8, 1, 32, 1), config.cases.map { it.queue })
         assertTrue(config.cases.all { it.threads == 1 })

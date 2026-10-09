@@ -13,7 +13,7 @@ The 0.12.1 standard preset shares the defaults below: all four RAM scores use 64
 | 块大小—延迟 / Working-set latency | 4 KiB–64 MiB，单线程，每倍容量 8 个间隔，单遍、每块仅采样 1 次，无复测和补点 / One worker, 8 intervals per octave, one sweep/sample per block, no rechecks or refinement |
 | ROM 文件 / Storage file | 1 GiB，预先完整初始化一次 / Fully initialized once per run |
 | ROM 四行 / Four storage rows | SEQ 1 MiB Q8T1、SEQ 1 MiB Q1T1、RND 4 KiB Q32T1、RND 4 KiB Q1T1 |
-| ROM 重复与计时 / Repetition and timing | 读写各 3 次，取最佳完整轮次；预热、测量、间隔各 5 s / 3 rounds per direction, maximum valid complete round; 5 s each for warmup, measurement and interval |
+| ROM 重复与计时 / Repetition and timing | 读写各 3 次，取最佳完整轮次；预热 1 s、测量 5 s、间隔 1 s / 3 rounds per direction, maximum valid complete round; 1 s warmup, 5 s measurement, 1 s interval |
 
 RAM 总工作集不会按末级缓存自动扩大；多线程按 256 B 分配余数，64 MiB 保持为总量。64 MiB 不保证避开每台设备的全部系统缓存。旧安卓记录中 `expand_ram_working_set` 缺失表示旧扩大策略；新配置明确为 false。
 
