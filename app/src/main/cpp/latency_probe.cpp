@@ -1,5 +1,6 @@
 #include "latency_probe.h"
 #include "ram_kernels.h"
+#include "affinity_diagnostics.h"
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
@@ -42,18 +43,19 @@ struct Free { void operator()(std::uint32_t* p)const{std::free(p);} };
 }
 
 std::string bb_latency_point(std::atomic<bool>& cancelled,std::atomic<int>& phase,int cpu,
-                            std::uint64_t bytes,int stride,std::uint64_t seed,bool single_sample) {
+                            std::uint64_t bytes,int stride,std::uint64_t seed,bool single_sample,int diagnostic_fault) {
     if(cpu<0||cpu>=CPU_SETSIZE||bytes<4096||bytes>256ULL*1048576||bytes%256||stride<32||stride>256||(stride&(stride-1)))
         return "{\"status\":\"FAILED\",\"error\":\"PROBE_PARAMETERS\"}";
     std::string output;
+    bbdiag::Round diagnostics;
+    diagnostics.requested.push_back(cpu); diagnostics.workers.resize(1);
     std::thread worker([&]{
+        auto& diagnostic=diagnostics.workers[0];
         try {
             auto check=[&]{if(cancelled.load())throw std::runtime_error("RUN_CANCELLED");};
             check();phase.store(1);
-            cpu_set_t allowed;CPU_ZERO(&allowed);
-            if(sched_getaffinity(0,sizeof(allowed),&allowed)||!CPU_ISSET(cpu,&allowed))throw std::runtime_error("PROBE_CPU_NOT_ALLOWED");
-            cpu_set_t mask;CPU_ZERO(&mask);CPU_SET(cpu,&mask);
-            if(sched_setaffinity(0,sizeof(mask),&mask))throw std::runtime_error("PROBE_AFFINITY_FAILED");
+            const auto affinity_error=diagnostic.pin(cpu,diagnostic_fault);
+            if(!affinity_error.empty())throw std::runtime_error(affinity_error);
             void* allocation=nullptr;
             if(posix_memalign(&allocation,16384,bytes))throw std::bad_alloc{};
             std::unique_ptr<std::uint32_t,Free> data(static_cast<std::uint32_t*>(allocation));
@@ -95,13 +97,18 @@ std::string bb_latency_point(std::atomic<bool>& cancelled,std::atomic<int>& phas
             }while(clock_ns(CLOCK_MONOTONIC_RAW)-warmStart<500000000ULL || (warmed<nodes*2 && clock_ns(CLOCK_MONOTONIC_RAW)-warmStart<2500000000ULL));
             const auto warmElapsed=clock_ns(CLOCK_MONOTONIC_RAW)-warmStart;
             phase.store(3);std::vector<Trial> trials;std::vector<double> values;
+            diagnostic.start_cpu=sched_getcpu();
             for(int i=0;i<(single_sample?1:9);++i){
                 auto t=block(30);t.accepted=(single_sample?(t.wall>0&&t.hops>0):t.accepted)&&warmed>=nodes*2;trials.push_back(t);
                 if(t.accepted)values.push_back(double(t.wall)/t.hops);
                 if(values.size()>=5){const auto range=std::minmax_element(values.begin(),values.end());if((*range.second-*range.first)/median(values)<=0.10)break;}
             }
             phase.store(4);check();
-            if(sched_getcpu()!=cpu||cursor>=words||cursor%step)throw std::runtime_error("PROBE_VERIFY_FAILED");
+            diagnostic.end_cpu=sched_getcpu();
+            if(diagnostic.start_cpu!=cpu||diagnostic.end_cpu!=cpu) {
+                diagnostic.reason="observed_cpu_migrated";throw std::runtime_error("PROBE_VERIFY_FAILED");
+            }
+            if(cursor>=words||cursor%step)throw std::runtime_error("PROBE_VERIFY_FAILED");
             std::ostringstream s;s<<std::setprecision(12)<<"{\"status\":\"COMPLETED\",\"verified\":true,\"cpu_id\":"<<cpu
                 <<",\"working_set_bytes\":"<<bytes<<",\"node_stride_bytes\":"<<stride<<",\"node_count\":"<<nodes<<",\"page_size_bytes\":"<<page
                 <<",\"kernel\":\"dependent-index32-v1\",\"pattern\":\"global-random-high-entropy\",\"seed\":"<<seed
@@ -116,5 +123,5 @@ std::string bb_latency_point(std::atomic<bool>& cancelled,std::atomic<int>& phas
         catch(const std::exception& e){output="{\"status\":\""+std::string(cancelled.load()?"INTERRUPTED":"FAILED")+"\",\"error\":\""+e.what()+"\"}";}
         phase.store(0);
     });
-    worker.join();return output;
+    worker.join();return bbdiag::attach(output,diagnostics.json());
 }

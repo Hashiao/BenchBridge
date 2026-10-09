@@ -12,7 +12,8 @@ import kotlin.math.abs
 class MemoryMatrixRunner(private val context: Context, private val config: RamConfig, private val report: JSONObject,
                          private val handle: Long, private val topology: CpuTopology, private val memoryBudget: Long,
                          private val cancelled: () -> Boolean, private val thermal: () -> Int,
-                         private val cancel: (String) -> Unit, private val publish: (Boolean) -> Unit) {
+                         private val cancel: (String) -> Unit, private val publish: (Boolean) -> Unit,
+                         private val runtime: () -> JSONObject = { JSONObject() }) {
     private val power = context.getSystemService(PowerManager::class.java)
     private var complete = 0
     private var processed = 0
@@ -25,6 +26,14 @@ class MemoryMatrixRunner(private val context: Context, private val config: RamCo
         return cancelled()
     }
     private fun median(values: List<Double>): Double = values.sorted().let { if (it.size % 2 == 1) it[it.size / 2] else (it[it.size / 2 - 1] + it[it.size / 2]) / 2 }
+    private fun recordFailure(sample: JSONObject, plan: JSONObject) {
+        if (sample.optString("status") != "FAILED") return
+        sample.put("runtime_at_failure", runtime())
+        report.put("failure_context", JSONObject().put("phase", report.optString("phase"))
+            .put("current_round", report.optInt("current_round")).put("calibration_candidate", report.optInt("calibration_candidate"))
+            .put("plan", plan).put("sample", sample))
+        Log.e("BenchBridge", "RAM_DIAGNOSTIC ${report.optString("run_id")} ${sample.optString("error")}；完整现场见导出 JSON / full evidence in exported JSON")
+    }
     private fun run(plan: MemoryPlan, warmup: Int, duration: Int): JSONObject = JSONObject(RamNative.runPinnedRound(handle, plan.kind,
         plan.workingSets.toLongArray(), plan.cpus.toIntArray(), warmup, duration, 0xB16B00B5L, plan.stride)).apply {
         put("level", plan.level).put("kind", plan.kind).put("thermal_after", thermal()).put("screen_interactive_after", power.isInteractive)
@@ -50,7 +59,14 @@ class MemoryMatrixRunner(private val context: Context, private val config: RamCo
                 if (sample.optString("status") == "COMPLETED" && sample.optBoolean("verified")) values += RamResults.value(sample)
                 else {
                     entry.put("error", sample.optString("error", "CALIBRATION_INCOMPLETE"))
-                    if (sample.optString("error").contains("VERIFY")) error(sample.optString("error"))
+                    entry.put("status", "FAILED")
+                    recordFailure(sample, plan.toJson())
+                    if (sample.optString("error").contains("VERIFY")) {
+                        cell.put("state", "FAILED").put("reason", sample.optString("error"))
+                        publish(true)
+                        error(sample.optString("error"))
+                    }
+                    publish(true)
                     break
                 }
             }
@@ -80,7 +96,9 @@ class MemoryMatrixRunner(private val context: Context, private val config: RamCo
         report.put("phase", "CACHE_PROBING")
         CacheProbe.run(topology, memoryBudget, ::shouldStop,
             sample = { cpu, bytes, stride, seed -> JSONObject(if(config.singleCurveSample)RamNative.runLatencyPointOnce(handle, cpu, bytes, stride, seed)
-                else RamNative.runLatencyPoint(handle, cpu, bytes, stride, seed)) },
+                else RamNative.runLatencyPoint(handle, cpu, bytes, stride, seed)).also {
+                    recordFailure(it, JSONObject().put("cpu_ids", JSONArray(listOf(cpu))).put("working_set_bytes", bytes).put("node_stride_bytes", stride))
+                } },
             progress = { probe -> report.put("cache_probe", probe); publish(probe.optBoolean("checkpoint")) },
             config = config, previous = report.optJSONObject("cache_probe"))
         publish(true)
@@ -134,7 +152,7 @@ class MemoryMatrixRunner(private val context: Context, private val config: RamCo
                 report.getJSONArray("rounds").put(sample)
                 processed++
                 if (sample.optString("status") == "COMPLETED" && sample.optBoolean("verified")) { complete++; cellCompleted++ }
-                else if (!cancelled()) { failed = true; cell.put("reason", sample.optString("error", "ROUND_FAILED")) }
+                else if (!cancelled()) { failed = true; cell.put("reason", sample.optString("error", "ROUND_FAILED")); recordFailure(sample, selected) }
                 report.put("completed_rounds", complete).put("processed_rounds", processed)
                 cell.put("completed_rounds", cellCompleted); publish(true)
                 Log.i("BenchBridge", "MATRIX_ROUND ${report.getString("run_id")} $level kind=$kind round=$round ${sample.optString("status")}")

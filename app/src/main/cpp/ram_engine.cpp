@@ -1,5 +1,6 @@
 #include "ram_kernels.h"
 #include "latency_probe.h"
+#include "affinity_diagnostics.h"
 #include <jni.h>
 #include <sched.h>
 #include <time.h>
@@ -24,7 +25,7 @@
 namespace {
 enum Kind { Read, Write, Copy, RandomRead, RandomWrite, Latency };
 enum Phase { Idle, Preparing, Warming, Measuring, Validating };
-struct Session { std::atomic<bool> cancel{false}; std::atomic<int> phase{Idle}; };
+struct Session { std::atomic<bool> cancel{false}; std::atomic<int> phase{Idle}; std::atomic<int> diagnostic_fault{0}; };
 std::mutex sessions_mutex;
 std::unordered_map<std::uint64_t, std::shared_ptr<Session>> sessions;
 std::uint64_t next_handle = 1;
@@ -208,7 +209,7 @@ bool verify(const Worker& worker, Kind kind, const Session& session) {
 
 std::string run_round(Session& session, int kind_value, jlong bytes, int threads, int warmup_ms, int duration_ms, std::uint64_t seed,
     const std::vector<jlong>& per_thread_bytes = {}, const std::vector<jint>& pinned_cpus = {}, int node_stride = 128,
-    int minimum_warmup_passes = 0) {
+    int minimum_warmup_passes = 0, bbdiag::Round* diagnostics = nullptr) {
     if (minimum_warmup_passes < 0 || minimum_warmup_passes > 4 || (minimum_warmup_passes && kind_value != Latency))
         throw std::invalid_argument("WARMUP_PASSES_INVALID");
     const bool pinned = !pinned_cpus.empty();
@@ -220,9 +221,11 @@ std::string run_round(Session& session, int kind_value, jlong bytes, int threads
     if (pinned) {
         if (pinned_cpus.size() != static_cast<std::size_t>(threads) || per_thread_bytes.size() != pinned_cpus.size())
             throw std::invalid_argument("PLAN_SIZE_INVALID");
-        cpu_set_t allowed;
-        CPU_ZERO(&allowed);
-        if (sched_getaffinity(0, sizeof(allowed), &allowed) != 0) throw std::runtime_error("AFFINITY_QUERY_FAILED");
+        diagnostics->requested.assign(pinned_cpus.begin(), pinned_cpus.end());
+        diagnostics->caller_context = bbdiag::context();
+        diagnostics->caller.query();
+        if (diagnostics->caller.result != 0) throw std::runtime_error("AFFINITY_QUERY_FAILED");
+        const auto& allowed = diagnostics->caller.bits;
         jlong sum = 0;
         for (int i = 0; i < threads; ++i) {
             if (pinned_cpus[i] < 0 || pinned_cpus[i] >= CPU_SETSIZE || !CPU_ISSET(pinned_cpus[i], &allowed))
@@ -234,6 +237,7 @@ std::string run_round(Session& session, int kind_value, jlong bytes, int threads
             sum += per_thread_bytes[i];
         }
         if (sum != bytes) throw std::invalid_argument("WORKSET_SUM_MISMATCH");
+        diagnostics->workers.resize(threads);
     }
     check_cancel(session);
     session.phase.store(Preparing);
@@ -264,13 +268,8 @@ std::string run_round(Session& session, int kind_value, jlong bytes, int threads
                 { std::unique_lock lock(gate_mutex); gate_cv.wait(lock, [&] { return gate_open; }); if (gate_abort) return; }
                 if (pinned) {
                     try {
-                        cpu_set_t mask;
-                        CPU_ZERO(&mask); CPU_SET(pinned_cpus[index], &mask);
-                        if (sched_setaffinity(0, sizeof(mask), &mask) != 0)
-                            throw std::runtime_error("AFFINITY_SET_FAILED:" + std::to_string(errno));
-                        CPU_ZERO(&mask);
-                        if (sched_getaffinity(0, sizeof(mask), &mask) != 0 || CPU_COUNT(&mask) != 1 || !CPU_ISSET(pinned_cpus[index], &mask))
-                            throw std::runtime_error("AFFINITY_VERIFY_FAILED");
+                        const auto error = diagnostics->workers[index].pin(pinned_cpus[index], session.diagnostic_fault.load());
+                        if (!error.empty()) throw std::runtime_error(error);
                         // 绑核后再触页；缓存工作集和首次分配均属于所选核心。
                         // Pin before first touch so allocation and cache warmup use the selected core.
                         initialize(workers[index], kind, static_cast<std::size_t>(per_thread_bytes[index]) / (kind == Copy ? 2 : 1),
@@ -288,6 +287,7 @@ std::string run_round(Session& session, int kind_value, jlong bytes, int threads
                 phases.arrive_and_wait();
                 phases.arrive_and_wait();
                 workers[index].start_cpu = sched_getcpu();
+                if (pinned) diagnostics->workers[index].start_cpu = workers[index].start_cpu;
                 auto thread_time = []() -> std::uint64_t {
                     timespec t{};
                     return clock_gettime(CLOCK_THREAD_CPUTIME_ID, &t) == 0 ? std::uint64_t(t.tv_sec) * 1000000000 + t.tv_nsec : 0;
@@ -309,6 +309,12 @@ std::string run_round(Session& session, int kind_value, jlong bytes, int threads
                 }
                 workers[index].end_ns = timer.now();
                 workers[index].end_cpu = sched_getcpu();
+                if (pinned) {
+                    auto& diagnostic = diagnostics->workers[index];
+                    diagnostic.end_cpu = workers[index].end_cpu;
+                    if (diagnostic.start_cpu != diagnostic.target || diagnostic.end_cpu != diagnostic.target)
+                        diagnostic.reason = "observed_cpu_migrated";
+                }
             });
         }
     } catch (...) {
@@ -426,18 +432,33 @@ Java_io_benchbridge_app_ram_RamNative_phase(JNIEnv*, jobject, jlong handle) {
     const auto session = session_for(handle);
     return session ? session->phase.load() : Idle;
 }
+extern "C" JNIEXPORT jboolean JNICALL
+Java_io_benchbridge_app_ram_RamNative_setDiagnosticFault(JNIEnv*, jobject, jlong handle, jint mode) {
+#if defined(BENCHBRIDGE_TEST_HOOKS)
+    const auto session = session_for(handle);
+    if (!session || mode < 0 || mode > 3) return false;
+    session->diagnostic_fault.store(mode); return true;
+#else
+    (void)handle; (void)mode; return false;
+#endif
+}
+extern "C" JNIEXPORT jstring JNICALL
+Java_io_benchbridge_app_ram_RamNative_runtimeDiagnostics(JNIEnv* env, jobject) {
+    const auto result = bbdiag::environment();
+    return env->NewStringUTF(result.c_str());
+}
 extern "C" JNIEXPORT jstring JNICALL
 Java_io_benchbridge_app_ram_RamNative_runLatencyPoint(JNIEnv* env,jobject,jlong handle,jint cpu,jlong bytes,jint stride,jlong seed) {
     const auto session=session_for(handle);
     std::string result;
-    try { result=session?bb_latency_point(session->cancel,session->phase,cpu,bytes,stride,seed):"{\"status\":\"FAILED\",\"error\":\"SESSION_NOT_FOUND\"}"; }
+    try { result=session?bb_latency_point(session->cancel,session->phase,cpu,bytes,stride,seed,false,session->diagnostic_fault.load()):"{\"status\":\"FAILED\",\"error\":\"SESSION_NOT_FOUND\"}"; }
     catch(const std::exception&) { result="{\"status\":\"FAILED\",\"error\":\"PROBE_WORKER_FAILED\"}"; }
     return env->NewStringUTF(result.c_str());
 }
 extern "C" JNIEXPORT jstring JNICALL
 Java_io_benchbridge_app_ram_RamNative_runLatencyPointOnce(JNIEnv* env,jobject,jlong handle,jint cpu,jlong bytes,jint stride,jlong seed) {
     const auto session=session_for(handle);std::string result;
-    try { result=session?bb_latency_point(session->cancel,session->phase,cpu,bytes,stride,seed,true):"{\"status\":\"FAILED\",\"error\":\"SESSION_NOT_FOUND\"}"; }
+    try { result=session?bb_latency_point(session->cancel,session->phase,cpu,bytes,stride,seed,true,session->diagnostic_fault.load()):"{\"status\":\"FAILED\",\"error\":\"SESSION_NOT_FOUND\"}"; }
     catch(const std::exception&) { result="{\"status\":\"FAILED\",\"error\":\"PROBE_WORKER_FAILED\"}"; }
     return env->NewStringUTF(result.c_str());
 }
@@ -500,6 +521,7 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_io_benchbridge_app_ram_RamNative_runPinnedRound(JNIEnv* env, jobject, jlong handle, jint kind,
     jlongArray worksets, jintArray cpu_ids, jint warmup_ms, jint duration_ms, jlong seed, jint node_stride, jint minimum_warmup_passes) {
     std::string result;
+    bbdiag::Round diagnostics;
     const auto session = session_for(handle);
     try {
         if (!session) throw std::invalid_argument("SESSION_NOT_FOUND");
@@ -511,11 +533,12 @@ Java_io_benchbridge_app_ram_RamNative_runPinnedRound(JNIEnv* env, jobject, jlong
         env->GetIntArrayRegion(cpu_ids, 0, count, cpus.data());
         jlong total = 0;
         for (auto size : sizes) { if (size < 1024 || size > (2LL << 30)) throw std::invalid_argument("WORKSET_INVALID"); total += size; }
-        result = run_round(*session, kind, total, count, warmup_ms, duration_ms, static_cast<std::uint64_t>(seed), sizes, cpus, node_stride, minimum_warmup_passes);
+        result = run_round(*session, kind, total, count, warmup_ms, duration_ms, static_cast<std::uint64_t>(seed), sizes, cpus, node_stride, minimum_warmup_passes, &diagnostics);
     } catch (const Cancelled&) { result = "{\"status\":\"INTERRUPTED\",\"error\":\"RUN_CANCELLED\"}"; }
     catch (const std::bad_alloc&) { result = "{\"status\":\"FAILED\",\"error\":\"RAM_ALLOC_FAILED\"}"; }
     catch (const std::exception& error) { result = "{\"status\":\"FAILED\",\"error\":" + quoted(error.what()) + '}'; }
     catch (...) { result = "{\"status\":\"FAILED\",\"error\":\"NATIVE_UNKNOWN_ERROR\"}"; }
+    result = bbdiag::attach(result, diagnostics.json());
     if (session) session->phase.store(Idle);
     return env->NewStringUTF(result.c_str());
 }

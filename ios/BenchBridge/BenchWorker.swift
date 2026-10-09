@@ -38,11 +38,13 @@ enum BenchWorker {
         return BenchReport(appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown",
                            id: UUID(), family: family, config: config, startedAt: Date(), device: device, scores: plan,
                            plannedRounds: plan.reduce(0) { $0 + config.rounds(family, kind: Int($1.id.split(separator: "-").last!)!) },
-                           thermalAtStart: ProcessInfo.processInfo.thermalState.rawValue, qualityFlags: flags)
+                           thermalAtStart: ProcessInfo.processInfo.thermalState.rawValue, qualityFlags: flags,
+                           runtimeDiagnostics: [RuntimeSnapshot.capture("report_created")])
     }
     static func run(_ input: BenchReport, token: CancellationToken, store: ReportStore,
                     progress: @escaping @Sendable (BenchReport) async -> Void) async {
         var report = input; let config = report.config
+        report.runtimeDiagnostics = (report.runtimeDiagnostics ?? []) + [RuntimeSnapshot.capture("worker_started")]
         func publish() async throws { try store.save(report); await progress(report) }
         func rest(_ milliseconds: Int) async throws {
             for _ in 0..<(milliseconds + 49) / 50 { try token.check(); try await Task.sleep(nanoseconds: 50_000_000) }
@@ -215,6 +217,7 @@ enum BenchWorker {
             report.state = token.cancelled ? "cancelled" : "failed"; report.error = token.cancelled ? token.reason : description(error)
         }
         report.finishedAt = Date(); report.thermalAtEnd = ProcessInfo.processInfo.thermalState.rawValue; report.progress = report.statusTitle
+        report.runtimeDiagnostics = (report.runtimeDiagnostics ?? []) + [RuntimeSnapshot.capture("worker_finished_" + report.state)]
         do { try store.save(report) } catch { report.state = "failed"; report.error = "结果保存失败：\(description(error))" }
         await progress(report)
     }

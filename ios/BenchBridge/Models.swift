@@ -276,6 +276,23 @@ struct CurveGroup: Codable, Identifiable, Sendable {
     var id: Int { qos }
     var title: String { qos == 0 ? "高优先级" : "后台优先级" }
 }
+// 苹果仅记录公开调度能力与运行状态，不推断实际物理核心。 / Record public runtime state without inferring physical cores.
+struct RuntimeSnapshot: Codable, Sendable {
+    var stage: String
+    var capturedAt: Date
+    var processId: Int32
+    var osVersion: String
+    var activeProcessorCount: Int
+    var lowPowerMode: Bool
+    var thermalState: Int
+    var affinityCapability = "unavailable_system_scheduled_qos"
+    static func capture(_ stage: String) -> RuntimeSnapshot {
+        let process = ProcessInfo.processInfo
+        return RuntimeSnapshot(stage: stage, capturedAt: Date(), processId: process.processIdentifier,
+                               osVersion: process.operatingSystemVersionString, activeProcessorCount: process.activeProcessorCount,
+                               lowPowerMode: process.isLowPowerModeEnabled, thermalState: process.thermalState.rawValue)
+    }
+}
 struct BenchReport: Codable, Identifiable, Sendable {
     var schemaVersion = 2
     var platform = "ios"
@@ -300,6 +317,7 @@ struct BenchReport: Codable, Identifiable, Sendable {
     var thermalAtStart: Int
     var thermalAtEnd: Int?
     var qualityFlags: [String]
+    var runtimeDiagnostics: [RuntimeSnapshot]?
     var curvePairs: Int { curves.reduce(0) { $0 + Set($1.batches.map { "\($0.bytes)-\($0.pass)" }).count } }
     var plannedCurvePairs: Int { curves.reduce(0) { $0 + $1.plannedSizes.count * ($1.singleSample == true ? 1 : 2) } }
     var statusTitle: String { switch state {

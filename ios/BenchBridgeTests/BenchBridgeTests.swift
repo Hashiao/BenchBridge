@@ -151,6 +151,13 @@ final class BenchBridgeTests: XCTestCase {
         let decoded = try ReportStore.decoder().decode(BenchReport.self, from: data)
         XCTAssertEqual(decoded.scores[0].values, [12.5, 13.5]); XCTAssertFalse(decoded.coreBinding)
         XCTAssertTrue(decoded.qualityFlags.contains("functional_test_not_device_performance"))
+        let diagnostic = try XCTUnwrap(decoded.runtimeDiagnostics?.first)
+        XCTAssertEqual(diagnostic.stage, "report_created"); XCTAssertGreaterThan(diagnostic.processId, 0)
+        XCTAssertEqual(diagnostic.affinityCapability, "unavailable_system_scheduled_qos")
+        var legacy = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        legacy.removeValue(forKey: "runtime_diagnostics")
+        let old = try ReportStore.decoder().decode(BenchReport.self, from: JSONSerialization.data(withJSONObject: legacy))
+        XCTAssertNil(old.runtimeDiagnostics); XCTAssertEqual(old.scores[0].values, decoded.scores[0].values)
     }
     func testMetalValidationAndDeviceTimer() throws {
         guard let backend = try? MetalRunner() else { throw XCTSkip("No Metal device in this simulator environment") }

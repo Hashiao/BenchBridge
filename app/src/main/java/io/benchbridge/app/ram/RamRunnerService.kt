@@ -59,6 +59,19 @@ class RamRunnerService : Service() {
 
     private fun thermalStatus(): Int = try { power.currentThermalStatus } catch (_: RuntimeException) { -1 }
 
+    private fun runtimeDiagnostics(stage: String): JSONObject = JSONObject().apply {
+        put("stage", stage).put("captured_at_ms", System.currentTimeMillis())
+        put("elapsed_realtime_ms", android.os.SystemClock.elapsedRealtime())
+        put("pid", Process.myPid()).put("tid", Process.myTid()).put("uid", Process.myUid())
+        put("foreground_run", resources.active).put("wake_lock_held", resources.wakeHeld)
+        put("thermal_status", thermalStatus()).put("screen_interactive", power.isInteractive)
+        put("power_save_mode", power.isPowerSaveMode).put("device_idle_mode", power.isDeviceIdleMode)
+        val processInfo = ActivityManager.RunningAppProcessInfo()
+        ActivityManager.getMyMemoryState(processInfo)
+        put("process_importance", processInfo.importance)
+        put("native", JSONObject(RamNative.runtimeDiagnostics()))
+    }
+
     private fun capabilityReport(): JSONObject {
         val info = ActivityManager.MemoryInfo()
         getSystemService(ActivityManager::class.java).getMemoryInfo(info)
@@ -112,6 +125,7 @@ class RamRunnerService : Service() {
                     require(requested.sameParameters(RamConfig.fromJson(it.getJSONObject("config").toString()))) { "续测参数与原记录不一致" }
                 }
                 val caps = capabilityReport()
+                caps.put("capture_stage", "before_foreground_start")
                 val config = requested.copy(curveProtocol = requested.curveProtocol.takeIf(CacheProbe::supported) ?: CacheProbe.METHOD)
                     .resolveThreads(caps.optInt("allowed_cpus", 1)).normalized()
                 require(config.estimatedBytes() <= caps.getLong("memory_budget_bytes")) {
@@ -140,6 +154,7 @@ class RamRunnerService : Service() {
                     put("completed_rounds", 0); put("processed_rounds", 0); put("total_rounds", config.totalRounds)
                     put("device", JSONObject().put("manufacturer", Build.MANUFACTURER).put("model", Build.MODEL)
                         .put("api", Build.VERSION.SDK_INT).put("android", Build.VERSION.RELEASE)
+                        .put("security_patch", Build.VERSION.SECURITY_PATCH).put("build_incremental", Build.VERSION.INCREMENTAL)
                         .put("fingerprint", Build.FINGERPRINT))
                     put("error", JSONObject.NULL)
                     if (previous != null) {
@@ -149,6 +164,13 @@ class RamRunnerService : Service() {
                     }
                 }
                 val handle = RamNative.createSession()
+                if (BuildConfig.DEBUG) {
+                    val fault = JSONObject(configJson).optInt("diagnostic_test_fault")
+                    if (fault != 0 && !RamNative.setDiagnosticFault(handle, fault)) {
+                        RamNative.releaseSession(handle)
+                        error("INVALID_DIAGNOSTIC_TEST_FAULT")
+                    }
+                }
                 try { resources.start("RAM"); store.save(report) }
                 catch (error: Exception) { RamNative.releaseSession(handle); resources.finish(); throw error }
                 val run = Run(id, config, handle, report)
@@ -205,15 +227,7 @@ class RamRunnerService : Service() {
         else {
             // 大型校准记录保留在磁盘，Binder 仅传界面需要的摘要。
             // Keep full calibration records on disk and send only UI summaries through Binder.
-            val compact = JSONObject(text)
-            compact.optJSONObject("cache_probe")?.optJSONArray("groups")?.let { groups ->
-                for (i in 0 until groups.length()) groups.getJSONObject(i).remove("samples")
-            }
-            compact.optJSONArray("cells")?.let { cells ->
-                for (i in 0 until cells.length()) cells.getJSONObject(i).remove("calibration")
-            }
-            compact.put("full_report_in_storage", true)
-            run.snapshotText = compact.toString()
+            run.snapshotText = compactReport(run.report).toString()
         }
     }
 
@@ -223,7 +237,16 @@ class RamRunnerService : Service() {
         fun copy(source: JSONObject, excluded: Set<String>) = JSONObject().apply {
             source.keys().forEach { key -> if (key !in excluded) put(key, source.get(key)) }
         }
-        return copy(report, setOf("cache_probe", "cells")).apply {
+        val diagnosticFields = setOf("affinity_diagnostics", "runtime_at_failure")
+        return copy(report, setOf("cache_probe", "cells", "rounds", "failure_context")).apply {
+            report.optJSONArray("rounds")?.let { rounds ->
+                put("rounds", JSONArray().apply { for (i in 0 until rounds.length()) put(copy(rounds.getJSONObject(i), diagnosticFields)) })
+            }
+            report.optJSONObject("failure_context")?.let { failure ->
+                put("failure_context", copy(failure, setOf("sample")).apply {
+                    failure.optJSONObject("sample")?.let { put("sample", copy(it, diagnosticFields)) }
+                })
+            }
             report.optJSONObject("cache_probe")?.let { probe ->
                 put("cache_probe", copy(probe, setOf("groups")).put("groups", JSONArray().apply {
                     val groups = probe.optJSONArray("groups") ?: JSONArray()
@@ -241,12 +264,16 @@ class RamRunnerService : Service() {
         var completed = 0
         var failed = false
         try {
+            run.report.put("runtime_diagnostics", JSONObject().put("schema_version", 1)
+                .put("at_start", runtimeDiagnostics("executor_after_foreground_start")))
+            publish(run, persist = true)
             if (run.config.cacheMatrix) {
                 val topology = CpuTopology.collect(this, JSONObject(RamNative.capabilities()))
                 val state = MemoryMatrixRunner(this, run.config, run.report, run.handle, topology,
                     run.report.getJSONObject("capabilities").getLong("memory_budget_bytes"),
                     cancelled = { run.cancelled.get() }, thermal = ::thermalStatus,
-                    cancel = { requestCancel(run.id, it) }, publish = { publish(run, it) }).execute()
+                    cancel = { requestCancel(run.id, it) }, publish = { publish(run, it) },
+                    runtime = { runtimeDiagnostics("sample_failed") }).execute()
                 completed = run.report.optInt("completed_rounds")
                 run.report.put("state", state)
                 if (run.cancelled.get()) run.report.put("error", run.reason)
@@ -301,6 +328,7 @@ class RamRunnerService : Service() {
             run.report.put("state", "FAILED").put("error", "RUN_FAILED：${error.message}")
             Log.e("BenchBridge", "RAM_ERROR ${run.id}", error)
         } finally {
+            run.report.optJSONObject("runtime_diagnostics")?.put("before_cleanup", runtimeDiagnostics("before_resource_cleanup"))
             RamNative.releaseSession(run.handle)
             resources.finish()
             run.report.put("phase", "FINISHED").put("finished_at_ms", System.currentTimeMillis())

@@ -8,9 +8,13 @@ Android、iPhone 与 iPad 的 CPU、GPU、内存与存储基准测试工具。�
 
 A CPU, GPU, memory and storage benchmark for Android, iPhone and iPad. Android uses Kotlin / Jetpack Compose and Vulkan; Apple uses SwiftUI and Metal, with C++20 measurement kernels.
 
-本仓库公开当前 0.12.2 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
+本仓库公开当前 0.12.3 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
 
-This repository contains the current 0.12.2 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+This repository contains the current 0.12.3 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+
+0.12.3 补齐 RAM 绑核故障现场：安卓 JSON 保留调用返回码、errno、前后核心集合、实际工作线程及 cpuset/cgroup；校准验证失败先落盘再结束。曲线增加即时绑核回读，失败点不产生分数。苹果 JSON 新增系统、省电、热状态等运行信息，最低系统仍为 iOS/iPadOS 16。遇到旧版错误请用新版复跑并导出新 JSON；本次未宣称已解决特定固件的调度限制。详见 [诊断字段与复测方法](docs/AFFINITY_DIAGNOSTICS.md)。
+
+0.12.3 preserves RAM affinity failure evidence in Android JSON: return codes, errno, before/after CPU masks, actual worker identity and cpuset/cgroup context. Calibration verification failures persist before termination; curves verify immediate affinity readback and reject invalid scores. Apple JSON adds OS, power and thermal runtime context while retaining iOS/iPadOS 16 support. Rerun and export a new JSON for older failures; this release does not claim a firmware scheduling workaround. See [diagnostics and retesting](docs/AFFINITY_DIAGNOSTICS.md).
 
 0.12.2 修复苹果 ROM 初始化仍使用文件缓存的问题：首次写入前即启用 F_NOCACHE，避免第一项顺序读取被准备阶段的缓存污染；I/O 缓冲统一对齐，并记录实际完成字节、提交次数与独立完成计时。旧成绩保留原值，需用新版重新测试，不对分数作倍率修正。详见 [苹果 ROM 缓存修复](docs/APPLE_STORAGE_CACHE.md)。
 
