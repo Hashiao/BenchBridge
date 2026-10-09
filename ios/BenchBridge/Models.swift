@@ -56,11 +56,16 @@ struct BenchConfig: Codable, Equatable, Sendable {
         case .compute: return "\(memoryMiB) MiB · \(repeats) 次 · \(durationMs) ms / 轮"
         }
     }
-    func validate() throws {
-        guard (1...256).contains(memoryMiB), (1...8).contains(threads), (5...5000).contains(durationMs),
-              (1...5).contains(repeats), (1...256).contains(cacheMaxMiB), (1...8).contains(stepsPerOctave), (1...65536).contains(storageMiB)
-        else { throw BenchError.message("测试参数超出范围") }
-        try ramSettings.validate(); try storageSettings.validate()
+    func validate(_ family: BenchFamily? = nil) throws {
+        if family == nil || family == .compute {
+            guard (1...256).contains(memoryMiB), (1...8).contains(threads), (5...5000).contains(durationMs), (1...5).contains(repeats)
+            else { throw BenchError.message("GPGPU 参数超出范围") }
+        }
+        if family == nil || family == .memory {
+            guard (1...256).contains(cacheMaxMiB), (1...8).contains(stepsPerOctave) else { throw BenchError.message("缓存曲线参数超出范围") }
+            try ramSettings.validate()
+        }
+        if family == nil || family == .storage { try storageSettings.validate() }
     }
 }
 

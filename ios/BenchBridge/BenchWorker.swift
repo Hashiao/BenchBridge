@@ -51,7 +51,7 @@ enum BenchWorker {
         let storageFolder = FileManager.default.temporaryDirectory.appendingPathComponent("BenchBridgeIO-" + report.id.uuidString)
         defer { if let storageHandle { bb_storage_destroy(storageHandle) }; if report.family == .storage { try? FileManager.default.removeItem(at: storageFolder) } }
         do {
-            try config.validate(); try await publish()
+            try config.validate(report.family); try await publish()
             if report.family == .storage {
                 let parameters = config.storageSettings
                 var maximumBuffers: UInt64 = 0

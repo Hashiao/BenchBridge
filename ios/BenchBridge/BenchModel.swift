@@ -30,7 +30,7 @@ import Combine
         do {
             var snapshot = config
             if family == .storage { snapshot.storage = config.storageSettings.normalized }
-            try snapshot.validate()
+            try snapshot.validate(family)
             guard ProcessInfo.processInfo.thermalState.rawValue < ProcessInfo.ThermalState.serious.rawValue else { throw BenchError.message("设备需要降温") }
             let session = try CancellationToken(); token = session
             let report = BenchWorker.initial(family, config: snapshot); reports[family] = report
