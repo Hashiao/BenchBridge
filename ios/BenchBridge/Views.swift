@@ -196,7 +196,8 @@ private struct CurveChart: View {
         .chartOverlay { proxy in
             GeometryReader { geometry in
                 Rectangle().fill(.clear).contentShape(Rectangle())
-                    .gesture(DragGesture(minimumDistance: 0).onChanged { value in
+                    .simultaneousGesture(DragGesture(minimumDistance: 0).onChanged { value in
+                        guard abs(value.translation.width) >= abs(value.translation.height) else { return }
                         let frame = geometry[proxy.plotAreaFrame]
                         let x = value.location.x - frame.minX
                         guard frame.width > 0, x >= 0, x <= frame.width else { return }
