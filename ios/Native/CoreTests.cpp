@@ -45,7 +45,9 @@ int main(int argc,char** argv){try{
         const auto result=bb_storage_run(storage.get(),write,1,4096,queue,1,5,30);
         const auto& m=result.measurement;require(m.status==0&&m.verified&&m.trial_count==1,"asynchronous storage validation");
         require(m.trials[0].logical_bytes==m.trials[0].operations*4096,"queued byte accounting");
-        require(result.max_outstanding==queue&&result.mean_outstanding>0&&result.mean_outstanding<=queue+0.01,"real outstanding I/O queue depth");
+        std::cout<<"I/O Q"<<queue<<" write="<<write<<" achieved="<<result.max_outstanding<<" mean="<<result.mean_outstanding<<" limited="<<result.resource_limited<<'\n';
+        require(result.max_outstanding>=(queue==1?1:2)&&result.max_outstanding<=queue&&
+                (result.max_outstanding==queue||result.resource_limited)&&result.mean_outstanding>0&&result.mean_outstanding<=queue+0.01,"real outstanding I/O queue depth, with explicit kernel resource limits");
         require(result.written_bytes_total>=previousWrites&&result.prepare_bytes==8*1048576,"file reused and writes accumulated");
         if(write){require(result.flush_ns>0,"sync separately timed");require(result.written_bytes_total>=previousWrites+m.trials[0].logical_bytes,"writes counted including warmup");}
         else require(result.written_bytes_total==previousWrites,"reads do not initialize another file");

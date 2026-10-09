@@ -114,7 +114,7 @@ struct Slot {
         const auto count=aio_return(&op);active=false;if(code!=0||count!=ssize_t(buffer.size()*8))throw Failure{5,code};completed=true;return true;}
 #endif
 };
-struct WorkerResult {uint64_t operations=0,ended=0;double queueArea=0;int maximum=0;};
+struct WorkerResult {uint64_t operations=0,ended=0;double queueArea=0;int maximum=0;bool limited=false;};
 }
 struct BBStorage {
     BBSession* session;std::string path;uint64_t bytes,written=0;bool bypass,owned=false;
@@ -177,7 +177,7 @@ extern "C" BBStorageResult bb_storage_run(BBStorage* storage,int32_t writeTest,i
                                 if(depth==1){const auto begin=clockNs();file.transfer(writeTest!=0,slot->buffer.data(),size_t(block),slot->offset);const auto end=clockNs();
                                     result.queueArea+=double(end-begin);result.maximum=1;++result.operations;result.ended=end;slot->completed=true;finished=true;}
                                 else if(slot->submit(file,writeTest!=0)){account();++pending;result.maximum=std::max(result.maximum,pending);submitted=true;retryStart=0;}
-                                else {if(!retryStart)retryStart=clockNs();if(pending==0&&clockNs()-retryStart>1000000000ULL)throw Failure{5,EAGAIN};break;}
+                                else {result.limited=true;if(!retryStart)retryStart=clockNs();if(pending==0&&clockNs()-retryStart>1000000000ULL)throw Failure{5,EAGAIN};break;}
                             }
                         }
                         if(depth>1)for(auto& slot:slots)if(slot->active&&slot->finish(file,false)){account();--pending;++result.operations;result.ended=clockNs();finished=true;}
@@ -210,7 +210,8 @@ extern "C" BBStorageResult bb_storage_run(BBStorage* storage,int32_t writeTest,i
             if(!operations||ended<=start)throw Failure{5,0};
             measurement.no_cache=std::all_of(hints.begin(),hints.end(),[](int value){return value!=0;});
             if(scored){measurement.trials[0]={ended-start,0,operations,operations*uint64_t(block),1};
-                out.max_outstanding=maximum;out.mean_outstanding=area/double(ended-start)/threads;}
+                out.max_outstanding=maximum;out.mean_outstanding=area/double(ended-start)/threads;
+                out.resource_limited=std::any_of(results.begin(),results.end(),[](const auto& r){return r.limited;});}
             else measurement.warmup_operations=operations;
             if(writeTest){const auto flush=clockNs();storage->file->sync();if(scored)out.flush_ns=clockNs()-flush;}
         };

@@ -45,7 +45,8 @@ final class BenchBridgeTests: XCTestCase {
             for write: Int32 in [0,1] {
                 let raw = bb_storage_run(handle, write, 1, 4096, queue, 1, 5, 30)
                 XCTAssertEqual(raw.measurement.status, 0, "errno \(raw.error_number)"); XCTAssertEqual(raw.measurement.verified, 1)
-                XCTAssertEqual(raw.max_outstanding, queue); XCTAssertGreaterThan(raw.mean_outstanding, 0)
+                XCTAssertGreaterThanOrEqual(raw.max_outstanding, queue == 1 ? 1 : 2); XCTAssertLessThanOrEqual(raw.max_outstanding, queue)
+                XCTAssertTrue(raw.max_outstanding == queue || raw.resource_limited != 0); XCTAssertGreaterThan(raw.mean_outstanding, 0)
                 XCTAssertEqual(NativeMeasurement(raw.measurement).trials.first!.logicalBytes, NativeMeasurement(raw.measurement).trials.first!.operations * 4096)
                 let sample = StorageSample(raw)
                 XCTAssertEqual(try ReportStore.decoder().decode(StorageSample.self, from: ReportStore.encoder().encode(sample)).queueDepth, Int(queue))

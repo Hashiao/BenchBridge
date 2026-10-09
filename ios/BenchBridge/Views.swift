@@ -144,6 +144,11 @@ private struct CurveChart: View {
     @State private var selected = -1
     @State private var selectedBytes: Double?
     private var visible: [CurveGroup] { groups.filter { selected < 0 || $0.qos == selected } }
+    private var axisValues: [Double] {
+        let maximum = Double(maximumMiB) * 1048576.0
+        let candidates: [Double] = [4096, 32768, 262144, 2097152, 16777216, maximum]
+        return Array(Set(candidates)).sorted().filter { $0 <= maximum }
+    }
     private func segments(_ group: CurveGroup) -> [[CurvePoint]] {
         let lookup = Dictionary(uniqueKeysWithValues: group.points.map { ($0.bytes, $0) })
         var result: [[CurvePoint]] = []; var current: [CurvePoint] = []
@@ -175,8 +180,8 @@ private struct CurveChart: View {
             .chartYScale(type: logarithmic ? .log : .linear)
             .chartForegroundStyleScale(domain: visible.isEmpty ? ["高优先级"] : visible.map(\.title),
                                        range: visible.isEmpty ? [Color.indigo] : visible.map { $0.qos == 0 ? Color.indigo : Color.teal })
-            .chartXAxis { AxisMarks(values: Array(Set([4096.0, 32768, 262144, 2097152, 16777216, Double(maximumMiB * 1048576)])).sorted().filter { $0 <= Double(maximumMiB * 1048576) }) { value in
-                AxisGridLine(); AxisValueLabel { if let bytes = value.as(Double.self) { Text(Statistics.size(UInt64(bytes))).font(.caption2) } }
+            .chartXAxis { AxisMarks(values: axisValues) { value in
+                AxisGridLine(); AxisValueLabel { axisLabel(value.as(Double.self)) }
             } }.chartYAxis { AxisMarks(position: .leading) }.chartYAxisLabel("ns")
             .chartXSelection(value: $selectedBytes)
             .frame(height: height).accessibilityIdentifier("cache-chart")
@@ -192,6 +197,10 @@ private struct CurveChart: View {
                 }
             }
         }
+    }
+    private func axisLabel(_ bytes: Double?) -> some View {
+        let label = bytes.map { Statistics.size(UInt64($0)) } ?? ""
+        return Text(label).font(.caption2)
     }
 }
 struct ReportDetails: View {
@@ -220,6 +229,7 @@ struct ReportDetails: View {
                     if let sample = item.storageSamples?.last {
                         Text("Q\(sample.queueDepth) · 实测每线程最大在途 \(sample.maxOutstandingPerThread)，平均 \(sample.meanOutstandingPerThread, specifier: "%.2f") · 同步 \(Double(sample.flushNsSeparate) / 1e6, specifier: "%.2f") ms（另计）").font(.caption)
                         Text("累计写入（含初始化与预热）\(Statistics.size(sample.writtenBytesTotal))").font(.caption)
+                        if sample.resourceLimited { Text("系统限制了异步请求资源；以实测在途深度为准。").font(.caption).foregroundStyle(.orange) }
                     }
                     if let reason = item.reason { Text(reason).font(.caption).foregroundStyle(.secondary) }
                 }.card()

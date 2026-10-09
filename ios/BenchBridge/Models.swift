@@ -180,6 +180,7 @@ struct StorageSample: Codable, Sendable {
     var prepareBytes: UInt64
     var writtenBytesTotal: UInt64
     var errnoCode: Int
+    var resourceLimited: Bool
     var backend = "posix-aio"
     var dataPattern = "splitmix64-64mib-pool-v1"
     var timer = "submission-through-last-completion;flush-separate"
@@ -188,6 +189,7 @@ struct StorageSample: Codable, Sendable {
         meanOutstandingPerThread = result.mean_outstanding; maxOutstandingPerThread = Int(result.max_outstanding)
         flushNsSeparate = result.flush_ns; prepareBytes = result.prepare_bytes; writtenBytesTotal = result.written_bytes_total
         errnoCode = Int(result.error_number)
+        resourceLimited = result.resource_limited != 0
     }
 }
 struct GPUSample: Codable, Sendable {

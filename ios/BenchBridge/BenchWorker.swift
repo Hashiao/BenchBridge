@@ -125,6 +125,7 @@ enum BenchWorker {
                                                      Int32(test.queueDepth), Int32(test.threads), Int32(parameters.warmupMs), Int32(parameters.durationMs))
                             native = NativeMeasurement(raw.measurement)
                             report.scores[index].storageSamples = (report.scores[index].storageSamples ?? []) + [StorageSample(raw)]
+                            if raw.resource_limited != 0 && !report.qualityFlags.contains("storage_aio_resource_limited") { report.qualityFlags.append("storage_aio_resource_limited") }
                         }
                         report.scores[index].measurements.append(native)
                         if native.status == 1 { try token.check(); throw BenchError.message("测量被中断") }

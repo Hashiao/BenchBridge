@@ -31,7 +31,7 @@ BBResult bb_storage(BBSession* session, const char* path, int32_t write_test, in
 typedef struct BBStorage BBStorage;
 typedef struct {
     BBResult measurement;
-    int32_t queue_depth, block_bytes, random_access, max_outstanding, error_number;
+    int32_t queue_depth, block_bytes, random_access, max_outstanding, error_number, resource_limited;
     double mean_outstanding;
     uint64_t flush_ns, prepare_bytes, written_bytes_total;
 } BBStorageResult;
