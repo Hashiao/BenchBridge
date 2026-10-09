@@ -1,5 +1,9 @@
 # RAM 绑核诊断 / RAM affinity diagnostics
 
+0.12.4 保留下述诊断，并新增绑定受限时的恢复行为，见 [恢复与真机复测](AFFINITY_RECOVERY.md)。
+
+0.12.4 retains these diagnostics and adds recovery under affinity restrictions; see [recovery and device retesting](AFFINITY_RECOVERY.md).
+
 0.12.3 修复绑核失败只保存错误名、丢失原生现场的问题。此次不宣称已绕过某个系统版本的调度限制；仍需受影响手机升级后重新运行并导出 **新记录的 JSON**。旧记录缺失的现场无法补回。无需连接电脑、ADB 或 root。
 
 0.12.3 fixes loss of native evidence on affinity failure. This is not a claimed workaround for a specific firmware's scheduling policy. The affected phone must rerun and export the **new report's JSON**; missing evidence cannot be reconstructed in older reports. No computer connection, ADB or root is required.

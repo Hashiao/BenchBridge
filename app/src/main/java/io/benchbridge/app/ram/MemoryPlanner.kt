@@ -6,11 +6,13 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 data class MemoryPlan(val level: String, val kind: Int, val cpus: List<Int>, val workingSets: List<Long>,
-                      val stride: Int, val cacheDomains: List<String>, val sources: List<String>) {
+                      val stride: Int, val cacheDomains: List<String>, val sources: List<String>, val systemScheduled: Boolean = false) {
+    val threads: Int get() = if (systemScheduled) 1 else cpus.size
     val bytes: Long get() = workingSets.sum()
-    val estimatedBytes: Long get() = bytes + (if (kind == 5) bytes / (stride / 4) else 0) + cpus.size * 2097152L + 32L * 1048576
+    val estimatedBytes: Long get() = bytes + (if (kind == 5) bytes / (stride / 4) else 0) + threads * 2097152L + 32L * 1048576
     fun toJson() = JSONObject().put("level", level).put("kind", kind).put("cpu_ids", JSONArray(cpus))
-        .put("threads", cpus.size).put("working_set_bytes", bytes).put("per_thread_working_set_bytes", JSONArray(workingSets))
+        .put("threads", threads).put("binding_mode", if (systemScheduled) "system_scheduled" else "pinned_verified")
+        .put("working_set_bytes", bytes).put("per_thread_working_set_bytes", JSONArray(workingSets))
         .put("node_stride_bytes", if (kind == 5) stride else 0).put("cache_domains", JSONArray(cacheDomains))
         .put("topology_sources", JSONArray(sources)).put("estimated_memory_bytes", estimatedBytes)
 }
@@ -20,6 +22,12 @@ object MemoryPlanner {
     val columns = listOf(0, 1, 5, 2)
     private fun down(value: Long): Long = value / 256 * 256
     private fun up(value: Long): Long = (value + 255) / 256 * 256
+
+    // 使用已有非绑核 T1 内核；延迟节点间隔与该内核的 128 B 保持一致。
+    // Reuse the existing unpinned T1 kernel and report its 128 B latency stride accurately.
+    fun systemPlan(config: RamConfig, kind: Int, budget: Long): MemoryPlan? =
+        MemoryPlan("RAM", kind, emptyList(), listOf(config.bytes(kind)), 128, emptyList(), listOf("system-scheduled"), true)
+            .takeIf { it.bytes in 1048576L..(2L shl 30) && it.estimatedBytes <= budget }
 
     /** 同级缓存按共享域分配，所有工作线程的合计占用不得超过目标域。
      * Allocate by sharing domain; aggregate worker footprints must stay within the target cache. */

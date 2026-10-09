@@ -156,6 +156,7 @@ data class RamStatistics(val median: Double, val minimum: Double, val maximum: D
                          val mean: Double, val score: Double)
 
 object RamResults {
+    fun bindingLabel(plan: JSONObject): String = if(plan.optString("binding_mode")=="system_scheduled")"系统调度"else"CPU ${plan.optJSONArray("cpu_ids")}"
     fun statisticLabel(report: JSONObject): String = if(report.optJSONObject("config")?.optString("aggregation")=="arithmetic_mean")"平均值"else"中位数"
     val terminalStates = setOf("COMPLETED", "PARTIAL", "CANCELLED", "FAILED", "INTERRUPTED")
     fun cell(report: JSONObject, level: String, kind: Int): JSONObject? {
@@ -196,7 +197,9 @@ object RamResults {
         else -> "准备就绪"
     }
     fun stateLabel(report: JSONObject): String = if(report.optString("state")=="PARTIAL" && report.optJSONObject("config")?.optBoolean("cache_curve")==true)
-        if(report.optJSONObject("cache_probe")?.optString("state")!="COMPLETED")"曲线部分范围未通过验证"else"部分项目未完成"
+        if(report.optJSONObject("cache_probe")?.optJSONArray("groups")?.let { groups -> (0 until groups.length()).any {
+            groups.getJSONObject(it).optString("state")=="AFFINITY_UNAVAILABLE" } }==true)"部分核心组无法固定绑定"
+        else if(report.optJSONObject("cache_probe")?.optString("state")!="COMPLETED")"曲线部分范围未通过验证"else"部分项目未完成"
         else stateLabel(report.optString("state"))
     fun phaseLabel(phase: String): String = when (phase) {
         "PREPARING" -> "分配内存、建立访问序列"

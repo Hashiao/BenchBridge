@@ -242,7 +242,7 @@ private fun ColumnScope.MemoryMatrix(report: JSONObject?, config: RamConfig, uni
                     ScoreNumber(stats?.let { "%.2f".format(Locale.US, it.score * scale) } ?: "—", stats != null,
                         "matrix_${level}_$kind", 18, Modifier.fillMaxWidth(), TextAlign.Center, 9)
                     val hint = when {
-                        plan != null -> "T${plan.optInt("threads")}"
+                        plan != null -> (if(plan.optString("binding_mode")=="system_scheduled")"系统调度 · "else"")+"T${plan.optInt("threads")}"
                         kind !in config.kinds -> "未选"
                         cell?.optString("state") == "UNSUPPORTED" -> "未确认"
                         cell?.optString("state") == "FAILED" -> "失败"

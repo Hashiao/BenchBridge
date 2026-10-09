@@ -54,7 +54,8 @@ object CacheProbe {
 
     fun run(topology:CpuTopology,memoryBudget:Long,shouldStop:()->Boolean,
             sample:(cpu:Int,bytes:Long,stride:Int,seed:Long)->JSONObject,progress:(JSONObject)->Unit,
-            config:RamConfig=RamConfig.matrixQuick(),previous:JSONObject?=null):JSONObject {
+            config:RamConfig=RamConfig.matrixQuick(),previous:JSONObject?=null,
+            affinity:AffinityRecovery=AffinityRecovery(topology)):JSONObject {
         val single=config.singleCurveSample
         val passes=if(single)1 else 2
         val method=if(single)FAST_METHOD else METHOD
@@ -71,11 +72,21 @@ object CacheProbe {
         report.put("state","RUNNING")
         val groups=report.getJSONArray("groups")
         val commonGrid=sizes(limit,if(single)emptyList()else topology.caches.map { it.bytes },config.curveSteps)
+        fun unavailable(g:JSONObject) {
+            val message="该核心组无法可靠固定绑定；仅保留此前已验证的点，本次不作完整曲线结论"
+            g.put("state","AFFINITY_UNAVAILABLE").put("affinity_state","unavailable").put("reason",message)
+                .put("transitions",JSONArray()).put("analysis",JSONObject().put("status","AFFINITY_UNAVAILABLE").put("summary",message))
+        }
         if(groups.length()==0)cores.forEach { core->
             val grid=commonGrid
-            groups.put(JSONObject().put("cpu_id",core.id).put("max_khz",core.maxKhz).put("frequency_domain",core.frequencyDomain)
-                .put("node_stride_bytes",topology.cache(core.id,1)?.lineBytes?:topology.dataLineBytes.takeIf { it in listOf(32,64,128,256) }?:64)
-                .put("planned_sizes",JSONArray(grid)).put("samples",JSONArray()).put("points",JSONArray()).put("transitions",JSONArray()).put("state","RUNNING"))
+            val actual=affinity.replacement(core.id)
+            val g=JSONObject().put("cpu_id",actual?:core.id).put("representative_cpu_id",core.id)
+                .put("group_cpu_ids",JSONArray(affinity.members(core.id).map { it.id }))
+                .put("max_khz",core.maxKhz).put("frequency_domain",core.frequencyDomain)
+                .put("node_stride_bytes",topology.cache(actual?:core.id,1)?.lineBytes?:topology.dataLineBytes.takeIf { it in listOf(32,64,128,256) }?:64)
+                .put("planned_sizes",JSONArray(grid)).put("samples",JSONArray()).put("points",JSONArray()).put("transitions",JSONArray()).put("state","RUNNING")
+            if(actual==null)unavailable(g)
+            groups.put(g)
         }
         fun grid(g:JSONObject)=g.getJSONArray("planned_sizes").let { a->(0 until a.length()).map { a.getLong(it) } }
         val batches=mutableMapOf<Triple<Int,Long,Int>,JSONObject>()
@@ -98,18 +109,38 @@ object CacheProbe {
             return pts
         }
         fun measure(g:JSONObject,bytes:Long,pass:Int,force:Boolean=false) {
-            if(shouldStop()||!force&&latest(g,bytes,pass)!=null)return
-            val records=g.getJSONArray("samples")
-            val key=Triple(g.getInt("cpu_id"),bytes,pass)
-            val attempt=(attempts[key]?:0)+1
-            if(attempt>(if(single)1 else 3))return
-            report.put("current_cpu_id",g.getInt("cpu_id")).put("current_working_set_bytes",bytes).put("current_pass",pass+1)
-            report.put("checkpoint",false);progress(report)
-            val result=sample(g.getInt("cpu_id"),bytes,g.getInt("node_stride_bytes"),0xB16B00B5L+pass*1009+attempt*7919)
-            if(result.optString("status")=="INTERRUPTED")return
-            records.put(JSONObject().put("working_set_bytes",bytes).put("pass",pass).put("attempt",attempt).put("result",result))
-            batches[key]=result;attempts[key]=attempt
-            refresh(g);report.put("checkpoint",true);progress(report)
+            if(g.optString("state")=="AFFINITY_UNAVAILABLE"||shouldStop()||!force&&latest(g,bytes,pass)!=null)return
+            while(!shouldStop()) {
+                val records=g.getJSONArray("samples")
+                val cpu=g.getInt("cpu_id")
+                val key=Triple(cpu,bytes,pass)
+                val attempt=(attempts[key]?:0)+1
+                if(attempt>(if(single)1 else 3))return
+                report.put("current_cpu_id",cpu).put("current_working_set_bytes",bytes).put("current_pass",pass+1)
+                report.put("checkpoint",false);progress(report)
+                val result=sample(cpu,bytes,g.getInt("node_stride_bytes"),0xB16B00B5L+pass*1009+attempt*7919)
+                if(result.optString("status")=="INTERRUPTED")return
+                val record=JSONObject().put("working_set_bytes",bytes).put("pass",pass).put("attempt",attempt).put("result",result)
+                if(affinity.reject(result,listOf(cpu))) {
+                    val failures=g.optJSONArray("affinity_failures")?:JSONArray().also { g.put("affinity_failures",it) }
+                    failures.put(record.put("cpu_id",cpu).put("scored",false))
+                    // 已有有效点时不更换核心，避免一条曲线混入不同 CPU。
+                    // Once valid points exist, never switch CPUs within the same curve.
+                    val hasPoints=(0 until records.length()).any { values(records.getJSONObject(it).getJSONObject("result")).isNotEmpty() }
+                    val next=if(hasPoints)null else affinity.replacement(cpu)
+                    if(next!=null) {
+                        for(i in 0 until records.length())failures.put(records.getJSONObject(i).put("cpu_id",cpu).put("scored",false))
+                        g.put("samples",JSONArray()).put("cpu_id",next)
+                            .put("node_stride_bytes",topology.cache(next,1)?.lineBytes?:topology.dataLineBytes.takeIf { it in listOf(32,64,128,256) }?:64)
+                    } else unavailable(g)
+                    refresh(g);report.put("checkpoint",true);progress(report)
+                    if(next!=null)continue else return
+                }
+                records.put(record);batches[key]=result;attempts[key]=attempt
+                if(result.optString("status")=="COMPLETED"&&result.optBoolean("verified"))g.put("affinity_state","verified")
+                refresh(g);report.put("checkpoint",true);progress(report)
+                return
+            }
         }
         for(i in 0 until groups.length())refresh(groups.getJSONObject(i))
         report.put("stage","SWEEPING").put("checkpoint",true);progress(report)
@@ -122,6 +153,7 @@ object CacheProbe {
         for(i in 0 until groups.length()) {
             if(shouldStop())break
             val g=groups.getJSONObject(i)
+            if(g.optString("state")=="AFFINITY_UNAVAILABLE")continue
             // 对不一致点有界复核，不选择最快结果；最新一批替换该遍的旧批次，原始数据仍保留。
             // Bounded rechecks replace the latest batch rather than selecting the fastest; retain every raw batch.
             for(recheck in 0 until (if(single)0 else 2)) {
@@ -130,6 +162,7 @@ object CacheProbe {
                 invalid.forEach { bytes->for(pass in 0..1)if(!shouldStop())measure(g,bytes,pass,true) }
                 if(shouldStop())break
             }
+            if(g.optString("state")=="AFFINITY_UNAVAILABLE")continue
             if(!single&&!shouldStop()) {
                 val analysis=LatencyAnalysis.analyze(refresh(g),grid(g))
                 val edges=analysis.getJSONArray("transitions")
@@ -143,6 +176,7 @@ object CacheProbe {
                         for(pass in 0..1)if(!shouldStop())measure(g,bytes,pass,true)
                 }
             }
+            if(g.optString("state")=="AFFINITY_UNAVAILABLE")continue
             val finalPoints=refresh(g)
             val analysis=LatencyAnalysis.analyze(finalPoints,grid(g))
             if(single) {

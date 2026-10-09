@@ -62,7 +62,7 @@ internal fun resultText(report: JSONObject): String = buildString {
             appendLine("$level ${kind.title}${if (code == 2) "（读写合计）" else ""}：$score")
             val cell = RamResults.cell(report, level, code)
             val plan = cell?.optJSONObject("plan")
-            if (plan != null) appendLine("${BenchmarkFormat.bytes(plan.optLong("working_set_bytes"))} · T${plan.optInt("threads")} · CPU${plan.optJSONArray("cpu_ids")} · ${stats?.count ?: 0}/${config.rounds(code)}次")
+            if (plan != null) appendLine("${BenchmarkFormat.bytes(plan.optLong("working_set_bytes"))} · T${plan.optInt("threads")} · ${RamResults.bindingLabel(plan)} · ${stats?.count ?: 0}/${config.rounds(code)}次")
             else if (!config.cacheMatrix) appendLine("${BenchmarkFormat.bytes(config.bytes(code))} · T${config.threads(code)} · ${stats?.count ?: 0} / ${config.rounds(code)} 次")
             else appendLine(cell?.optString("reason").orEmpty())
         }

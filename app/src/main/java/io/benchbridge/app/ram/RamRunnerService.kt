@@ -238,7 +238,7 @@ class RamRunnerService : Service() {
             source.keys().forEach { key -> if (key !in excluded) put(key, source.get(key)) }
         }
         val diagnosticFields = setOf("affinity_diagnostics", "runtime_at_failure")
-        return copy(report, setOf("cache_probe", "cells", "rounds", "failure_context")).apply {
+        return copy(report, setOf("cache_probe", "cells", "rounds", "failure_context", "discarded_rounds")).apply {
             report.optJSONArray("rounds")?.let { rounds ->
                 put("rounds", JSONArray().apply { for (i in 0 until rounds.length()) put(copy(rounds.getJSONObject(i), diagnosticFields)) })
             }
@@ -250,7 +250,7 @@ class RamRunnerService : Service() {
             report.optJSONObject("cache_probe")?.let { probe ->
                 put("cache_probe", copy(probe, setOf("groups")).put("groups", JSONArray().apply {
                     val groups = probe.optJSONArray("groups") ?: JSONArray()
-                    for (i in 0 until groups.length()) put(copy(groups.getJSONObject(i), setOf("samples")))
+                    for (i in 0 until groups.length()) put(copy(groups.getJSONObject(i), setOf("samples", "affinity_failures")))
                 }))
             }
             report.optJSONArray("cells")?.let { cells ->

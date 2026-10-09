@@ -8,9 +8,13 @@ Android、iPhone 与 iPad 的 CPU、GPU、内存与存储基准测试工具。�
 
 A CPU, GPU, memory and storage benchmark for Android, iPhone and iPad. Android uses Kotlin / Jetpack Compose and Vulkan; Apple uses SwiftUI and Metal, with C++20 measurement kernels.
 
-本仓库公开当前 0.12.3 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
+本仓库公开当前 0.12.4 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
 
-This repository contains the current 0.12.3 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+This repository contains the current 0.12.4 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+
+0.12.4 修复安卓绑定受限时整场 RAM 提前退出：仅在实际绑定失败后尝试同组其他核心；没有可用绑定计划时，RAM 四项明确使用系统调度 T1。中途换计划会完整重测该项，不混算不同核心的轮次；曲线受限组保留已验证点并继续其他组。正常绑核路径的候选顺序、校准、原生内核及默认参数保持不变。详见 [兼容策略、能力边界和真机复测](docs/AFFINITY_RECOVERY.md)。苹果同步版本号，测量行为不变，仍支持 iOS/iPadOS 16+。
+
+0.12.4 prevents Android RAM from aborting the entire run when affinity is restricted. Only actual binding failures trigger same-group alternatives; RAM uses explicitly labeled system-scheduled T1 only when no eligible affinity plan remains. Plan changes restart the full score without mixing CPUs. Restricted curve groups retain verified points while others continue. Healthy candidate order, calibration, native kernels and defaults remain unchanged. See [recovery, limits and device retesting](docs/AFFINITY_RECOVERY.md). Apple receives a synchronized version with unchanged measurement behavior and iOS/iPadOS 16+ support.
 
 0.12.3 补齐 RAM 绑核故障现场：安卓 JSON 保留调用返回码、errno、前后核心集合、实际工作线程及 cpuset/cgroup；校准验证失败先落盘再结束。曲线增加即时绑核回读，失败点不产生分数。苹果 JSON 新增系统、省电、热状态等运行信息，最低系统仍为 iOS/iPadOS 16。遇到旧版错误请用新版复跑并导出新 JSON；本次未宣称已解决特定固件的调度限制。详见 [诊断字段与复测方法](docs/AFFINITY_DIAGNOSTICS.md)。
 

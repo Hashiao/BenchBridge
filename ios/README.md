@@ -10,7 +10,7 @@ See [aligned defaults and platform differences](../docs/CROSS_PLATFORM_DEFAULTS.
 
 ## 功能与范围 / Features and scope
 
-| 项目 / Area | 0.12.3 实现 / Implementation |
+| 项目 / Area | 0.12.4 实现 / Implementation |
 |---|---|
 | RAM | 标准默认四项均为 64 MiB、T1，关闭自动线程，四项各测 3 次取算术平均值；先测读取、写入、延迟、拷贝，首页保留四项摘要；可配置工作集、线程、时长、重复次数。 / Standard defaults are 64 MiB/T1 for all four scores, with automatic threads off and the arithmetic mean of three rounds per score. Read, write, latency and copy first, with a four-score dashboard row and configurable working set, threads, duration and repeats. |
 | 缓存曲线 / Cache curve | 默认 4 KiB–64 MiB、每倍容量 8 个间隔，单遍、每块仅采样 1 次，无复测和补点；显示实测点和多个持续转换区间。 / Default 4 KiB–64 MiB, eight intervals per octave, one sweep/sample per block without rechecks or refinement; measured points and multiple sustained transitions. |

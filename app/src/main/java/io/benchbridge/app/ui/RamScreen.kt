@@ -213,11 +213,12 @@ private fun ResultCard(report: JSONObject, kind: RamKind, level: String = "RAM")
     val cell = RamResults.cell(report, level, kind.code)
     SectionCard("$level · " + if (kind == RamKind.COPY) "复制 · 读写合计" else kind.title) {
         cell?.optJSONObject("plan")?.let { plan ->
-            Text("T${plan.optInt("threads")} · CPU ${plan.optJSONArray("cpu_ids")} · 总工作集 ${BenchmarkFormat.bytes(plan.optLong("working_set_bytes"))}", style = MaterialTheme.typography.bodySmall)
+            Text("T${plan.optInt("threads")} · ${RamResults.bindingLabel(plan)} · 总工作集 ${BenchmarkFormat.bytes(plan.optLong("working_set_bytes"))}", style = MaterialTheme.typography.bodySmall)
             Text("每线程 ${plan.optJSONArray("per_thread_working_set_bytes")} B · ${BenchmarkFormat.duration(plan.optInt("duration_ms"))} × ${plan.optInt("rounds")}", style = MaterialTheme.typography.bodySmall)
             if (kind == RamKind.LATENCY) Text("节点间隔 ${plan.optInt("node_stride_bytes")} B", style = MaterialTheme.typography.bodySmall)
         }
         cell?.takeIf { it.has("reason") }?.let { Text(it.optString("reason"), style = MaterialTheme.typography.bodySmall) }
+        cell?.takeIf { it.has("binding_notice") }?.let { Text(it.optString("binding_notice"), style = MaterialTheme.typography.bodySmall) }
         cell?.optJSONObject("calibration")?.let { calibration ->
             val candidates = calibration.optJSONArray("candidates")
             Text("校准 ${candidates?.length() ?: 0} 个组合 · 每组合 2–3 次 × ${calibration.optInt("trial_ms")} ms", style = MaterialTheme.typography.bodySmall)

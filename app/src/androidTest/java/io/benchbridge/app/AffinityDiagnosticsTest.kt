@@ -5,6 +5,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.By
+import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.Until
 import io.benchbridge.app.ram.*
 import java.io.File
 import kotlinx.coroutines.delay
@@ -59,34 +63,48 @@ class AffinityDiagnosticsTest {
         } finally { RamNative.releaseSession(handle) }
     }
 
-    @Test fun calibrationFailurePersistsAndExportsWithoutScores() = runBlocking {
+    @Test fun calibrationFailurePersistsWhileSystemScheduledRamCompletes() = runBlocking {
         val client = RunnerClient(context); val store = RunStore(context)
         var id: String? = null
         try {
             lateinit var model: RamViewModel
             scenario.scenario.onActivity { model = ViewModelProvider(it)[RamViewModel::class.java] }
-            val config = RamConfig.aida64().toJson().put("diagnostic_test_fault", 1)
+            val config = RamConfig.aida64().copy(warmupMs=25,durationMs=150,cooldownMs=0,calibrationMs=50,
+                curveMaxMiB=1,curveSteps=2).toJson().put("diagnostic_test_fault", 1)
             val response = JSONObject(client.service().startRam(config.toString()))
             assertTrue(response.toString(), response.getBoolean("accepted"))
             val runId = response.getString("run_id"); id = runId
-            val report = withTimeout(15000) {
+            val report = withTimeout(30000) {
                 while (JSONObject(client.service().snapshot(runId)).optString("state") !in RamResults.terminalStates) delay(30)
                 store.read(runId)!!
             }
-            assertEquals("FAILED", report.getString("state"))
-            assertEquals(0, report.getInt("completed_rounds")); assertEquals(0, report.getJSONArray("rounds").length())
+            assertEquals("PARTIAL", report.getString("state"))
+            assertEquals(12, report.getInt("completed_rounds")); assertEquals(12, report.getJSONArray("rounds").length())
             val cell = report.getJSONArray("cells").getJSONObject(0)
-            assertEquals("FAILED", cell.getString("state"))
+            assertEquals("COMPLETED", cell.getString("state"))
             val entry = cell.getJSONObject("calibration").getJSONArray("candidates").getJSONObject(0)
-            assertEquals("FAILED", entry.getString("status"))
+            assertEquals("AFFINITY_UNAVAILABLE", entry.getString("status"))
             val sample = entry.getJSONArray("samples").getJSONObject(0)
             assertEquals("AFFINITY_VERIFY_FAILED", sample.getString("error"))
             assertEquals("readback_failed", firstWorker(sample).getString("failure_reason"))
             val runtime = sample.getJSONObject("runtime_at_failure")
             assertTrue(runtime.getBoolean("foreground_run")); assertTrue(runtime.getBoolean("wake_lock_held"))
             assertEquals("before_foreground_start", report.getJSONObject("capabilities").getString("capture_stage"))
-            assertEquals(sample.toString(), report.getJSONObject("failure_context").getJSONObject("sample").toString())
+            assertEquals("AFFINITY_VERIFY_FAILED", report.getJSONObject("failure_context").getJSONObject("sample").getString("error"))
             assertTrue(report.getJSONObject("runtime_diagnostics").has("before_cleanup"))
+            for(kind in MemoryPlanner.columns) {
+                val plan=RamResults.cell(report,"RAM",kind)!!.getJSONObject("plan")
+                assertEquals("system_scheduled",plan.getString("binding_mode"));assertEquals(1,plan.getInt("threads"))
+                assertEquals(0,plan.getJSONArray("cpu_ids").length());assertEquals(64L*1048576,plan.getLong("working_set_bytes"))
+                val rounds=RamResults.validRounds(report,kind);assertEquals(3,rounds.size)
+                assertTrue(rounds.all { it.optString("affinity")=="os-default" && it.getInt("threads")==1 })
+                assertEquals(rounds.map(RamResults::value).average(),RamResults.statistics(report,kind)!!.score,1e-9)
+            }
+            scenario.scenario.onActivity { model.selectHistory(report) }
+            val device=UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+            device.wait(Until.findObject(By.res("tab_2")),5000).click()
+            for(kind in MemoryPlanner.columns)assertTrue(device.wait(Until.hasObject(By.res("curve_ram_binding_$kind").text("系统调度 · T1")),5000))
+            device.takeScreenshot(File(context.cacheDir,"affinity-fallback.png"))
             val token = model.prepareExport(report)
             val file = File(context.cacheDir, "pending_exports/$token.json")
             try {

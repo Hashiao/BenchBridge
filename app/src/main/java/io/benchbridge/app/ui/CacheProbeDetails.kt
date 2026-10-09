@@ -60,7 +60,7 @@ internal fun CacheLatencyPanel(report: JSONObject?, modifier: Modifier = Modifie
             Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(4.dp)) {
                 FilterChip(selected=group==null,onClick={selectedCpu=-1;selectedBytes=0},label={Text("全部",fontSize=10.sp,lineHeight=12.sp,maxLines=1)},modifier=Modifier.height(if(compact)26.dp else 30.dp).testTag("curve_cpu_all"))
                 groups.forEach { g->FilterChip(selected=group===g,onClick={selectedCpu=g.optInt("cpu_id");selectedBytes=0},
-                    label={Text("CPU ${g.optInt("cpu_id")}",color=palette[groups.indexOf(g)%palette.size],fontSize=if(compact)8.sp else 10.sp,lineHeight=12.sp,maxLines=1)},
+                    label={Text("CPU ${g.optInt("cpu_id")}${if(g.optString("state")=="AFFINITY_UNAVAILABLE")" · 受限"else""}",color=palette[groups.indexOf(g)%palette.size],fontSize=if(compact)8.sp else 10.sp,lineHeight=12.sp,maxLines=1)},
                     modifier=Modifier.height(if(compact)26.dp else 30.dp).testTag("curve_cpu_${g.optInt("cpu_id")}")) }
             }
             if(compact) {
@@ -150,13 +150,15 @@ internal fun CacheLatencyPanel(report: JSONObject?, modifier: Modifier = Modifie
                     if(p.getLong("working_set_bytes")==selectedBytes)drawCircle(textColor,4.dp.toPx(),Offset(px,py),style=Stroke(1.dp.toPx()))
                 }
             }
-            if(points.isEmpty())drawContext.canvas.nativeCanvas.drawText(if(probe==null)"开始测试后生成曲线"else"等待有效采样",left+20.dp.toPx(),(top+bottom)/2,paint)
+            if(points.isEmpty())drawContext.canvas.nativeCanvas.drawText(if(probe==null)"开始测试后生成曲线"
+                else if(visible.isNotEmpty()&&visible.all { it.optString("state")=="AFFINITY_UNAVAILABLE" })"无法固定核心，曲线未生成"else"等待有效采样",left+20.dp.toPx(),(top+bottom)/2,paint)
         }
         val targetBytes=selectedBytes.takeIf { it>0 }?:points.lastOrNull()?.optLong("working_set_bytes")
         val selected=visible.mapNotNull { g->samples(g).firstOrNull { it.optLong("working_set_bytes")==targetBytes }?.let { g.optInt("cpu_id") to it } }
         Text(if(selected.isEmpty())"固定核心 · 随机依赖访问 · "+if(single)"单次采样"else"原始中位数" else "${sizeLabel(targetBytes!!)} · "+selected.joinToString(" / "){(cpu,p)->"CPU $cpu %.2f ns".format(Locale.US,p.getDouble("latency_ns"))},
             fontSize=if(compact)8.sp else 10.sp,lineHeight=if(compact)11.sp else 13.sp,maxLines=2,modifier=Modifier.testTag("curve_selected_point"))
         if(!compact)Text(if(group!=null)group.optJSONObject("analysis")?.optString("summary")?:if(single)"正在单遍扫描"else if(probe?.optString("method")==CacheProbe.METHOD)"正在完成整段扫描与交叉验证"else"旧协议记录，保留原始曲线"
+            else if(groups.any { it.optString("state")=="AFFINITY_UNAVAILABLE" })"部分核心组绑定受限 · 仅显示已验证采样，点按查看详情"
             else if(probe?.optString("state")=="COMPLETED")"所有核心组已完成 · 分段结论见详情"else if(single)"单遍扫描 · 每块 1 次 · 点按核心查看结论"else"正反两遍扫描 · 自动复核 · 点按核心查看结论",
             fontSize=9.sp,lineHeight=12.sp,maxLines=3,modifier=Modifier.testTag("curve_transitions"))
     }
@@ -226,6 +228,8 @@ internal fun RamSummaryRow(report: JSONObject?, config: RamConfig, unit: String 
                     stats!=null,"curve_ram_$kind",if(compact)12 else 17,Modifier.fillMaxWidth(),TextAlign.Start,8)
                 if(!compact)Text(if(kind==5)"ns"else unit,fontSize=9.sp,lineHeight=12.sp,maxLines=1)
                 if(!compact || stats==null)Text(hint,fontSize=8.sp,lineHeight=11.sp,maxLines=1,modifier=Modifier.testTag("curve_ram_hint_$kind"))
+                if(plan?.optString("binding_mode")=="system_scheduled")Text("系统调度 · T1",fontSize=8.sp,lineHeight=11.sp,maxLines=1,
+                    modifier=Modifier.testTag("curve_ram_binding_$kind"))
             }
         }
     }
