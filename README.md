@@ -40,9 +40,9 @@ This repository contains the current 0.13.0 implementation. Android and iPhone/i
 
 0.12.0 aligns Android/Apple RAM defaults at 64 MiB, single-thread 4 KiB–64 MiB curves, DiskMark storage settings and main UI layouts. See [defaults and platform capabilities](docs/CROSS_PLATFORM_DEFAULTS.md).
 
-0.12.4 验证：安卓构建、两种 Lint、46 项 API 37 回归及从 0.12.3 签名覆盖升级启动通过；六个原生库与 0.12.3 逐字节一致。苹果 [对应 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37976228323) 双工具链原生回归及 iPhone/iPad 共 44 项通过、无跳过，最低系统 16.0。正常 4.0.6 手机与受限手机仍需分别复测；SMB 按用户要求暂缓。
+0.13.0 验证：安卓构建、两种 Lint（无问题）和 77 个不同回归用例通过；补齐历史模板与缓存同步后，3 个语言用例以简中、繁中、英文分别复测通过。英文小屏 360×640 / 130% 字体、非中文首选语言回退、签名覆盖升级通过，22 份历史记录哈希不变，六个原生库与 0.12.4 逐字节一致。[Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/37990732712) 双工具链原生检查及 iPhone/iPad 共 56 项通过、无跳过，最低系统 16.0；本版真机仍待复测，SMB 按要求暂缓。
 
-0.12.4 verification: Android builds, both Lints, 46 API 37 regressions and signed upgrade/launch from 0.12.3 passed; all six native libraries are byte-identical to 0.12.3. [Matching Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/37976228323) passed native regressions on both toolchains and 44 iPhone/iPad tests with no skips, retaining minimum OS 16.0. Both the working 4.0.6 phone and restricted phone still require device retesting; SMB remains deferred.
+0.13.0 verification: Android builds, both Lints (no issues) and 77 distinct regression cases passed. After completing legacy templates and cache synchronization, all three language cases passed again under Simplified Chinese, Traditional Chinese and English. English at 360×640/130% font size, non-Chinese primary-language fallback and signed upgrade passed, preserving hashes of 22 reports. Six native libraries are byte-identical to 0.12.4. [Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/37990732712) passed native checks on both toolchains and 56 iPhone/iPad cases with no skips, retaining minimum OS 16.0. Physical-device acceptance remains pending; SMB stays deferred.
 
 ## iPhone / iPad
 

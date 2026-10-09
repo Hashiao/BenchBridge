@@ -123,3 +123,17 @@ The result board was also checked at a 360×640 logical size with 130% system fo
 私有验收日志、设备报告与截图不包含在公开仓库中。上述记录描述一次验收范围，不代表所有平台均已通过测试。
 
 Private validation logs, device reports and screenshots are not included in the public repository. These records describe one validation scope, not test coverage of every platform.
+
+## 0.13.0 验收 / Acceptance
+
+应用源码 `444f01ee57206c3c58b33cd66126ce693cc42695`；Apple CI 提交 `a24a3158741604d233b98f545d36f1ab6e30bcf0` 与其苹果源码一致；最终标签仅增加验收文档。
+
+Application source: `444f01ee57206c3c58b33cd66126ce693cc42695`; Apple CI commit `a24a3158741604d233b98f545d36f1ab6e30bcf0` has identical Apple sources. The final tag adds acceptance documentation only.
+
+0.13.0 验证：安卓构建、两种 Lint（无问题）和 77 个不同回归用例通过；补齐历史模板与缓存同步后，3 个语言用例以简中、繁中、英文分别复测通过。英文小屏 360×640 / 130% 字体、非中文首选语言回退、签名覆盖升级通过，22 份历史记录哈希不变，六个原生库与 0.12.4 逐字节一致。[Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/37990732712) 双工具链原生检查及 iPhone/iPad 共 56 项通过、无跳过，最低系统 16.0；本版真机仍待复测，SMB 按要求暂缓。
+
+0.13.0 verification: Android builds, both Lints (no issues) and 77 distinct regression cases passed. After completing legacy templates and cache synchronization, all three language cases passed again under Simplified Chinese, Traditional Chinese and English. English at 360×640/130% font size, non-Chinese primary-language fallback and signed upgrade passed, preserving hashes of 22 reports. Six native libraries are byte-identical to 0.12.4. [Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/37990732712) passed native checks on both toolchains and 56 iPhone/iPad cases with no skips, retaining minimum OS 16.0. Physical-device acceptance remains pending; SMB stays deferred.
+
+苹果 CI 实际运行时记录在本次构建附件，IPA 的 MinimumOSVersion 与主程序 minos 都检查为 16.0。没有提供 iOS 16 模拟器运行时，不将最低部署版本当作该版本真机验收。
+
+Actual Apple simulator runtimes are recorded in the CI artifacts. Both IPA MinimumOSVersion and executable minos were checked as 16.0. No iOS 16 simulator runtime was available; the deployment target is not a claim of physical-device validation on that OS.
