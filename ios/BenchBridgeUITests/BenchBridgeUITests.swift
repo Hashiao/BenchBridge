@@ -5,17 +5,20 @@ final class BenchBridgeUITests: XCTestCase {
         // 非中文首选语言即使带中文第二语言，也必须使用英文。
         // Non-Chinese primary languages must use English even with Chinese as a secondary preference.
         let cases = [
-            ("(zh-Hans)", "zh_CN", "缓存与内存", "开始测试", "RAM 设置", "zh-Hans"),
-            ("(zh-Hant)", "zh_TW", "快取與記憶體", "開始測試", "RAM 設定", "zh-Hant"),
-            ("(en)", "en_US", "Cache & memory", "Start test", "RAM settings", "en"),
-            ("(ja, zh-Hant)", "ja_JP", "Cache & memory", "Start test", "RAM settings", "ja-fallback"),
-            ("(ar, zh-Hans)", "ar_EG", "Cache & memory", "Start test", "RAM settings", "ar-fallback")
+            ("(zh-Hans)", "zh_CN", "准备就绪", "开始测试", "RAM 设置", "zh-Hans"),
+            ("(zh-Hant)", "zh_TW", "準備就緒", "開始測試", "RAM 設定", "zh-Hant"),
+            ("(en)", "en_US", "Ready", "Start test", "RAM settings", "en"),
+            ("(ja, zh-Hant)", "ja_JP", "Ready", "Start test", "RAM settings", "ja-fallback"),
+            ("(ar, zh-Hans)", "ar_EG", "Ready", "Start test", "RAM settings", "ar-fallback")
         ]
-        for (languages, locale, title, start, settings, name) in cases {
+        for (languages, locale, ready, start, settings, name) in cases {
             let app = XCUIApplication()
             app.launchArguments = ["--uitest", "--uitest-store=" + UUID().uuidString, "-AppleLanguages", languages, "-AppleLocale", locale]
             app.launch()
-            XCTAssertTrue(app.staticTexts[title].waitForExistence(timeout: 15))
+            // iPad 顶部标签可能隐藏导航标题；检查两端共同可见的状态与控件。
+            // iPad top tabs can hide navigation titles; assert shared visible status and controls.
+            XCTAssertTrue(app.staticTexts["run-progress"].waitForExistence(timeout: 15))
+            XCTAssertEqual(app.staticTexts["run-progress"].label, ready)
             XCTAssertEqual(app.buttons["start-test"].label, start); XCTAssertTrue(app.buttons["start-test"].isHittable)
             screenshot("Locale " + name, app: app)
             app.buttons["settings"].tap()
