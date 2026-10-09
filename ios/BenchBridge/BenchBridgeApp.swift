@@ -6,7 +6,7 @@ import SwiftUI
     var body: some Scene {
         WindowGroup {
             RootView(model: model)
-                .onChange(of: phase) { _, value in if value == .background { model.backgrounded() } }
+                .onChange(of: phase) { value in if value == .background { model.backgrounded() } }
         }
     }
 }

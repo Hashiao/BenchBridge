@@ -1,8 +1,8 @@
 # 苹果端安装、真机测试与上架 / Apple installation, device testing and distribution
 
-适用于 BenchBridge 0.12.1；资料核对日期 2026-10-08。应用最低 iOS/iPadOS 18.0，当前是供真机验收的首版，不是已经上架 App Store 的成品。
+适用于 BenchBridge 0.12.1；资料核对日期 2026-10-08。应用最低 iOS/iPadOS 16.0，当前是供真机验收的首版，不是已经上架 App Store 的成品。
 
-For BenchBridge 0.12.1; references checked on 2026-10-08. Minimum iOS/iPadOS 18.0. This first version is ready for device acceptance testing; it is not already an App Store release.
+For BenchBridge 0.12.1; references checked on 2026-10-08. Minimum iOS/iPadOS 16.0. This first version is ready for device acceptance testing; it is not already an App Store release.
 
 ## 1. 下载哪一个文件 / Choose the download
 

@@ -16,7 +16,7 @@ sources={
     'BenchBridgeTests':['BenchBridgeTests/BenchBridgeTests.swift'],
     'BenchBridgeUITests':['BenchBridgeUITests/BenchBridgeUITests.swift']
 }
-common={'IPHONEOS_DEPLOYMENT_TARGET':'18.0','SDKROOT':'iphoneos','TARGETED_DEVICE_FAMILY':'1,2',
+common={'IPHONEOS_DEPLOYMENT_TARGET':'16.0','SDKROOT':'iphoneos','TARGETED_DEVICE_FAMILY':'1,2',
     'SWIFT_VERSION':'5.0','CLANG_CXX_LANGUAGE_STANDARD':'c++20','CLANG_CXX_LIBRARY':'libc++',
     'CLANG_ENABLE_MODULES':'YES','CLANG_ENABLE_OBJC_ARC':'YES','GCC_SYMBOLS_PRIVATE_EXTERN':'NO',
     'ENABLE_TESTABILITY':'YES','MTL_FAST_MATH':'NO','SWIFT_STRICT_CONCURRENCY':'targeted',

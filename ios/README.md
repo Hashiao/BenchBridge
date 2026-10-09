@@ -1,8 +1,8 @@
 # BenchBridge for iPhone and iPad / iPhone 与 iPad 版本
 
-原生 SwiftUI + C++20 + Metal 工程，最低 iOS / iPadOS 18.0，支持 iPhone 与 iPad。与 Android 共用内存和 CPU 算术内核；界面、存储调用、GPU 后端与生命周期按苹果平台实现。
+原生 SwiftUI + C++20 + Metal 工程，最低 iOS / iPadOS 16.0，支持 iPhone 与 iPad。与 Android 共用内存和 CPU 算术内核；界面、存储调用、GPU 后端与生命周期按苹果平台实现。
 
-Native SwiftUI + C++20 + Metal application for iPhone and iPad, targeting iOS/iPadOS 18.0+. Memory and CPU arithmetic kernels are shared with Android; UI, storage calls, GPU backend and lifecycle are implemented for Apple platforms.
+Native SwiftUI + C++20 + Metal application for iPhone and iPad, targeting iOS/iPadOS 16.0+. Memory and CPU arithmetic kernels are shared with Android; UI, storage calls, GPU backend and lifecycle are implemented for Apple platforms.
 
 默认值、苹果 SoC 型号/核心组识别与跨平台差异见 [协议对齐说明](../docs/CROSS_PLATFORM_DEFAULTS.md)。
 
@@ -82,3 +82,7 @@ The Release asset `BenchBridge-iOS-unsigned.ipa` is a real iPhoneOS ARM64 build,
 没有 Mac 不影响 Windows 编辑与云端编译，但真机验收仍需要在自己的设备上运行签名后的应用。TestFlight/App Store 分发还需符合 Apple 开发者计划要求；当前没有发布到 TestFlight，0.11.0 已收到用户安装运行成功反馈；0.12.0 新内核仍待真机验收。
 
 A Mac is not required for Windows editing and cloud compilation, but device acceptance still requires a signed app running on your hardware. TestFlight/App Store distribution also requires meeting Apple's developer-program requirements. This project has not been distributed through TestFlight ; 0.11.0 installation/launch was reported successful, while 0.12.0 kernels still need physical-device acceptance.
+
+0.12.1 将部署目标降低到 16.0，曲线选点使用 iOS 16 图表覆盖层手势，后台监听使用旧版兼容接口。CI 同时检查 IPA 的 MinimumOSVersion 和 Mach-O 的 minos 为 16.0；实际运行过的模拟器版本单独记录，部署目标不等于该版本真机已验收。
+
+0.12.1 lowers deployment to 16.0, uses iOS 16 chart-overlay selection and a compatible scene-phase callback. CI verifies both IPA MinimumOSVersion and Mach-O minos are 16.0. Executed simulator versions are recorded separately; a deployment target is not a claim of physical-device validation on that OS.

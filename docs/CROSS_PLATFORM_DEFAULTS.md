@@ -15,6 +15,10 @@ The 0.12.1 standard preset shares the defaults below: all four RAM scores use 64
 | ROM 四行 / Four storage rows | SEQ 1 MiB Q8T1、SEQ 1 MiB Q1T1、RND 4 KiB Q32T1、RND 4 KiB Q1T1 |
 | ROM 重复与计时 / Repetition and timing | 读写各 3 次，取最佳完整轮次；预热 1 s、测量 5 s、间隔 1 s / 3 rounds per direction, maximum valid complete round; 1 s warmup, 5 s measurement, 1 s interval |
 
+ROM 的四行块大小、队列和线程组合参考 DiskMark；本版为缩短移动设备测试而调整预热与间隔，并非完整复刻其默认计时。CrystalDiskMark [官方源码](https://github.com/hiyohiyo/CrystalDiskMark/blob/master/DiskMarkDlg.cpp) 的默认测量与间隔均为 5 秒。
+
+ROM block/queue/thread combinations follow DiskMark; this version shortens mobile warmup and intervals rather than replicating all of its timing defaults. CrystalDiskMark's [official source](https://github.com/hiyohiyo/CrystalDiskMark/blob/master/DiskMarkDlg.cpp) sets both measurement and interval to five seconds by default.
+
 RAM 总工作集不会按末级缓存自动扩大；多线程按 256 B 分配余数，64 MiB 保持为总量。64 MiB 不保证避开每台设备的全部系统缓存。旧安卓记录中 `expand_ram_working_set` 缺失表示旧扩大策略；新配置明确为 false。
 
 RAM does not silently expand to exceed the last-level cache. Remainders are distributed in 256 B units so a 64 MiB request stays 64 MiB across threads. This does not guarantee bypassing every system cache. Missing `expand_ram_working_set` in old Android records retains the legacy expansion policy; new settings explicitly set it to false.

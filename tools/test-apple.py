@@ -55,12 +55,18 @@ try:
     application=OUT/'device-build/Build/Products/Release-iphoneos/BenchBridge.app'
     import plistlib
     info=plistlib.loads((application/'Info.plist').read_bytes());assert info['CFBundleSupportedPlatforms']==['iPhoneOS'],info
+    assert info['MinimumOSVersion']=='16.0',info
+    manifest['minimum_os_version']=info['MinimumOSVersion']
+    load_commands=run(['xcrun','otool','-l',str(application/info['CFBundleExecutable'])])
+    assert re.search(r'cmd LC_BUILD_VERSION\b(?:(?!Load command).)*\bminos 16\.0\b',load_commands,re.S),load_commands
+    manifest['binary_minimum_os_version']='16.0'
     with zipfile.ZipFile(OUT/'BenchBridge-iOS-unsigned.ipa','w',compression=zipfile.ZIP_DEFLATED) as archive:
         for file in application.rglob('*'):
             if file.is_file():archive.write(file,Path('Payload/BenchBridge.app')/file.relative_to(application))
     manifest['unsigned_device_build']='passed';manifest['install_requires_resigning']=True;save()
     sdk=tuple(map(int,run(['xcrun','--sdk','iphonesimulator','--show-sdk-version']).split('.')[:2]))
     available=json.loads(run(['xcrun','simctl','list','devices','available','-j']))['devices']
+    manifest['ios16_runtime_available']=any('iOS-16-' in runtime and any(d.get('isAvailable') for d in devices) for runtime,devices in available.items());save()
     options=[(runtime,d) for runtime,devices in available.items() if 'iOS' in runtime and tuple(map(int,re.findall(r'\d+',runtime)))[:2]<=sdk for d in devices if d.get('isAvailable')]
     for family in ('iPhone','iPad'):
         choices=[item for item in options if family in item[1]['name']]

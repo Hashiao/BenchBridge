@@ -191,7 +191,19 @@ private struct CurveChart: View {
             AxisGridLine(); AxisValueLabel { axisLabel(value.as(Double.self)) }
         } }
         .chartYAxis { AxisMarks(position: .leading) }.chartYAxisLabel("ns")
-        .chartXSelection(value: $selectedBytes)
+        // 用 iOS 16 图表覆盖层处理拖动，所有系统共享同一选点路径。
+        // Use the iOS 16 chart overlay for the same point-selection path on every supported OS.
+        .chartOverlay { proxy in
+            GeometryReader { geometry in
+                Rectangle().fill(.clear).contentShape(Rectangle())
+                    .gesture(DragGesture(minimumDistance: 0).onChanged { value in
+                        let frame = geometry[proxy.plotAreaFrame]
+                        let x = value.location.x - frame.minX
+                        guard frame.width > 0, x >= 0, x <= frame.width else { return }
+                        selectedBytes = proxy.value(atX: x, as: Double.self)
+                    })
+            }
+        }
         .frame(height: height).accessibilityIdentifier("cache-chart")
     }
     private var colorNames: [String] { visible.isEmpty ? ["高优先级"] : visible.map(\.title) }
@@ -216,7 +228,7 @@ private struct CurveChart: View {
             else {
                 Text(singleSample ? "单遍扫描，每块采样 1 次；按住曲线查看实测值。" : "按住曲线查看采样；浅色点未通过重复性验证，不跨缺口连线；误差线为 10–90% 分位。").font(.caption2).foregroundStyle(.secondary)
                 ForEach(visible) { group in
-                    if let label = sampleLabel(group) { Text(label).font(.caption).monospacedDigit() }
+                    if let label = sampleLabel(group) { Text(label).font(.caption).monospacedDigit().accessibilityIdentifier("curve-selected-\(group.qos)") }
                 }
             }
         }

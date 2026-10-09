@@ -23,6 +23,13 @@ final class BenchBridgeUITests: XCTestCase {
             XCTAssertTrue(value.exists); XCTAssertNotEqual(value.label, "—")
         }
         screenshot("RAM and cache", app: app)
+        app.swipeUp()
+        let chart = app.descendants(matching: .any)["cache-chart"].firstMatch
+        if !chart.isHittable { app.swipeUp() }
+        XCTAssertTrue(chart.waitForExistence(timeout: 10))
+        chart.coordinate(withNormalizedOffset: CGVector(dx: 0.4, dy: 0.5)).press(forDuration: 0.2,
+            thenDragTo: chart.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.5)))
+        XCTAssertTrue(app.staticTexts["curve-selected-0"].waitForExistence(timeout: 10))
         if !app.buttons["export-json"].isHittable { app.swipeUp() }
         XCTAssertTrue(app.buttons["export-json"].exists)
         tab("历史", app: app); XCTAssertTrue(app.collectionViews.firstMatch.exists || app.descendants(matching: .any)["history-list"].exists)

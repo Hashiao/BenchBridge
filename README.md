@@ -36,9 +36,9 @@ This repository contains the current 0.12.1 implementation. The app interface is
 
 First device test: connect the device to a nearby Windows PC over USB → sign/install using your own Apple account as described in the guide → enable Developer Mode when required → run RAM, ROM and GPGPU on-device → export JSON. **Downloading the IPA does not make it installable; there is no TestFlight invitation yet.** Free personal signing expires; the user reported successful 0.11.0 installation and launch on iOS 27; the new measurement kernels still require device acceptance.
 
-0.11.0 新增 [原生苹果端工程与构建说明](ios/README.md)，最低 iOS / iPadOS 18。包含 RAM 四项与缓存曲线、存储、CPU 和 Metal GPU 测试、历史与 JSON 导出。Windows 验证共享 C++ 核心，GitHub 的 macOS 环境编译并实跑 iPhone / iPad 模拟器；模拟器数值不代表真机性能。苹果端采用系统调度，不提供安卓式物理核心绑定。
+[原生苹果端工程与构建说明](ios/README.md)：0.12.1 起最低支持 iOS / iPadOS 16。包含 RAM 四项与缓存曲线、存储、CPU 和 Metal GPU 测试、历史与 JSON 导出。Windows 验证共享 C++ 核心，GitHub 的 macOS 环境编译并实跑 iPhone / iPad 模拟器；模拟器数值不代表真机性能。苹果端采用系统调度，不提供安卓式物理核心绑定。
 
-Version 0.11.0 adds a [native Apple project and build guide](ios/README.md) for iOS/iPadOS 18+, with RAM scores/cache curves, storage, CPU/Metal GPU tests, history and JSON export. Windows validates the shared C++ core; GitHub macOS runners build and run iPhone/iPad simulators. Simulator scores are not device-performance measurements. Apple uses system scheduling without Android-style physical-core pinning.
+The [native Apple project and build guide](ios/README.md) targets iOS/iPadOS 16+ starting with 0.12.1, with RAM scores/cache curves, storage, CPU/Metal GPU tests, history and JSON export. Windows validates the shared C++ core; GitHub macOS runners build and run iPhone/iPad simulators. Simulator scores are not device-performance measurements. Apple uses system scheduling without Android-style physical-core pinning.
 
 [苹果端构建与测试 / Apple builds and tests](https://github.com/Hashiao/BenchBridge/actions/workflows/apple.yml)。Release 中的 `BenchBridge-iOS-unsigned.ipa` **需要另行签名才能安装**；GPU AES/SHA 首版未实现，FP64 GPU 项目不支持。下文的原有功能与参数描述适用于安卓端，苹果端差异见上方说明。
 
