@@ -160,43 +160,71 @@ private struct CurveChart: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack { Text("工作集大小—访问延迟").font(.headline); Spacer(); Button(logarithmic ? "对数 ns" : "线性 ns") { logarithmic.toggle() }.font(.caption).accessibilityIdentifier("curve-scale") }
-            if groups.count > 1 { Picker("调度优先级", selection: $selected) { Text("全部").tag(-1); ForEach(groups) { Text($0.title).tag($0.qos) } }.pickerStyle(.segmented) }
-            Chart {
-                ForEach(visible) { group in
-                    ForEach(Array(segments(group).enumerated()), id: \.offset) { segment in ForEach(segment.element) { point in
-                        LineMark(x: .value("工作集", Double(point.bytes)), y: .value("延迟", point.latencyNs), series: .value("连续区间", "\(group.qos)-\(segment.offset)"))
-                            .foregroundStyle(by: .value("优先级", group.title))
-                    } }
-                    ForEach(group.points) { point in
-                    RuleMark(x: .value("工作集", Double(point.bytes)), yStart: .value("10%", point.lowNs), yEnd: .value("90%", point.highNs))
-                        .foregroundStyle(by: .value("优先级", group.title)).opacity(0.25)
-                    PointMark(x: .value("工作集", Double(point.bytes)), y: .value("延迟", point.latencyNs))
-                        .foregroundStyle(by: .value("优先级", group.title)).symbolSize(point.stable ? 12 : 28).opacity(point.stable ? 1 : 0.4)
-                } }
-                if let selectedBytes { RuleMark(x: .value("选中工作集", selectedBytes)).foregroundStyle(.secondary).lineStyle(StrokeStyle(dash: [3,3])) }
+            controls
+            plot
+            samples
+        }
+    }
+    private var controls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("工作集大小—访问延迟").font(.headline); Spacer()
+                Button(logarithmic ? "对数 ns" : "线性 ns") { logarithmic.toggle() }.font(.caption).accessibilityIdentifier("curve-scale")
             }
-            .chartXScale(domain: 4096.0...Double(maximumMiB * 1048576), type: .log)
-            .chartYScale(type: logarithmic ? .log : .linear)
-            .chartForegroundStyleScale(domain: visible.isEmpty ? ["高优先级"] : visible.map(\.title),
-                                       range: visible.isEmpty ? [Color.indigo] : visible.map { $0.qos == 0 ? Color.indigo : Color.teal })
-            .chartXAxis { AxisMarks(values: axisValues) { value in
-                AxisGridLine(); AxisValueLabel { axisLabel(value.as(Double.self)) }
-            } }.chartYAxis { AxisMarks(position: .leading) }.chartYAxisLabel("ns")
-            .chartXSelection(value: $selectedBytes)
-            .frame(height: height).accessibilityIdentifier("cache-chart")
+            if groups.count > 1 {
+                Picker("调度优先级", selection: $selected) { Text("全部").tag(-1); ForEach(groups) { Text($0.title).tag($0.qos) } }.pickerStyle(.segmented)
+            }
+        }
+    }
+    private var plot: some View {
+        Chart {
+            ForEach(visible) { group in groupMarks(group) }
+            if let selectedBytes {
+                RuleMark(x: .value("选中工作集", selectedBytes)).foregroundStyle(.secondary).lineStyle(StrokeStyle(dash: [3,3]))
+            }
+        }
+        .chartXScale(domain: 4096.0...Double(maximumMiB * 1048576), type: .log)
+        .chartYScale(type: logarithmic ? .log : .linear)
+        .chartForegroundStyleScale(domain: colorNames, range: colors)
+        .chartXAxis { AxisMarks(values: axisValues) { value in
+            AxisGridLine(); AxisValueLabel { axisLabel(value.as(Double.self)) }
+        } }
+        .chartYAxis { AxisMarks(position: .leading) }.chartYAxisLabel("ns")
+        .chartXSelection(value: $selectedBytes)
+        .frame(height: height).accessibilityIdentifier("cache-chart")
+    }
+    private var colorNames: [String] { visible.isEmpty ? ["高优先级"] : visible.map(\.title) }
+    private var colors: [Color] { visible.isEmpty ? [.indigo] : visible.map { $0.qos == 0 ? .indigo : .teal } }
+    @ChartContentBuilder private func groupMarks(_ group: CurveGroup) -> some ChartContent {
+        ForEach(Array(segments(group).enumerated()), id: \.offset) { segment in
+            ForEach(segment.element) { point in
+                LineMark(x: .value("工作集", Double(point.bytes)), y: .value("延迟", point.latencyNs), series: .value("连续区间", "\(group.qos)-\(segment.offset)"))
+                    .foregroundStyle(by: .value("优先级", group.title))
+            }
+        }
+        ForEach(group.points) { point in
+            RuleMark(x: .value("工作集", Double(point.bytes)), yStart: .value("10%", point.lowNs), yEnd: .value("90%", point.highNs))
+                .foregroundStyle(by: .value("优先级", group.title)).opacity(0.25)
+            PointMark(x: .value("工作集", Double(point.bytes)), y: .value("延迟", point.latencyNs))
+                .foregroundStyle(by: .value("优先级", group.title)).symbolSize(point.stable ? 12 : 28).opacity(point.stable ? 1 : 0.4)
+        }
+    }
+    private var samples: some View {
+        VStack(alignment: .leading, spacing: 4) {
             if groups.flatMap(\.points).isEmpty { Text("RAM 四项完成后开始扫描；图中仅显示实测值。").font(.caption).foregroundStyle(.secondary) }
             else {
                 Text("按住曲线查看采样；浅色点未通过重复性验证，不跨缺口连线；误差线为 10–90% 分位。").font(.caption2).foregroundStyle(.secondary)
                 ForEach(visible) { group in
-                    if let target = selectedBytes, target > 0,
-                       let point = group.points.min(by: { abs(log(Double($0.bytes) / target)) < abs(log(Double($1.bytes) / target)) }) {
-                        Text("\(group.title) · \(Statistics.size(point.bytes)) · \(point.latencyNs, specifier: "%.2f") ns · \(point.stable ? "通过验证" : "未通过验证")")
-                            .font(.caption).monospacedDigit()
-                    }
+                    if let label = sampleLabel(group) { Text(label).font(.caption).monospacedDigit() }
                 }
             }
         }
+    }
+    private func sampleLabel(_ group: CurveGroup) -> String? {
+        guard let target = selectedBytes, target > 0 else { return nil }
+        let nearest = group.points.min { abs(log(Double($0.bytes) / target)) < abs(log(Double($1.bytes) / target)) }
+        guard let point = nearest else { return nil }
+        return group.title + " · " + Statistics.size(point.bytes) + String(format: " · %.2f ns · ", point.latencyNs) + (point.stable ? "通过验证" : "未通过验证")
     }
     private func axisLabel(_ bytes: Double?) -> some View {
         let label = bytes.map { Statistics.size(UInt64($0)) } ?? ""
