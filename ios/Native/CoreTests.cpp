@@ -55,6 +55,8 @@ int main(int argc,char** argv){try{
     }
     require(bb_storage_run(storage.get(),0,0,1048576,32,1,0,5).measurement.status==2,"reject file smaller than queue footprint");
     const auto multi=bb_storage_run(storage.get(),1,0,4096,8,2,0,30);require(multi.measurement.verified&&multi.measurement.threads==2,"disjoint multi-thread regions");
+    const auto shortRun=bb_storage_run(storage.get(),0,1,4096,1,16,1,5);
+    require(shortRun.measurement.verified&&shortRun.minimum_worker_operations>0,"short windows still execute work on every configured worker");
     BBStorageResult cancelledIO{};std::thread ioWorker([&]{cancelledIO=bb_storage_run(storage.get(),1,1,4096,32,1,0,5000);});
     std::this_thread::sleep_for(std::chrono::milliseconds(30));bb_session_cancel(s.get());ioWorker.join();
     require(cancelledIO.measurement.status==1&&!cancelledIO.measurement.verified,"cancel drains queued I/O without publishing a score");

@@ -11,8 +11,8 @@ typedef struct {
     int32_t accepted;
 } BBTrial;
 typedef struct {
-    // 0 成功，1 取消，2 参数无效，3 分配失败，4 校验失败，5 I/O 失败，6 未实现。
-    // 0 completed, 1 cancelled, 2 invalid, 3 allocation, 4 verification, 5 I/O, 6 unavailable.
+    // 0 成功，1 取消，2 参数无效，3 分配失败，4 校验失败，5 I/O 失败，6 未实现，7 没有测量操作。
+    // 0 completed, 1 cancelled, 2 invalid, 3 allocation, 4 verification, 5 I/O, 6 unavailable, 7 no measured operations.
     int32_t status, kind, trial_count, verified, threads, qos, no_cache, node_stride_bytes;
     uint64_t working_set_bytes, warmup_operations, wall_ns, checksum;
     BBTrial trials[9];
@@ -31,9 +31,9 @@ BBResult bb_storage(BBSession* session, const char* path, int32_t write_test, in
 typedef struct BBStorage BBStorage;
 typedef struct {
     BBResult measurement;
-    int32_t queue_depth, block_bytes, random_access, max_outstanding, error_number, resource_limited;
+    int32_t queue_depth, block_bytes, random_access, max_outstanding, error_number, resource_limited, error_phase;
     double mean_outstanding;
-    uint64_t flush_ns, prepare_bytes, written_bytes_total;
+    uint64_t flush_ns, prepare_bytes, written_bytes_total, start_delay_ns, minimum_worker_operations;
 } BBStorageResult;
 // 文件仅初始化一次；销毁前必须等 run 返回、排空所有 I/O。 / Prepare once; drain all I/O before returning or destroying.
 BBStorage* bb_storage_create(BBSession* session, const char* path, uint64_t file_bytes, int32_t no_cache, BBStorageResult* result);

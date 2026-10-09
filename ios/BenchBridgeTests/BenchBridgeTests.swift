@@ -58,6 +58,8 @@ final class BenchBridgeTests: XCTestCase {
                 XCTAssertEqual(try ReportStore.decoder().decode(StorageSample.self, from: ReportStore.encoder().encode(sample)).queueDepth, Int(queue))
             }
         }
+        let shortRun = bb_storage_run(handle, 0, 1, 4096, 1, 16, 1, 5)
+        XCTAssertEqual(shortRun.measurement.status, 0); XCTAssertGreaterThan(shortRun.minimum_worker_operations, 0)
         token.cancel("test"); XCTAssertEqual(bb_storage_run(handle, 1, 1, 4096, 32, 1, 0, 5000).measurement.status, 1)
         bb_storage_destroy(handle); XCTAssertFalse(FileManager.default.fileExists(atPath: path.path))
     }

@@ -37,7 +37,7 @@ struct BenchConfig: Codable, Equatable, Sendable {
     static var test: Self {
         var value = Self(memoryMiB: 1, durationMs: 10, repeats: 1, cacheMaxMiB: 1, stepsPerOctave: 1, backgroundCurve: false, storageMiB: 8, functionalTest: true)
         value.ram = RAMParameters(memoryMiB: 1, latencyMiB: 1, automaticThreads: false, warmupMs: 5, durationMs: 10, repeats: 1, latencyRepeats: 1, intervalMs: 0)
-        value.storage = StorageParameters(fileMiB: 8, repeats: 1, warmupMs: 5, durationMs: 15, intervalMs: 0)
+        value.storage = StorageParameters(fileMiB: 8, repeats: 1, warmupMs: 100, durationMs: 200, intervalMs: 0)
         return value
     }
     func rounds(_ family: BenchFamily, kind: Int) -> Int {
@@ -163,7 +163,7 @@ struct NativeMeasurement: Codable, Sendable {
     }
     var error: String? { switch status {
     case 0: nil; case 1: "测试已停止"; case 2: "参数不受支持"; case 3: "内存或线程资源不足"
-    case 4: "计算、数据或调度设置校验失败"; case 5: "文件读写失败"; default: "此后端暂未实现该项目"
+    case 4: "计算、数据或调度设置校验失败"; case 5: "文件读写失败"; case 7: "未获得有效测量操作，请延长时长重试"; default: "此后端暂未实现该项目"
     } }
 }
 struct ScoreItem: Codable, Identifiable, Sendable {
@@ -193,6 +193,9 @@ struct StorageSample: Codable, Sendable {
     var writtenBytesTotal: UInt64
     var errnoCode: Int
     var resourceLimited: Bool
+    var errorPhase: Int?
+    var startDelayNs: UInt64?
+    var minimumWorkerOperations: UInt64?
     var backend = "posix-aio"
     var dataPattern = "splitmix64-64mib-pool-v1"
     var timer = "submission-through-last-completion;flush-separate"
@@ -202,6 +205,7 @@ struct StorageSample: Codable, Sendable {
         flushNsSeparate = result.flush_ns; prepareBytes = result.prepare_bytes; writtenBytesTotal = result.written_bytes_total
         errnoCode = Int(result.error_number)
         resourceLimited = result.resource_limited != 0
+        errorPhase = Int(result.error_phase); startDelayNs = result.start_delay_ns; minimumWorkerOperations = result.minimum_worker_operations
     }
 }
 struct GPUSample: Codable, Sendable {

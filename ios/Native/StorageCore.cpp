@@ -114,7 +114,7 @@ struct Slot {
         const auto count=aio_return(&op);active=false;if(code!=0||count!=ssize_t(buffer.size()*8))throw Failure{5,code};completed=true;return true;}
 #endif
 };
-struct WorkerResult {uint64_t operations=0,ended=0;double queueArea=0;int maximum=0;bool limited=false;};
+struct WorkerResult {uint64_t operations=0,ended=0,startDelay=0;double queueArea=0;int maximum=0;bool limited=false;};
 }
 struct BBStorage {
     BBSession* session;std::string path;uint64_t bytes,written=0;bool bypass,owned=false;
@@ -131,7 +131,7 @@ struct BBStorage {
     }
 };
 extern "C" BBStorage* bb_storage_create(BBSession* s,const char* path,uint64_t bytes,int32_t bypass,BBStorageResult* result){
-    if(!result)return nullptr;*result={};const auto start=clockNs();
+    if(!result)return nullptr;*result={};result->error_phase=1;const auto start=clockNs();
     try{
         if(!s||!path||!path[0]||bytes<1048576||bytes>64ULL*1073741824||bytes%1048576||bypass<0||bypass>1)throw Failure{2,0};
         check(s);auto storage=std::make_unique<BBStorage>(s,path,bytes,bypass!=0);
@@ -140,7 +140,7 @@ extern "C" BBStorage* bb_storage_create(BBSession* s,const char* path,uint64_t b
         storage->pattern.resize(PoolBytes/8);
         for(size_t i=0;i<storage->pattern.size();++i){if(i%65536==0)check(s);storage->pattern[i]=mix(Seed+(i+1)*0x9e3779b97f4a7c15ULL);}
         for(uint64_t offset=0;offset<bytes;offset+=1048576){check(s);storage->file->transfer(true,reinterpret_cast<char*>(storage->pattern.data())+offset%PoolBytes,1048576,offset);storage->written+=1048576;}
-        storage->file->sync();check(s);result->prepare_bytes=bytes;result->written_bytes_total=storage->written;result->measurement.wall_ns=clockNs()-start;
+        storage->file->sync();check(s);result->prepare_bytes=bytes;result->written_bytes_total=storage->written;result->measurement.wall_ns=clockNs()-start;result->error_phase=0;
         return storage.release();
     }catch(const Failure& e){result->measurement.status=e.status;result->error_number=e.error;}catch(...){result->measurement.status=3;}
     result->measurement.wall_ns=clockNs()-start;return nullptr;
@@ -154,6 +154,7 @@ extern "C" BBStorageResult bb_storage_run(BBStorage* storage,int32_t writeTest,i
         measurement.working_set_bytes=storage->bytes;out.prepare_bytes=storage->bytes;check(storage->session);
         auto stage=[&](int milliseconds,bool scored){
             if(milliseconds==0)return;
+            out.error_phase=scored?3:2;
             std::mutex mutex;std::condition_variable condition;bool go=false,verifyGo=false;int ready=0,measured=0;uint64_t start=0;
             std::atomic<bool> stop{false};std::vector<std::thread> workers;std::vector<WorkerResult> results(size_t(threads),WorkerResult{});
             std::vector<Failure> errors(size_t(threads),Failure{0,0});std::vector<int> hints(size_t(threads),0);
@@ -161,16 +162,18 @@ extern "C" BBStorageResult bb_storage_run(BBStorage* storage,int32_t writeTest,i
                 File file(storage->path,false,storage->bypass);hints[size_t(id)]=file.noCache;
                 std::vector<std::unique_ptr<Slot>> slots;for(int i=0;i<depth;++i)slots.push_back(std::make_unique<Slot>(size_t(block)));
                 {std::unique_lock lock(mutex);++ready;arrived=true;condition.notify_all();condition.wait(lock,[&]{return go;});}
-                auto& result=results[size_t(id)];const auto deadline=start+uint64_t(milliseconds)*1000000;
+                auto& result=results[size_t(id)];result.startDelay=clockNs()-start;const auto deadline=start+uint64_t(milliseconds)*1000000;
                 const uint64_t count=storage->bytes/uint64_t(block)/uint64_t(threads),base=count*uint64_t(id);uint64_t next=0,lastTick=start;
-                Random rng{Seed+uint64_t(id)};int pending=0;uint64_t retryStart=0;
+                Random rng{Seed+uint64_t(id)};int pending=0;uint64_t retryStart=0;bool started=false;
                 auto account=[&]{const auto tick=clockNs();result.queueArea+=double(tick-lastTick)*pending;lastTick=tick;};
                 try{
                     while(true){
                         check(storage->session);if(stop.load())throw Failure{5,0};
                         bool submitted=false,finished=false;
                         for(auto& slot:slots){
-                            if(!slot->active&&clockNs()<deadline){
+                            // 至少提交首批请求；短预热不能因调度迟到而被误判为文件错误。实际等待仍计入时间。
+                            // Submit a first batch even after a delayed wakeup; retain the real delay in elapsed time instead of reporting a false file error.
+                            if(!slot->active&&(!started||clockNs()<deadline)){
                                 slot->completed=false;
                                 slot->offset=(base+(randomAccess?rng.bounded(count):next))*uint64_t(block);next=(next+1)%count;
                                 if(writeTest)storage->fill(slot->buffer.data(),slot->offset,size_t(block));
@@ -180,8 +183,9 @@ extern "C" BBStorageResult bb_storage_run(BBStorage* storage,int32_t writeTest,i
                                 else {result.limited=true;if(!retryStart)retryStart=clockNs();if(pending==0&&clockNs()-retryStart>1000000000ULL)throw Failure{5,EAGAIN};break;}
                             }
                         }
+                        if(submitted||finished)started=true;
                         if(depth>1)for(auto& slot:slots)if(slot->active&&slot->finish(file,false)){account();--pending;++result.operations;result.ended=clockNs();finished=true;}
-                        if(clockNs()>=deadline&&pending==0)break;
+                        if(started&&clockNs()>=deadline&&pending==0)break;
                         if(!submitted&&!finished){
 #if defined(_WIN32)
                             std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -210,20 +214,22 @@ extern "C" BBStorageResult bb_storage_run(BBStorage* storage,int32_t writeTest,i
             for(const auto& r:results){operations+=r.operations;ended=std::max(ended,r.ended);area+=r.queueArea;maximum=std::max(maximum,r.maximum);}
             if(writeTest)storage->written+=operations*uint64_t(block);
             check(storage->session);for(const auto& error:errors)if(error.status)throw error;
-            if(!operations||ended<=start)throw Failure{5,0};
+            if(!operations||ended<=start)throw Failure{7,0};
             measurement.no_cache=std::all_of(hints.begin(),hints.end(),[](int value){return value!=0;});
             if(scored){measurement.trials[0]={ended-start,0,operations,operations*uint64_t(block),1};
                 out.max_outstanding=maximum;out.mean_outstanding=area/double(ended-start)/threads;
-                out.resource_limited=std::any_of(results.begin(),results.end(),[](const auto& r){return r.limited;});}
+                out.resource_limited=std::any_of(results.begin(),results.end(),[](const auto& r){return r.limited;});
+                out.minimum_worker_operations=results.front().operations;
+                for(const auto& r:results){out.start_delay_ns=std::max(out.start_delay_ns,r.startDelay);out.minimum_worker_operations=std::min(out.minimum_worker_operations,r.operations);}}
             else measurement.warmup_operations=operations;
-            if(writeTest){const auto flush=clockNs();storage->file->sync();if(scored)out.flush_ns=clockNs()-flush;}
+            if(writeTest){out.error_phase=4;const auto flush=clockNs();storage->file->sync();if(scored)out.flush_ns=clockNs()-flush;}
         };
         stage(warm,false);stage(duration,true);
         // 独立校验跨文件样本，初始化和同步均不进入吞吐计时。 / Independently verify samples across the file outside throughput timing.
-        File verify(storage->path,false,storage->bypass);
+        out.error_phase=5;File verify(storage->path,false,storage->bypass);
         std::vector<uint64_t> buffer(4096/8);for(uint64_t i=0;i<16;++i){check(storage->session);const auto at=(storage->bytes/4096-1)*i/15*4096;
             verify.transfer(false,buffer.data(),4096,at);if(!storage->valid(buffer.data(),at,4096))throw Failure{4,0};}
-        measurement.verified=1;measurement.trial_count=1;
+        measurement.verified=1;measurement.trial_count=1;out.error_phase=0;
     }catch(const Failure& e){measurement.status=e.status;out.error_number=e.error;}catch(...){measurement.status=3;}
     if(storage)out.written_bytes_total=storage->written;
     measurement.wall_ns=clockNs()-wall;return out;

@@ -143,7 +143,12 @@ enum BenchWorker {
                             else { value = Double(trial.logicalBytes) / Double(trial.elapsedNs) }
                             guard value.isFinite && value > 0 else { throw BenchError.message("无效的测量计数") }
                             report.scores[index].values.append(value); report.completedRounds += 1
-                        } else { report.scores[index].state = "failed"; report.scores[index].reason = native.error }
+                        } else {
+                            report.scores[index].state = "failed"; report.scores[index].reason = native.error
+                            if let sample = report.scores[index].storageSamples?.last {
+                                report.scores[index].reason = (native.error ?? "存储测量失败") + "（阶段 \(sample.errorPhase ?? 0)，错误码 \(sample.errnoCode)）"
+                            }
+                        }
                     }
                     report.processedRounds += 1
                     if report.scores[index].values.count == rounds { report.scores[index].state = "completed" }
