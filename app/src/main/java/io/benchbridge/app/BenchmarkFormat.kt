@@ -1,11 +1,13 @@
 package io.benchbridge.app
 
+import io.benchbridge.app.i18n.L10n
+
 import java.math.BigDecimal
 
 /** 配置、运行计划、历史与结果共用显示规则。 / Shared formatting for settings, plans, history and results. */
 object BenchmarkFormat {
     private fun decimal(value: Long, scale: Int): String = BigDecimal.valueOf(value, scale).stripTrailingZeros().toPlainString()
-    fun duration(ms: Int): String = "${decimal(ms.toLong(), 3)} 秒"
+    fun duration(ms: Int): String = L10n.t("m_523fb6184d48", decimal(ms.toLong(), 3))
     fun mib(value: Int): String = if (value >= 1024 && value % 1024 == 0) "${value / 1024} GiB" else "$value MiB"
     fun kib(value: Int): String = if (value >= 1024 && value % 1024 == 0) "${value / 1024} MiB" else "$value KiB"
     fun bytes(value: Long): String = when {

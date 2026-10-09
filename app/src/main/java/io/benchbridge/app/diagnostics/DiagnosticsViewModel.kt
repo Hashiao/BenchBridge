@@ -1,5 +1,7 @@
 package io.benchbridge.app.diagnostics
 
+import io.benchbridge.app.i18n.L10n
+
 import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,9 +24,9 @@ data class DeviceInformation(
     val apiLevel: Int = Build.VERSION.SDK_INT,
     val supportedAbis: List<String> = Build.SUPPORTED_ABIS.toList(),
     val socModel: String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        Build.SOC_MODEL.takeUnless { it.isBlank() || it == Build.UNKNOWN } ?: "系统未提供"
+        Build.SOC_MODEL.takeUnless { it.isBlank() || it == Build.UNKNOWN } ?: L10n.t("m_ede31054bce7")
     } else {
-        "系统未提供"
+        L10n.t("m_ede31054bce7")
     },
     val appearsToBeEmulator: Boolean = Build.PRODUCT.startsWith("sdk_") ||
         Build.HARDWARE in setOf("ranchu", "goldfish"),
@@ -90,7 +92,7 @@ class DiagnosticsViewModel : ViewModel() {
                 running = false,
                 report = result.getOrNull(),
                 error = result.exceptionOrNull()?.let {
-                    "${it.javaClass.simpleName}: ${it.message ?: "未提供错误详情"}"
+                    "${it.javaClass.simpleName}: ${it.message ?: L10n.t("m_eb20c116253a")}"
                 },
                 checkedAt = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")),
             )

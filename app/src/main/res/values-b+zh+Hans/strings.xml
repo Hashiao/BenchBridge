@@ -1,0 +1,601 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 自动生成，请编辑 localization/catalog.json。 / Generated; edit localization/catalog.json. -->
+<resources>
+    <string name="m_0028fe7600eb" formatted="false">"检查支持"</string>
+    <string name="m_01087e7dcd6b" formatted="false">"普通缓存写入，统计有效写入量"</string>
+    <string name="m_02157fab8a36" formatted="false">"核心环境、内存预算或测试协议变化，请重新测试"</string>
+    <string name="m_024a9ff0fc4b" formatted="false">"每块 1 次"</string>
+    <string name="m_0254150f1739" formatted="false">" · 受限"</string>
+    <string name="m_038ea40471f9" formatted="false">"缓存：各核心组完整延迟曲线"</string>
+    <string name="m_039a485782b6" formatted="false">"该核心组无法可靠固定绑定；仅保留此前已验证的点，本次不作完整曲线结论"</string>
+    <string name="m_041b204f1c49" formatted="false">"核心绑定持续变化，已停止该项"</string>
+    <string name="m_048a8a649e5f" formatted="false">"测量被中断"</string>
+    <string name="m_04f95c015bbb" formatted="false">"显示最佳完整轮次；最终同步另计。Q 为应用提交的未完成请求数，系统缓存提示不代表裸闪存性能。"</string>
+    <string name="m_05eccf84ad3a" formatted="false">"校准中"</string>
+    <string name="m_062fe9555cd9" formatted="false">"暂未回收：{0}"</string>
+    <string name="m_078e4caeda5c" formatted="false">"线性"</string>
+    <string name="m_09055b9156f9" formatted="false">"JSON 结果已导出"</string>
+    <string name="m_09601b7ba232" formatted="false">"进程架构"</string>
+    <string name="m_0aa80b09edca" formatted="false">"{0} 个高性能核 + {1} 个能效核"</string>
+    <string name="m_0ae7312510f4" formatted="false">"收起详情"</string>
+    <string name="m_0b24b4556a91" formatted="false">"PROCESS_DIED：工作进程连接中断"</string>
+    <string name="m_0b5d72c4e222" formatted="false">"请选择有效且不重复的测试项目"</string>
+    <string name="m_0c3446e92621" formatted="false">"{0} · {1} 次 · 中位数"</string>
+    <string name="m_0df761a0cdbd" formatted="false">"队列 × 线程不得超过 512"</string>
+    <string name="m_0e1ea0269d47" formatted="false">"平均延迟 · 吞吐最佳轮次"</string>
+    <string name="m_0f4c06ec156c" formatted="false">"旧协议记录 / 扫描未完成"</string>
+    <string name="m_0f7d7860cbd3" formatted="false">"块大小"</string>
+    <string name="m_1006a8f10ade" formatted="false">"RND 随机"</string>
+    <string name="m_10abac98de60" formatted="false">"曲线部分范围未通过验证"</string>
+    <string name="m_1116a491a0db" formatted="false">"RAM 四项完成后开始扫描；图中仅显示实测值。"</string>
+    <string name="m_1157929ae376" formatted="false">"{0} · {1} 核"</string>
+    <string name="m_11ab3536bf93" formatted="false">"重复次数必须为 1–10"</string>
+    <string name="m_11cc3041aa87" formatted="false">"{0} · {1} 次 · {2} ms / 轮\n预热 {3} ms · 间隔 {4} ms · {5}"</string>
+    <string name="m_12b76a0dfc05" formatted="false">"分形图像大小"</string>
+    <string name="m_13936b708a67" formatted="false">"无法获取当前页面"</string>
+    <string name="m_13a33ae5bd1e" formatted="false">"上升"</string>
+    <string name="m_13e641a3ea20" formatted="false">"设备型号"</string>
+    <string name="m_147c26c14313" formatted="false">"曲线工作集上限 {0} MiB，按内存预算调整"</string>
+    <string name="m_14beda673893" formatted="false">"每个 L2 共享域 {0} 核"</string>
+    <string name="m_154a06ec8ea7" formatted="false">"RUN_CANCELLED：通知栏停止"</string>
+    <string name="m_15a5be0e2031" formatted="false">"内存拷贝"</string>
+    <string name="m_164906c818fe" formatted="false">"此型号有不同核心数量配置，以本机运行时报告为准。"</string>
+    <string name="m_168b218cb403" formatted="false">"高优先级"</string>
+    <string name="m_16b108837a48" formatted="false">"RUN_CANCELLED：用户停止"</string>
+    <string name="m_16de4707fe56" formatted="false">"内存写入"</string>
+    <string name="m_1787218c5908" formatted="false">"自动 ({0})"</string>
+    <string name="m_17dfe31a9814" formatted="false">"开始测试后生成曲线"</string>
+    <string name="m_17ff543b23ac" formatted="false">"重复测量不一致或缺测，不能定位边界"</string>
+    <string name="m_18045b8c40f1" formatted="false">"延迟"</string>
+    <string name="m_18853a64daca" formatted="false">"GPU 时间戳不可用，本轮不计成绩"</string>
+    <string name="m_18b09a886b36" formatted="false">"正在完成整段扫描与交叉验证"</string>
+    <string name="m_19575851c0a0" formatted="false">"带宽线程"</string>
+    <string name="m_1961784db559" formatted="false">"中位数"</string>
+    <string name="m_19aab1fbad7d" formatted="false">"停止请求未送达：{0}"</string>
+    <string name="m_19f1d5e09199" formatted="false">"测试配置无效"</string>
+    <string name="m_1a948ecc9480" formatted="false">"测试设置"</string>
+    <string name="m_1ada9237519e" formatted="false">"带宽 · 每项 {0} 次"</string>
+    <string name="m_1b05196fc80e" formatted="false">"连续有效点不足，不能定位边界"</string>
+    <string name="m_1b2c942c0528" formatted="false">"{0}/{1} {2}；{3} 个连续区间，{4} 处持续转换。"</string>
+    <string name="m_1b4527ef3747" formatted="false">"单遍扫描 · 每块 1 次"</string>
+    <string name="m_1bb75d7ff2bf" formatted="false">"测试运行"</string>
+    <string name="m_1bd1893c0900" formatted="false">"准备就绪"</string>
+    <string name="m_1c66ff83323b" formatted="false">"{0} · T{1} · {2} / {3} 次"</string>
+    <string name="m_1c82c39931ab" formatted="false">"INT32 整数"</string>
+    <string name="m_1d1c0d4efeab" formatted="false">"RAM · 大工作集"</string>
+    <string name="m_1d2917695f89" formatted="false">"计算、数据或调度设置校验失败"</string>
+    <string name="m_1d6c5cf7cfd1" formatted="false">"CPU {0} · %.2f GHz 上限"</string>
+    <string name="m_1dbecf7ebb33" formatted="false">"{0}延迟 · 总工作集（固定 1 线程）"</string>
+    <string name="m_1e9f2561b7cf" formatted="false">"通过"</string>
+    <string name="m_1ec43d31e733" formatted="false">"工作进程未接受任务"</string>
+    <string name="m_1f0eb99b7ed0" formatted="false">"运行中"</string>
+    <string name="m_203b5978f99b" formatted="false">"还没有测试记录"</string>
+    <string name="m_204f61585875" formatted="false">"工作集大小—访问延迟"</string>
+    <string name="m_2051831c1a77" formatted="false">"预热"</string>
+    <string name="m_219dc931707b" formatted="false">"当前内存预算或缓存容量不足以区分目标层级"</string>
+    <string name="m_2251b8722155" formatted="false">"完整曲线尚未通过验证（{0}/{1} 个稳定点），本次不能确定访问层次。"</string>
+    <string name="m_2467fc99245d" formatted="false">"RAM 参数超出范围"</string>
+    <string name="m_248dcecf45a2" formatted="false">"8 B 访问，独立批宽 8，预生成无重复随机排列"</string>
+    <string name="m_2569b76b560b" formatted="false">"主值：最高完整轮次"</string>
+    <string name="m_25903839eabd" formatted="false">"带宽 · 线程数"</string>
+    <string name="m_26d5509dd6d3" formatted="false">"{0} · {1} / {2} 轮"</string>
+    <string name="m_26e0e7f5ddbe" formatted="false">"{0} 容量或共享关系未确认"</string>
+    <string name="m_2745849de623" formatted="false">"当前环境没有可用的 Metal 设备或着色器"</string>
+    <string name="m_27fae32df122" formatted="false">"导出准备失败"</string>
+    <string name="m_28384d7afd2e" formatted="false">"失败"</string>
+    <string name="m_28499a557129" formatted="false">"运行中断，已保存采样"</string>
+    <string name="m_2875bc4f7fcb" formatted="false">"未通过"</string>
+    <string name="m_28927ecc2c64" formatted="false">"扫描缓存曲线"</string>
+    <string name="m_290505a7ff35" formatted="false">"CPU 线程"</string>
+    <string name="m_295937f60619" formatted="false">"连续区间"</string>
+    <string name="m_2a24eb9a1db2" formatted="false">"{0}带宽：{1} · {2} · {3} 次"</string>
+    <string name="m_2aa79928fce8" formatted="false">"{0} 次"</string>
+    <string name="m_2b1f270ff8f5" formatted="false">"下降"</string>
+    <string name="m_2bc9390b9cd4" formatted="false">"单遍扫描，每块采样 1 次；实线连接实测值，不复测或补造数据。不同核心共享坐标轴，单位为 ns。"</string>
+    <string name="m_2c52e4b9cbae" formatted="false">"收起构建信息"</string>
+    <string name="m_2c54f1904d61" formatted="false">"曲线 + RAM 快测"</string>
+    <string name="m_2c72c666472c" formatted="false">"校验数据"</string>
+    <string name="m_2d167971c06b" formatted="false">"每项每方向的重复次数"</string>
+    <string name="m_2d998256d0b6" formatted="false">"缓存表支持读取、写入、延迟和拷贝"</string>
+    <string name="m_2dd049355cad" formatted="false">"部分项目不支持"</string>
+    <string name="m_2e3aaaa98fc3" formatted="false">"有效采样点"</string>
+    <string name="m_2ebebf7735d1" formatted="false">"截图失败：{0}"</string>
+    <string name="m_2efc112eea2b" formatted="false">"内存与加密测试大小"</string>
+    <string name="m_2f7693ddd129" formatted="false">"不提供，使用系统调度"</string>
+    <string name="m_2fd6fe873430" formatted="false">"内存或线程资源不足"</string>
+    <string name="m_2fe84a5837e6" formatted="false">"PROCESS_DIED：工作进程中断，已完成的轮次仍保留"</string>
+    <string name="m_3005eadbbbcd" formatted="false">"未选"</string>
+    <string name="m_306cecd130cb" formatted="false">"RAM · 内存"</string>
+    <string name="m_3083902d65a3" formatted="false">"工作集大小（KiB / MiB，对数）"</string>
+    <string name="m_30b09c2fc1d2" formatted="false">"Metal 内核缺失"</string>
+    <string name="m_30b8dcf0174f" formatted="false">"预热时间"</string>
+    <string name="m_3131760519d0" formatted="false">"{0} 次{1}"</string>
+    <string name="m_31a7fecc073e" formatted="false">"纵轴：对数 ns"</string>
+    <string name="m_322408c53bed" formatted="false">"型号"</string>
+    <string name="m_326ae3825cdc" formatted="false">"按住曲线查看采样；浅色点未通过重复性验证，不跨缺口连线；误差线为 10–90% 分位。"</string>
+    <string name="m_32791febab2e" formatted="false">"按任务优先级扫描，未固定到某颗 CPU；优先级曲线不能直接当作大小核曲线。"</string>
+    <string name="m_32d6c632664d" formatted="false">"系统报告的缓存信息"</string>
+    <string name="m_3300bd599b46" formatted="false">"{0} · 延迟 T1"</string>
+    <string name="m_336f42c5681b" formatted="false">"L{0}参考"</string>
+    <string name="m_339768bf98bf" formatted="false">"每轮测量时间"</string>
+    <string name="m_33ff1e3cf705" formatted="false">"{0} / {1} 点次"</string>
+    <string name="m_3459a2bac987" formatted="false">"标准测试"</string>
+    <string name="m_353e9bb125b9" formatted="false">"通过 · {0} KiB"</string>
+    <string name="m_359330cdd6a0" formatted="false">"续测参数与原记录不一致"</string>
+    <string name="m_36468ea7cc89" formatted="false">"请选择 CPU 或 GPU"</string>
+    <string name="m_36ca663b02e0" formatted="false">"单遍扫描，每块采样 1 次；按住曲线查看实测值。"</string>
+    <string name="m_38318f63e6d7" formatted="false">"校验摘要"</string>
+    <string name="m_38a226d180d3" formatted="false">"重新测试"</string>
+    <string name="m_38ab936eb50d" formatted="false">"测试详情"</string>
+    <string name="m_3a78d2b3457d" formatted="false">"SEQ 顺序"</string>
+    <string name="m_3ae09f36e468" formatted="false">"正反两遍 · 自动复核"</string>
+    <string name="m_3afcd49f3c9d" formatted="false">"正在检查 JNI、系统页大小与基础内存读写。"</string>
+    <string name="m_3b3cfb43fce5" formatted="false">"每倍容量采样间隔"</string>
+    <string name="m_3b5ec3533b0e" formatted="false">"只读"</string>
+    <string name="m_3b952cf84abf" formatted="false">"ROM 参数超出范围或文件不足以容纳队列；请增大文件或减小块/队列/线程"</string>
+    <string name="m_3bce2ed4fd1e" formatted="false">"（读写合计）"</string>
+    <string name="m_3c5b1b8219fd" formatted="false">"型号资料用于说明硬件；不会填入实测成绩或推断当前线程所在核心。"</string>
+    <string name="m_3cb6da322842" formatted="false">"编译器"</string>
+    <string name="m_3d645b00b875" formatted="false">"运行中断"</string>
+    <string name="m_3da99e0ea2cc" formatted="false">"{0} · 第 {1} 轮 · {2}"</string>
+    <string name="m_3ee46fa2b072" formatted="false">"结果未写入历史，请导出保存。"</string>
+    <string name="m_3ee4ee42167b" formatted="false">"系统限制了异步请求资源；以实测在途深度为准。"</string>
+    <string name="m_3f6bfaa4c94e" formatted="false">"应用崩溃"</string>
+    <string name="m_40d4901130a3" formatted="false">"收起原始轮次"</string>
+    <string name="m_40f963e43bdb" formatted="false">"无效的测量计数"</string>
+    <string name="m_41b0af8c5c9f" formatted="false">"校验"</string>
+    <string name="m_42276cb4c441" formatted="false">"应用队列均值 %.1f / 最大 %d · 同步 %.1f ms"</string>
+    <string name="m_423f51a28678" formatted="false">"运行环境"</string>
+    <string name="m_427bd266056e" formatted="false">"停止超时，已结束工作进程；重新连接后会恢复记录并回收文件"</string>
+    <string name="m_429db0139d03" formatted="false">"有效点"</string>
+    <string name="m_42b9aee38716" formatted="false">"工作集超出支持范围"</string>
+    <string name="m_42c3de4a36e6" formatted="false">"这是小规模读写正确性检查，不产生带宽、延迟或磁盘性能分数。"</string>
+    <string name="m_42efb9a9ed33" formatted="false">"BUSY：已有测试正在运行"</string>
+    <string name="m_433071b8ffe4" formatted="false">"缓存模式"</string>
+    <string name="m_4356bc8e66fd" formatted="false">"诊断信息已复制"</string>
+    <string name="m_4397e9cd78d7" formatted="false">"核心分组待运行时确认"</string>
+    <string name="m_43c587192079" formatted="false">"系统内存不足"</string>
+    <string name="m_43f06de05be3" formatted="false">"查看构建信息"</string>
+    <string name="m_4479c4f8d413" formatted="false">"SoC 原始值"</string>
+    <string name="m_44a0bc2e39c6" formatted="false">"结果保存失败：{0}"</string>
+    <string name="m_45230cc916f6" formatted="false">"校准"</string>
+    <string name="m_456c8e944681" formatted="false">"正在单遍扫描"</string>
+    <string name="m_458748c7478e" formatted="false">"测试中"</string>
+    <string name="m_45a2d95af496" formatted="false">"RAM_DIAGNOSTIC {0} {1}；完整现场见导出 JSON / full evidence in exported JSON"</string>
+    <string name="m_47420722b087" formatted="false">"重新检查环境"</string>
+    <string name="m_4820fe3a6878" formatted="false">"完成测试后，结果会保存在这里。"</string>
+    <string name="m_48ecc65b106e" formatted="false">" · 曲线 {0}/{1} 点次"</string>
+    <string name="m_4988cc507d93" formatted="false">"读写方向无效"</string>
+    <string name="m_4a389e27c000" formatted="false">"旧协议记录：仅保留原始曲线。"</string>
+    <string name="m_4a52073e7910" formatted="false">"{0}{1} · {2} / {3} 轮"</string>
+    <string name="m_4ad4d394e013" formatted="false">"正反扫描"</string>
+    <string name="m_4bc5466918c5" formatted="false">"原生自检失败：{0}"</string>
+    <string name="m_4bc92707958d" formatted="false">"延迟转换：{0}–{1}"</string>
+    <string name="m_4bdd5f5904f1" formatted="false">"计算测试"</string>
+    <string name="m_4be0431f56e5" formatted="false">"正在连接原生引擎"</string>
+    <string name="m_4be6a47f4140" formatted="false">"缓存行粒度"</string>
+    <string name="m_4c1ba2afa2fb" formatted="false">"曲线最大工作集"</string>
+    <string name="m_4c74eca2037f" formatted="false">"累计写入（含初始化与预热）{0}"</string>
+    <string name="m_4d0d5d853d24" formatted="false">"测试历史"</string>
+    <string name="m_4e44428bb127" formatted="false">"检查 I/O 支持"</string>
+    <string name="m_4eedec34b59e" formatted="false">"扫描 CPU {0} · {1}"</string>
+    <string name="m_4f5df723d99d" formatted="false">"间隔"</string>
+    <string name="m_505efd1fe138" formatted="false">"通过验证"</string>
+    <string name="m_50bd6b657b01" formatted="false">"无法取得可绑核的 CPU 列表"</string>
+    <string name="m_51224f961d06" formatted="false">"{0} · {1} · 第 {2} 遍"</string>
+    <string name="m_5189bd4ff280" formatted="false">"稳定点"</string>
+    <string name="m_52265ff64d72" formatted="false">"最近检查 {0}"</string>
+    <string name="m_523fb6184d48" formatted="false">"{0} 秒"</string>
+    <string name="m_5248385ccc9b" formatted="false">"原始中位数"</string>
+    <string name="m_525dd7890344" formatted="false">"带宽 · 总工作集"</string>
+    <string name="m_530922477172" formatted="false">"高级参数与单项测试"</string>
+    <string name="m_533bff0709b3" formatted="false">"单调时钟"</string>
+    <string name="m_534cb3fa8fbf" formatted="false">"读取"</string>
+    <string name="m_5393322e98bb" formatted="false">"点通过验证"</string>
+    <string name="m_53f5039a31a0" formatted="false">"存储测试"</string>
+    <string name="m_554ec133ab30" formatted="false">"准备文件"</string>
+    <string name="m_557fa6af954e" formatted="false">"请求绕过系统数据缓存"</string>
+    <string name="m_5594262a36ec" formatted="false">"应用进入后台，已保存完成的采样"</string>
+    <string name="m_55954c7a1639" formatted="false">"对数"</string>
+    <string name="m_561629ae6062" formatted="false">"线程与核心自动校准"</string>
+    <string name="m_565d64601d4d" formatted="false">"优先级"</string>
+    <string name="m_56e542017a0f" formatted="false">"线程数 T"</string>
+    <string name="m_56e7ec7ec949" formatted="false">"连续写"</string>
+    <string name="m_570ccb623ee4" formatted="false">"{0}/{1} 点通过验证；已测得 {2} 个连续延迟区间、{3} 处转换，{4} 个范围无法定位边界。"</string>
+    <string name="m_5728e4f0b119" formatted="false">"核心组来自系统 sysctl；曲线中的高/后台优先级表示调度请求，不能等同于指定核心组。"</string>
+    <string name="m_572cf45ba436" formatted="false">"返回"</string>
+    <string name="m_5760a00e6b8f" formatted="false">"{0} 测试中"</string>
+    <string name="m_577177a42191" formatted="false">"设备暂不支持该项目"</string>
+    <string name="m_577feeefb88d" formatted="false">"编辑项目"</string>
+    <string name="m_57aa53a8194e" formatted="false">"T{0} · {1} · 总工作集 {2}"</string>
+    <string name="m_58b085ddd700" formatted="false">"部分测量未通过验证"</string>
+    <string name="m_58b1c516d3cd" formatted="false">"测试配置"</string>
+    <string name="m_58e58564c03e" formatted="false">"RAM · 本次未测试"</string>
+    <string name="m_5a80da21c45a" formatted="false">"正反两遍扫描 · 自动复核 · 点按核心查看结论"</string>
+    <string name="m_5aa5c7851e03" formatted="false">"顺序写入"</string>
+    <string name="m_5ad3c0f3c7f4" formatted="false">"内存工作集"</string>
+    <string name="m_5b50d7c4b595" formatted="false">"系统"</string>
+    <string name="m_5b55d0f9cb66" formatted="false">"页面尚未显示"</string>
+    <string name="m_5b8bc489fac4" formatted="false">"{0} 次访问 · {1} B\n{2} ns · 校验通过"</string>
+    <string name="m_5bb651c0a4e3" formatted="false">"旧协议记录，保留原始曲线"</string>
+    <string name="m_5bec1159112b" formatted="false">"此后端暂未实现该项目"</string>
+    <string name="m_5c17b08c9dd4" formatted="false">"项目 / 块大小"</string>
+    <string name="m_5c55a67935af" formatted="false">"全部"</string>
+    <string name="m_5c783c467965" formatted="false">"写入"</string>
+    <string name="m_5d3ddad7866d" formatted="false">"块 {0}"</string>
+    <string name="m_5d9185fc7ef6" formatted="false">"参数不受支持"</string>
+    <string name="m_5e331a932238" formatted="false">"RUN_THERMAL：设备需要降温"</string>
+    <string name="m_5eaab4942637" formatted="false">"内存线程"</string>
+    <string name="m_5f844e919271" formatted="false">"BUSY：已有计算测试正在运行"</string>
+    <string name="m_601f23e4fb75" formatted="false">"BUSY：已有存储测试正在运行"</string>
+    <string name="m_6112d84e742d" formatted="false">"{0} 项测试"</string>
+    <string name="m_6278cc5f2853" formatted="false">"环境检查未通过"</string>
+    <string name="m_628d34cdd5b2" formatted="false">"各核心组延迟 · 同一坐标比较"</string>
+    <string name="m_62b92bfb5a98" formatted="false">"STORAGE_SPACE：测试文件 {0}，可用 {1}，需保留 {2}"</string>
+    <string name="m_62c8ed604a41" formatted="false">"部分核心组绑定受限 · 仅显示已验证采样，点按查看详情"</string>
+    <string name="m_63d90d977348" formatted="false">"复制"</string>
+    <string name="m_64747fd5eb0e" formatted="false">"两条优先级曲线用于观察调度差异，无法保证分别覆盖两个物理核心簇。"</string>
+    <string name="m_648c3ecf7173" formatted="false">"延迟固定单线程；RAM 四项先测，曲线随后扫描。"</string>
+    <string name="m_64a955b05a41" formatted="false">"顺序读取工作集，统计有效读取量"</string>
+    <string name="m_64f4ed4fc3a6" formatted="false">"0.7 旧记录：GPU 包含主机提交与等待时间，不能与当前成绩直接比较。"</string>
+    <string name="m_65026b27e78f" formatted="false">"运行时核心组"</string>
+    <string name="m_6532229cddbb" formatted="false">"固定核心 · 随机依赖访问 · "</string>
+    <string name="m_6586c0edc8b8" formatted="false">"GPU 缓冲区分配失败"</string>
+    <string name="m_6596d1311f2d" formatted="false">"每倍容量 {0} 个间隔 · "</string>
+    <string name="m_66767f440e23" formatted="false">"每轮时长"</string>
+    <string name="m_66c9701d89aa" formatted="false">"正反两遍 · 每倍容量 {0} 个间隔"</string>
+    <string name="m_66fee6b57603" formatted="false">"原生引擎已就绪"</string>
+    <string name="m_6707de42c29d" formatted="false">"未完成"</string>
+    <string name="m_677b8b1c0b61" formatted="false">"系统 ABI"</string>
+    <string name="m_678aa85c0014" formatted="false">"设备需要降温"</string>
+    <string name="m_6820bf00e022" formatted="false">"扫描缓存容量与延迟拐点"</string>
+    <string name="m_68504e20fa2d" formatted="false">"初始化无缓存请求：{0}"</string>
+    <string name="m_6954ee060e8a" formatted="false">"部分项目未完成"</string>
+    <string name="m_69722e50abcb" formatted="false">"等待扫描"</string>
+    <string name="m_69c10328756e" formatted="false">"{0} MiB · {1} 次 · {2} ms / 轮"</string>
+    <string name="m_69c8006e3904" formatted="false">"尚无完整轮次"</string>
+    <string name="m_69ed375721d9" formatted="false">"开始测试"</string>
+    <string name="m_69f82395883c" formatted="false">"轮间休息"</string>
+    <string name="m_6a5053f8d399" formatted="false">"中位数 %.2f MB/s"</string>
+    <string name="m_6aa2ece5a458" formatted="false">"GPU 主值使用 Metal 设备时间；完整等待耗时另存。未实现与设备能力限制均明确说明。"</string>
+    <string name="m_6aada8368199" formatted="false">"结果文件过大"</string>
+    <string name="m_6b72c3d6855c" formatted="false">"正在检查…"</string>
+    <string name="m_6b9ed24135e3" formatted="false">"工作集、线程和次数见各项"</string>
+    <string name="m_6c04ba2bd676" formatted="false">"测试文件"</string>
+    <string name="m_6c07bb6fd4b6" formatted="false">"设备信息"</string>
+    <string name="m_6c454f29fd1d" formatted="false">"纵轴：线性 ns"</string>
+    <string name="m_6ccc37f270d5" formatted="false">"绑核、工作集及各次校准结果保存在导出 JSON 中。"</string>
+    <string name="m_6d1445a23b6c" formatted="false">"校准 {0} 个组合 · 每组合 2–3 次 × {1} ms"</string>
+    <string name="m_6d2df8033b59" formatted="false">"RUN_THERMAL：设备热状态过高"</string>
+    <string name="m_6dc034e51a65" formatted="false">"无法读取运行状态"</string>
+    <string name="m_6ddf680b8489" formatted="false">"用户停止"</string>
+    <string name="m_6e31188a08df" formatted="false">"此路径不支持 Direct {0}"</string>
+    <string name="m_6eaad4ac52ca" formatted="false">"配置过长"</string>
+    <string name="m_6f02986c45d1" formatted="false">"顺序读取"</string>
+    <string name="m_6f196a7029cb" formatted="false">"每线程队列深度 Q"</string>
+    <string name="m_6fa2cf18a5a6" formatted="false">"{0} / {1} 次"</string>
+    <string name="m_7076dbb68661" formatted="false">"队列深度 Q"</string>
+    <string name="m_70c167d3b355" formatted="false">"最佳完整轮次"</string>
+    <string name="m_70e977e56223" formatted="false">"无效的运行编号"</string>
+    <string name="m_71b19ba2c1a1" formatted="false">"测试文件已回收"</string>
+    <string name="m_7233aa1d2c0b" formatted="false">"每线程 {0} B · {1} × {2}"</string>
+    <string name="m_7236eb1304dd" formatted="false">"系统调度"</string>
+    <string name="m_72ebc14a58b3" formatted="false">"系统记录原因 {0}"</string>
+    <string name="m_73e2ec6ef1c7" formatted="false">"系统页"</string>
+    <string name="m_74c9c9420522" formatted="false">"连续读"</string>
+    <string name="m_751ef32692cb" formatted="false">"曲线范围或密度无效"</string>
+    <string name="m_756762e293f2" formatted="false">"未提供"</string>
+    <string name="m_75ca4f921437" formatted="false">"随机"</string>
+    <string name="m_76169d89a3e0" formatted="false">"单线程随机依赖指针链，节点间隔 128 B"</string>
+    <string name="m_7668908d23d5" formatted="false">"GPU 算术校验失败"</string>
+    <string name="m_7722c7c5789d" formatted="false">"旧协议：Q1T1，写入包含最终同步，中位数。"</string>
+    <string name="m_78cccc46cde4" formatted="false">"{0}延迟：{1} · 1 线程 · {2} 次"</string>
+    <string name="m_79b5c477dcd6" formatted="false">"旧版缓存曲线协议：{0} · 保留原始测量参数"</string>
+    <string name="m_79cb684b679f" formatted="false">"单向复制量：%.2f MB/s"</string>
+    <string name="m_79f326be4409" formatted="false">"项目"</string>
+    <string name="m_7a0386744906" formatted="false">"缓存曲线 · 工作集大小 / 延迟 ns · {0}"</string>
+    <string name="m_7a15584f2506" formatted="false">"部分项目未完成，可重新测试"</string>
+    <string name="m_7a339dc33ab2" formatted="false">"核心组 {0}"</string>
+    <string name="m_7a34eafff5b2" formatted="false">"正式测量"</string>
+    <string name="m_7a35edf002fc" formatted="false">"所选线程数超过可用 CPU 数"</string>
+    <string name="m_7a459cc20275" formatted="false">"读写各"</string>
+    <string name="m_7a839c76d79a" formatted="false">"记录：{0}"</string>
+    <string name="m_7ae4a3f57717" formatted="false">"带宽线程自动校准"</string>
+    <string name="m_7ae645b99bf2" formatted="false">"预设名称无效"</string>
+    <string name="m_7afd1844a279" formatted="false">"C++ 标准"</string>
+    <string name="m_7c5378606570" formatted="false">"不支持"</string>
+    <string name="m_7c5de8198ee3" formatted="false">"存储测量失败"</string>
+    <string name="m_7cbcc421dc4c" formatted="false">"随机访问"</string>
+    <string name="m_7d50674e1361" formatted="false">"RAM 使用设定的总工作集，不按缓存容量自动扩大；拷贝工作集为源与目标之和。"</string>
+    <string name="m_7d8f8c37ec78" formatted="false">"内存"</string>
+    <string name="m_7e6362d07e27" formatted="false">"实线连接实测中位数；空心点未通过一致性验证，未用于分段结论。误差线为 10–90% 分位区间。不同核心共享坐标轴，线性和对数纵轴均以 ns 为单位。"</string>
+    <string name="m_7e67761835cd" formatted="false">"ROM · 存储"</string>
+    <string name="m_7eb336e42cb5" formatted="false">"自动"</string>
+    <string name="m_7ecff3ff4b2d" formatted="false">"同步写入"</string>
+    <string name="m_7f4605501fc3" formatted="false">"只写"</string>
+    <string name="m_7f931d4ba1d4" formatted="false">"扫描未完成，已有采样已保存。"</string>
+    <string name="m_7f984426d344" formatted="false">"上次运行未正常结束，已保存的采样仍保留"</string>
+    <string name="m_811e5f55f066" formatted="false">"运行一次轻量检查，确认应用与 C++ 库能够协同工作。"</string>
+    <string name="m_821786e0cb91" formatted="false">"BenchBridge · {0} 测试中"</string>
+    <string name="m_82eb5676f95d" formatted="false">"项目编号无效"</string>
+    <string name="m_83781ae2b9f7" formatted="false">"本次参数"</string>
+    <string name="m_83d947e93231" formatted="false">"最高完整轮次 · {0}"</string>
+    <string name="m_83ea70933f67" formatted="false">"可用存储空间不足"</string>
+    <string name="m_848b82159aca" formatted="false">"核心组延迟曲线 · T1"</string>
+    <string name="m_8589564e49b5" formatted="false">"重试回收测试文件"</string>
+    <string name="m_859f47678ef8" formatted="false">"I/O 缓冲区不得超过 256 MiB"</string>
+    <string name="m_85f9fed9c801" formatted="false">"{0} 个通过校验的正式轮次 · {1}"</string>
+    <string name="m_862ad650feb8" formatted="false">"请选择测试项目"</string>
+    <string name="m_868f363da18e" formatted="false">"准备检查环境"</string>
+    <string name="m_8694d9dcd9c4" formatted="false">"计分 %.2f ms · 整段 %.2f ms"</string>
+    <string name="m_86b57a9ae02e" formatted="false">"{0}每次 {1} · 预热 {2} · 间隔 {3}"</string>
+    <string name="m_871be2654869" formatted="false">"准备中…"</string>
+    <string name="m_8783d9db6edb" formatted="false">"保存结果"</string>
+    <string name="m_88011c572780" formatted="false">"增加后台优先级曲线"</string>
+    <string name="m_88707137a619" formatted="false">"Buffered 包含文件页缓存；结果独立记录。"</string>
+    <string name="m_8a0302ddf022" formatted="false">"导出失败：{0}"</string>
+    <string name="m_8a839ce77df0" formatted="false">"扫描缓存"</string>
+    <string name="m_8a99be840844" formatted="false">"正在停止…"</string>
+    <string name="m_8af5c0e0f4cf" formatted="false">"带宽 {0} 次 · 延迟 {1} 次 · {2}"</string>
+    <string name="m_8bd3bb068f32" formatted="false">"默认按次数和时长完成。设定上限后，初始化、预热和正式测试均计入累计写入；测试始终复用一个文件。"</string>
+    <string name="m_8bd8dc289edf" formatted="false">"{0}/{1}次"</string>
+    <string name="m_8c1a516dbef5" formatted="false">"返回历史列表"</string>
+    <string name="m_8c4a7419f98c" formatted="false">"系统未提供核心组信息"</string>
+    <string name="m_8ce9b91cc659" formatted="false">"GPU 命令创建失败"</string>
+    <string name="m_8debe502df51" formatted="false">"内存用量约 {0} MiB"</string>
+    <string name="m_8ef2ac2deae8" formatted="false">"不支持的原生诊断格式"</string>
+    <string name="m_8f31a776d53b" formatted="false">"等待检查"</string>
+    <string name="m_90c750e36f6e" formatted="false">"{0} 个有效轮次的{1}"</string>
+    <string name="m_91020453439d" formatted="false">"单次采样"</string>
+    <string name="m_91082a74792b" formatted="false">"准备测试文件"</string>
+    <string name="m_910887705c7a" formatted="false">"平台"</string>
+    <string name="m_9167ee8b67db" formatted="false">"诊断信息"</string>
+    <string name="m_917e4ce511a4" formatted="false">"RAM_BUDGET：需要约 {0} MiB，当前预算 {1} MiB；请明确选择较小工作集"</string>
+    <string name="m_91ecc525da78" formatted="false">"带宽 · 每项重复次数"</string>
+    <string name="m_9249ca6c2aab" formatted="false">"顺序"</string>
+    <string name="m_95d6b7a416c4" formatted="false">"已保存 {0} / {1} 个扫描点次"</string>
+    <string name="m_96c4fc9e110e" formatted="false">"块大小—延迟曲线"</string>
+    <string name="m_96c5161042c7" formatted="false">"GPU 分形校验失败"</string>
+    <string name="m_96fceddb8ee2" formatted="false">"8EE6 已确认全核心共享 L2；独立 CPU L3 未确认。分块扫描曲线见缓存规格与实测，不能将 L2 或系统缓存填为 L3。"</string>
+    <string name="m_979a332955c8" formatted="false">"详情"</string>
+    <string name="m_97be46dba289" formatted="false">"所选线程超过可用 CPU 数"</string>
+    <string name="m_984636a8319e" formatted="false">"芯片"</string>
+    <string name="m_986626b6f51c" formatted="false">"累计写入上限"</string>
+    <string name="m_989de77d7077" formatted="false">"带宽 T{0}"</string>
+    <string name="m_98ccf32b948e" formatted="false">"（阶段 {0}，错误码 {1}）"</string>
+    <string name="m_9977cb3b9e0b" formatted="false">"初始化 {0} MiB 测试文件"</string>
+    <string name="m_99f691f98f8c" formatted="false">"文件读写失败"</string>
+    <string name="m_9a1da4458b69" formatted="false">"GPU 执行失败"</string>
+    <string name="m_9a4ba92f53f0" formatted="false">"4 KiB–{0} MiB · 每倍容量 {1} 个间隔 · 正反两遍交叉验证 · 自动补测与多区间分析"</string>
+    <string name="m_9a7e8847ffef" formatted="false">"文件在本次测试开始时初始化一次；预热、校验和最终同步不计入吞吐主值。"</string>
+    <string name="m_9ab4623d7a7b" formatted="false">"查看原始轮次"</string>
+    <string name="m_9b3c6761bc04" formatted="false">"缺测范围不推断边界。"</string>
+    <string name="m_9c12ee84a862" formatted="false">"{0} / {1} 轮"</string>
+    <string name="m_9c6ddc50afa0" formatted="false">"系统未提供的规格保持未知；这些信息不等于曲线已经证明的容量。"</string>
+    <string name="m_9ca745e4e71f" formatted="false">"个有效采样点"</string>
+    <string name="m_9cb715e053fb" formatted="false">"延迟 · 重复次数"</string>
+    <string name="m_9d869777c44d" formatted="false">"已完成 {0} / {1} 次"</string>
+    <string name="m_9e8ac889e229" formatted="false">"Metal 后端没有原生 FP64；不以 FP32 冒充"</string>
+    <string name="m_9f7da13d0f16" formatted="false">"统计方式无效"</string>
+    <string name="m_9fde9d4b5a2f" formatted="false">"参考✓"</string>
+    <string name="m_a04ab6ee833d" formatted="false">"转换 {0}：{1}–{2} · %.2f → %.2f ns"</string>
+    <string name="m_a097537d988c" formatted="false">"未获得有效测量操作，请延长时长重试"</string>
+    <string name="m_a0c512dee60f" formatted="false">"正式轮次 {0}/{1}"</string>
+    <string name="m_a17ffdc11cc5" formatted="false">"线程数必须为 1–16"</string>
+    <string name="m_a192da71860c" formatted="false">"测试文件：{0}"</string>
+    <string name="m_a32d83e84245" formatted="false">"线程模式无效"</string>
+    <string name="m_a3572a4edd11" formatted="false">"此记录仅供功能验证，不能代表 iPhone / iPad 性能。"</string>
+    <string name="m_a38615208dd6" formatted="false">"曲线尚未完整采集"</string>
+    <string name="m_a400359b1294" formatted="false">"读写校验"</string>
+    <string name="m_a5c3ffddd0b1" formatted="false">"{0} 线程"</string>
+    <string name="m_a6635ea65640" formatted="false">"暂时无法开始测试，请重试"</string>
+    <string name="m_a6fc11029101" formatted="false">"未取得稳定且绑核有效的校准结果"</string>
+    <string name="m_a748cc074f78" formatted="false">"查看详情"</string>
+    <string name="m_a7e48c5429a8" formatted="false">"点按查看结果，可随时停止"</string>
+    <string name="m_a82b2eb1324e" formatted="false">"每次 I/O 块大小"</string>
+    <string name="m_a82cebdb7836" formatted="false">"RAM 六项快测"</string>
+    <string name="m_a92563d1479c" formatted="false">"用户或系统结束进程"</string>
+    <string name="m_a97fa26c8c08" formatted="false">"上次运行中断，临时文件回收失败：{0}"</string>
+    <string name="m_a9d80f95e62f" formatted="false">"工作集"</string>
+    <string name="m_aa327c632b7c" formatted="false">"同时测试 RAM 四项（先测）"</string>
+    <string name="m_aa6477207270" formatted="false">"截图失败"</string>
+    <string name="m_aa92ccbc4662" formatted="false">"块 / Q / T"</string>
+    <string name="m_aaca27fe170e" formatted="false">"调度优先级"</string>
+    <string name="m_ab033612a2da" formatted="false">"层级"</string>
+    <string name="m_ab4db7c78d06" formatted="false">"无法创建结果目录"</string>
+    <string name="m_ac5f0f7030f3" formatted="false">"结论描述实测访问层次，不将曲线转换直接等同于 L1/L2/L3 容量。系统页大小、TLB、预取和频率均可影响曲线。参考线仅代表系统或资料库容量。"</string>
+    <string name="m_ad0aac9d9ee8" formatted="false">"只测试此项"</string>
+    <string name="m_ad12e355b8d5" formatted="false">"本轮实际完成 {0} · 提交 {1} 次"</string>
+    <string name="m_ad73cb0b8a84" formatted="false">"设备无 GPU 时间戳，使用提交至完成时间（含主机开销）。"</string>
+    <string name="m_ae7b99d68acf" formatted="false">"区间 {0}（{1}）：{2}–{3} · 中位 %.2f ns"</string>
+    <string name="m_aef184a3bb70" formatted="false">"RAM 四项摘要"</string>
+    <string name="m_af813a02175f" formatted="false">"{0}：{1} · {2} / {3} 次"</string>
+    <string name="m_afb2bbd126b5" formatted="false">"重复次数"</string>
+    <string name="m_b0385cfe4b42" formatted="false">"历史"</string>
+    <string name="m_b07854a3f0a3" formatted="false">"{0} · {1} · {2}\n{3} · 第 {4} / {5} 次"</string>
+    <string name="m_b0b7715bce91" formatted="false">"降温"</string>
+    <string name="m_b10b282b616f" formatted="false">"自动校准"</string>
+    <string name="m_b118ad4032a0" formatted="false">"模拟器仅验证功能，数值不代表手机性能"</string>
+    <string name="m_b15fe673c089" formatted="false">"{0}：{1} · {2}/{3}次"</string>
+    <string name="m_b1977ee2eafd" formatted="false">"自动线程"</string>
+    <string name="m_b1df535601aa" formatted="false">"GPU 使用设备执行时间；CPU 使用连续测量时间。"</string>
+    <string name="m_b1f1ab375a35" formatted="false">"{0} 设置"</string>
+    <string name="m_b255b35d3df0" formatted="false">"系统调度 · T1"</string>
+    <string name="m_b27845f8b95e" formatted="false">"本版未固定核心、未锁定 CPU 频率。缓存曲线包含系统调度、地址转换和预取的影响，不把拐点直接命名为 L1/L2/L3 容量。Metal 主计时为设备执行时间，CPU 和完整等待时间不混入 GPU 主值。不同平台与协议的数值不可直接视为等价。"</string>
+    <string name="m_b293459a5303" formatted="false">"轮次与延迟详情"</string>
+    <string name="m_b34ce4d70417" formatted="false">"参考线"</string>
+    <string name="m_b39172cac39a" formatted="false">"GPU 读取校验失败"</string>
+    <string name="m_b4430cb98add" formatted="false">"JNI、内存校验与时钟检查通过。"</string>
+    <string name="m_b4c37dc2c23a" formatted="false">"校准线程与核心"</string>
+    <string name="m_b55d49e6860d" formatted="false">"INT64 整数"</string>
+    <string name="m_b58e741e6499" formatted="false">"节点间隔 {0} B"</string>
+    <string name="m_b64bd273c6ea" formatted="false">"{0} 次 / 方向 · {1} · {2}"</string>
+    <string name="m_b657fb990d34" formatted="false">"GPGPU 设置"</string>
+    <string name="m_b7e7f476b32b" formatted="false">"已有相同块大小、队列和线程的项目"</string>
+    <string name="m_b7f080d32fac" formatted="false">"能力检查失败：{0}"</string>
+    <string name="m_b7fd58483e92" formatted="false">"采样被中断"</string>
+    <string name="m_b8816e62f9e5" formatted="false">"保留原始轮次与测量条件"</string>
+    <string name="m_ba6117467e72" formatted="false">"制造商"</string>
+    <string name="m_bba8fe6846f0" formatted="false">"校准时长无效"</string>
+    <string name="m_bbce140b7682" formatted="false">"复制诊断信息"</string>
+    <string name="m_bbe20741baa2" formatted="false">"INT24 整数"</string>
+    <string name="m_bda213f5cf80" formatted="false">"第 {0} 轮 · {1} 线程 · {2}"</string>
+    <string name="m_be215559e2d4" formatted="false">"每项首轮预热"</string>
+    <string name="m_be5e05024958" formatted="false">"文件初始化失败"</string>
+    <string name="m_be85d2712191" formatted="false">"该记录无法续测，请重新测试"</string>
+    <string name="m_bfcbfa02abb4" formatted="false">"每项{0} {1} 次 · 每次 {2}"</string>
+    <string name="m_c098e854e60b" formatted="false">"未确认"</string>
+    <string name="m_c09e1fe8a6c2" formatted="false">"测量或预热时长无效"</string>
+    <string name="m_c0b3fbff51cc" formatted="false">"完成"</string>
+    <string name="m_c0c264f77223" formatted="false">"文件太小，无法划分线程区域"</string>
+    <string name="m_c0cb94da1e33" formatted="false">"后台优先级"</string>
+    <string name="m_c0fc2f139557" formatted="false">"最小 / 最大：%.2f / %.2f {0}"</string>
+    <string name="m_c150a6c42646" formatted="false">"运行未完成：{0}"</string>
+    <string name="m_c181ac47bb1d" formatted="false">"{0}每轮测量时间"</string>
+    <string name="m_c22d6262da9f" formatted="false">"从 4 KiB 起，单线程扫描一遍，每块 1 次，不复测或加密补点。"</string>
+    <string name="m_c3688f912b82" formatted="false">"测试时间无效"</string>
+    <string name="m_c38cab8cb048" formatted="false">"项目间隔"</string>
+    <string name="m_c3eb5da0453e" formatted="false">"未测"</string>
+    <string name="m_c45660e7a02b" formatted="false">"继续扫描"</string>
+    <string name="m_c4c041c7374a" formatted="false">"本版采用高熵数据上的 32 位依赖索引链（含地址计算），普通系统页。原始计时、线程实际运行时间、频率及采样结果均保存在 JSON，比较其他工具时需使用相同访问模式。"</string>
+    <string name="m_c4c97d2bb07c" formatted="false">"对数 ns"</string>
+    <string name="m_c4c9e32ceb88" formatted="false">"实际 CPU {0} → {1}"</string>
+    <string name="m_c68978537cf3" formatted="false">"当前设备"</string>
+    <string name="m_c6a401870fba" formatted="false">"可以复制诊断信息，保留具体错误以便排查。"</string>
+    <string name="m_c71bf6710caa" formatted="false">"Q{0} · 实测每线程最大在途 {1}，平均 {2} · 同步 {3} ms（另计）"</string>
+    <string name="m_c71e16294857" formatted="false">"无法可靠固定核心，使用系统调度 · T1"</string>
+    <string name="m_c7bc208b1753" formatted="false">"缓存每次 {0}；工作集按共享域分配。RAM 工作集至少为末级缓存的两倍，实际值见成绩。"</string>
+    <string name="m_c7d9b81a063e" formatted="false">"测量"</string>
+    <string name="m_c82479f44050" formatted="false">"ROM 设置"</string>
+    <string name="m_c856ee25bdc6" formatted="false">"设备需要降温后再测试"</string>
+    <string name="m_c8a64119ed95" formatted="false">"分享测试截图"</string>
+    <string name="m_c8c88b80b218" formatted="false">"可用内存不足，请选择快速测试"</string>
+    <string name="m_c8ce0da65773" formatted="false">"4 KiB–{0} MiB · 每倍容量 {1} 个间隔 · 单遍扫描，每块 1 次"</string>
+    <string name="m_c8cf0733cb3a" formatted="false">"参考容量：显示"</string>
+    <string name="m_c9e4e2603288" formatted="false">"单遍扫描，每块 1 次"</string>
+    <string name="m_ca4d973c0b00" formatted="false">"停止"</string>
+    <string name="m_ca8961cf9d82" formatted="false">"旧版中位数"</string>
+    <string name="m_cb15f77ff481" formatted="false">"SoC 型号资料"</string>
+    <string name="m_cb49f42311a0" formatted="false">"原生代码崩溃"</string>
+    <string name="m_cc1fac4524fd" formatted="false">"核心绑定"</string>
+    <string name="m_cc78d365d7b6" formatted="false">"扫描结束 · 部分范围受干扰"</string>
+    <string name="m_ccbf7250afd3" formatted="false">"GPGPU · 重复测量"</string>
+    <string name="m_cced402618e3" formatted="false">" · 读写合计"</string>
+    <string name="m_cdc46680960b" formatted="false">"DiskMark 默认"</string>
+    <string name="m_ce77bd24a3c2" formatted="false">"{0} · {1} 次 · {2} 秒"</string>
+    <string name="m_cf277021bb1b" formatted="false">"NVMe 参数"</string>
+    <string name="m_cf2ea55d770b" formatted="false">"正式轮次 {0}/{1} · 曲线 {2}/{3} 点次"</string>
+    <string name="m_cf326d2cc536" formatted="false">"转换：{0}–{1} · {2} → {3} ns"</string>
+    <string name="m_d04056bb7f1c" formatted="false">"{0}带宽 · 总工作集"</string>
+    <string name="m_d0e5a537ba17" formatted="false">"系统调度 · "</string>
+    <string name="m_d2ad8d08d42a" formatted="false">"本次测试"</string>
+    <string name="m_d3174a42c726" formatted="false">"部分核心组无法固定绑定"</string>
+    <string name="m_d373809ab86b" formatted="false">"拷贝"</string>
+    <string name="m_d3a18faf1859" formatted="false">"停止测试"</string>
+    <string name="m_d3fe7efd8de7" formatted="false">"内存读取"</string>
+    <string name="m_d430f15b51c9" formatted="false">"单线程依赖指针链，随机遍历每条缓存行。"</string>
+    <string name="m_d466585af71f" formatted="false">"未通过验证"</string>
+    <string name="m_d62f96646e4a" formatted="false">"首版尚未实现此项目的 Metal 内核"</string>
+    <string name="m_d636cf73ad9a" formatted="false">"系统不支持原生 AIO 队列"</string>
+    <string name="m_d6404cfc96c6" formatted="false">"分配内存、建立访问序列"</string>
+    <string name="m_d67921a192d8" formatted="false">"测试项目"</string>
+    <string name="m_d6c273e0ec9b" formatted="false">"测试时长或次数无效"</string>
+    <string name="m_d77444c0b8c3" formatted="false">"完整曲线尚未通过验证"</string>
+    <string name="m_d807482dac5c" formatted="false">"读写结果"</string>
+    <string name="m_d82e260a405e" formatted="false">"T = 线程 · 总工作集 · 拷贝计读写合计"</string>
+    <string name="m_d95a4e24571e" formatted="false">"分享截图"</string>
+    <string name="m_d9728b3b2178" formatted="false">"每轮 {0} · {1}"</string>
+    <string name="m_da0900279835" formatted="false">"自动校准线程"</string>
+    <string name="m_da0fd4a6150d" formatted="false">"块大小无效"</string>
+    <string name="m_da1dcaac7708" formatted="false">"校准 {0} 的带宽线程"</string>
+    <string name="m_da4c2e8f7744" formatted="false">"无法固定核心，曲线未生成"</string>
+    <string name="m_da5920919577" formatted="false">"测试文件大小"</string>
+    <string name="m_da8e80927fd7" formatted="false">"请查看下方诊断信息。失败项会保留具体原因。"</string>
+    <string name="m_db68f1777c59" formatted="false">"设备标识"</string>
+    <string name="m_db7538b96322" formatted="false">"平均值"</string>
+    <string name="m_dc0f66986fc4" formatted="false">"Apple 官方规格"</string>
+    <string name="m_dc33506d6f13" formatted="false">"成绩已复制"</string>
+    <string name="m_dcd0dc09bb78" formatted="false">"实测覆盖 {0}–{1}，形成 {2} 个延迟区间、{3} 处转换（含阶跃与趋势变化）。"</string>
+    <string name="m_dceda5053235" formatted="false">"STORAGE_MEMORY：I/O 缓冲需 {0} MiB 内存，当前预算 {1} MiB"</string>
+    <string name="m_dd01dd267ba5" formatted="false">"线性 ns"</string>
+    <string name="m_dd0646b09a48" formatted="false">"PROCESS_DIED：{0}，已保存的采样仍保留"</string>
+    <string name="m_dd3ec4711a76" formatted="false">"测试参数"</string>
+    <string name="m_ddc00e6620a4" formatted="false">"物理内存"</string>
+    <string name="m_ddcf6e77b0ee" formatted="false">"准备"</string>
+    <string name="m_de29ff706893" formatted="false">"回收文件"</string>
+    <string name="m_de2af697b5c5" formatted="false">"每项 {0} 次"</string>
+    <string name="m_dec5d5569b23" formatted="false">"旧版协议 · 原始测量记录"</string>
+    <string name="m_dee4b55ef0a0" formatted="false">"缓存曲线：工作集大小 × 延迟 ns；每个核心组固定一个核心"</string>
+    <string name="m_df9062b60024" formatted="false">"缓存与内存"</string>
+    <string name="m_dfb4855c2bb0" formatted="false">"RAM 设置"</string>
+    <string name="m_dfb802238b38" formatted="false">"已启用"</string>
+    <string name="m_dfc2e3b4df73" formatted="false">"延迟 · {0} 次"</string>
+    <string name="m_e0549b01e813" formatted="false">"选中工作集"</string>
+    <string name="m_e1506406a5bd" formatted="false">"设备"</string>
+    <string name="m_e22847e1d869" formatted="false">"随机写入"</string>
+    <string name="m_e304fbe1cea4" formatted="false">"准备测试"</string>
+    <string name="m_e33b9aec6972" formatted="false">"WRITE_BUDGET：累计写入达到 {0} 上限；测试文件占用为 {1}"</string>
+    <string name="m_e355b1a49e05" formatted="false">"按时长完成"</string>
+    <string name="m_e36320851da4" formatted="false">"8 B 访问，各线程在独立区域内随机写入"</string>
+    <string name="m_e396f936a371" formatted="false">"主结果为读取量 + 写入量；工作集是源与目标之和"</string>
+    <string name="m_e3e42c6a76f1" formatted="false">"延迟 · 总工作集"</string>
+    <string name="m_e44652e35e27" formatted="false">"FP32 浮点"</string>
+    <string name="m_e4801bd01531" formatted="false">"当前可用内存不足，请减小工作集后重试"</string>
+    <string name="m_e4b60a443ba3" formatted="false">"逻辑核心"</string>
+    <string name="m_e55f2ab3e631" formatted="false">"待测"</string>
+    <string name="m_e63d157572d5" formatted="false">"RAM 带宽 {0} MiB · 延迟 {1} MiB / T1 · {2}\n带宽 {3} 次 · 延迟 {4} 次 · {5} · {6} ms / 轮"</string>
+    <string name="m_e6a82a78cb4b" formatted="false">"参考容量：隐藏"</string>
+    <string name="m_e72002112185" formatted="false">"带宽 {0} 线程"</string>
+    <string name="m_e7659d936ff9" formatted="false">"进程收到终止信号"</string>
+    <string name="m_e7add28c3dec" formatted="false">" · 最佳轮次"</string>
+    <string name="m_e7bece0a0387" formatted="false">"复制成绩"</string>
+    <string name="m_e8d9c616b400" formatted="false">"FP64 浮点"</string>
+    <string name="m_e8e939f31da7" formatted="false">"等待有效采样"</string>
+    <string name="m_e8ebd9af7227" formatted="false">"0.6 旧记录：内存及加密负载不同，不能与当前成绩直接比较。"</string>
+    <string name="m_e908350fc3c9" formatted="false">"每块仅测一次"</string>
+    <string name="m_e9ff52678334" formatted="false">"GPGPU 参数超出范围"</string>
+    <string name="m_ea57239324df" formatted="false">"累计写入上限必须覆盖文件初始化，或设为不限"</string>
+    <string name="m_eb20c116253a" formatted="false">"未提供错误详情"</string>
+    <string name="m_eb4fd500d4c1" formatted="false">"访问延迟"</string>
+    <string name="m_ebbe4d407f7c" formatted="false">"系统页大小"</string>
+    <string name="m_ebc953d5ccb9" formatted="false">"单遍扫描 · 每块 1 次 · 点按核心查看结论"</string>
+    <string name="m_ec2501a54738" formatted="false">"随机读取"</string>
+    <string name="m_ed111dab3fb2" formatted="false">"应用无响应"</string>
+    <string name="m_ede31054bce7" formatted="false">"系统未提供"</string>
+    <string name="m_ee0d3836d307" formatted="false">"{0} · {1} 个可用 CPU"</string>
+    <string name="m_eeb6728dd913" formatted="false">"无法创建测量会话"</string>
+    <string name="m_ef9a012bd0b7" formatted="false">"COMPUTE_BUDGET：可用内存不足，请选择快速测试"</string>
+    <string name="m_f006455e3baf" formatted="false">"已停止"</string>
+    <string name="m_f0e1147ac22e" formatted="false">"缓存曲线 + RAM"</string>
+    <string name="m_f137930818cc" formatted="false">"主值：{0}"</string>
+    <string name="m_f14d35b2a30e" formatted="false">"RAM · 读取 / 写入 / 延迟 / 拷贝"</string>
+    <string name="m_f17d9690f67a" formatted="false">"Direct 绕过文件页缓存。"</string>
+    <string name="m_f1de1e2621de" formatted="false">"预设"</string>
+    <string name="m_f28461bb49c8" formatted="false">"已完成"</string>
+    <string name="m_f2aabf4a63c7" formatted="false">"无法打开导出文件"</string>
+    <string name="m_f40894c9060f" formatted="false">"ROM · DiskMark 默认配置"</string>
+    <string name="m_f453e69e38b0" formatted="false">"复制 · 读写合计"</string>
+    <string name="m_f48870fee1c2" formatted="false">"从 4 KiB 起，单线程正反扫描、自动复核。"</string>
+    <string name="m_f54ac3450821" formatted="false">"实际工作集 {0} · {1} 线程"</string>
+    <string name="m_f8abacf7c330" formatted="false">"预设参数无效"</string>
+    <string name="m_f8af6f45840a" formatted="false">"收起高级参数"</string>
+    <string name="m_f95ea7f4c063" formatted="false">"未启用"</string>
+    <string name="m_f980b82932a6" formatted="false">"原生自检"</string>
+    <string name="m_f9a36b617bd1" formatted="false">"测试对象"</string>
+    <string name="m_f9b3beeee21f" formatted="false">"缓存曲线参数超出范围"</string>
+    <string name="m_f9d19345a067" formatted="false">"中断"</string>
+    <string name="m_fa394156117e" formatted="false">"快速测试"</string>
+    <string name="m_fae0b6a83e05" formatted="false">"读取 + 写入"</string>
+    <string name="m_fae55aca1c26" formatted="false">"{0} · T{1} · {2} · {3}/{4}次"</string>
+    <string name="m_fb48367b485c" formatted="false">"导出 JSON"</string>
+    <string name="m_fc0aae1e9699" formatted="false">"第 {0} 次："</string>
+    <string name="m_fc107498ec60" formatted="false">"已完成 {0} / {1} 轮"</string>
+    <string name="m_fd522dbc2d5d" formatted="false">"GPU 访存校验失败"</string>
+    <string name="m_fdf9f0908c5e" formatted="false">"文件大小或重复次数无效"</string>
+    <string name="m_fe1c95c43e9e" formatted="false">"测试已停止"</string>
+    <string name="m_fe35d6b48a96" formatted="false">"曲线已保存 {0} / {1} 个扫描点次"</string>
+    <string name="m_fe4cd9cc4017" formatted="false">" · {0}次"</string>
+    <string name="m_fe9b4f513410" formatted="false">"RAM 工作集会按末级缓存与线程数增大，实际工作集见各项成绩。"</string>
+    <string name="m_feacfc04ea7d" formatted="false">"所有核心组已完成 · 分段结论见详情"</string>
+    <string name="m_ffcc831ce558" formatted="false">"\n曲线：4 KiB–{0} MiB · T1 · {1}"</string>
+</resources>

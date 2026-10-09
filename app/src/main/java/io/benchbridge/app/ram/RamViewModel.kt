@@ -1,5 +1,7 @@
 package io.benchbridge.app.ram
 
+import io.benchbridge.app.i18n.L10n
+
 import android.app.Application
 import android.net.Uri
 import android.os.Process
@@ -58,7 +60,7 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
-                mutableState.value = mutableState.value.copy(error = "能力检查失败：${error.message}")
+                mutableState.value = mutableState.value.copy(error = L10n.t("m_b7f080d32fac", error.message))
             }
         }
     }
@@ -80,7 +82,7 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
         val updated = value.canonical()
         val cases = config.cases.map { if (it.id == originalId) updated else it }
         if (cases.map { it.id }.distinct().size != cases.size) {
-            mutableState.value = mutableState.value.copy(error = "已有相同块大小、队列和线程的项目")
+            mutableState.value = mutableState.value.copy(error = L10n.t("m_b7e7f476b32b"))
             return false
         }
         configureStorage(config.copy(cases = cases))
@@ -126,7 +128,7 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
                     val runner = client.service()
                     JSONObject(when(family){"compute"->runner.startCompute(json.toString());"storage"->runner.startStorage(json.toString());else->runner.startRam(json.toString())})
                 }
-                check(response.optBoolean("accepted")) { response.optString("error", "工作进程未接受任务") }
+                check(response.optBoolean("accepted")) { response.optString("error", L10n.t("m_1ec43d31e733")) }
                 val runId = response.getString("run_id"); id = runId
                 val workerPid = response.getInt("worker_pid")
                 var cancelSent = false
@@ -139,13 +141,13 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
                         if (snapshot.optBoolean("full_report_in_storage") && snapshot.optString("state") in RamResults.terminalStates)
                             resultStore(family).read(runId) ?: snapshot else snapshot
                     }
-                    check(report.has("state")) { report.optString("error", "无法读取运行状态") }
+                    check(report.has("state")) { report.optString("error", L10n.t("m_6dc034e51a65")) }
                     updateReport(report, family)
                     mutableState.value = mutableState.value.copy(starting = false)
                     if (report.getString("state") in RamResults.terminalStates) break
                     if (cancelAt > 0 && SystemClock.elapsedRealtime() - cancelAt > 15000) {
                         if (workerPid > 0 && workerPid != Process.myPid()) Process.killProcess(workerPid)
-                        error("停止超时，已结束工作进程；重新连接后会恢复记录并回收文件")
+                        error(L10n.t("m_427bd266056e"))
                     }
                     delay(300)
                 }
@@ -153,17 +155,17 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
                 if (error is CancellationException) throw error
                 val saved = id?.let { runId -> withContext(Dispatchers.IO) { runCatching { resultStore(family).read(runId) }.getOrNull() } }
                 val interrupted = (saved ?: mutableState.value.activeReport)?.let { JSONObject(it.toString()).apply {
-                    if(optString("state") !in RamResults.terminalStates){put("state", "INTERRUPTED"); put("error", "PROCESS_DIED：工作进程连接中断")}
+                    if(optString("state") !in RamResults.terminalStates){put("state", "INTERRUPTED"); put("error", L10n.t("m_0b24b4556a91"))}
                 } }
                 updateReport(interrupted, family)
-                mutableState.value = mutableState.value.copy(error = "运行未完成：${error.message}")
+                mutableState.value = mutableState.value.copy(error = L10n.t("m_c150a6c42646", error.message))
             } finally {
                 mutableState.value = mutableState.value.copy(starting = false, cancelling = false)
                 refreshHistory()
             }
         }
     }
-    fun cancel(reason: String = "RUN_CANCELLED：用户停止") {
+    fun cancel(reason: String = L10n.t("m_16b108837a48")) {
         if (!mutableState.value.running) return
         pendingCancel = reason
         if (cancelAt == 0L) cancelAt = SystemClock.elapsedRealtime()
@@ -173,7 +175,7 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
             try { withContext(Dispatchers.IO) { client.service().cancel(id, reason) } }
             catch (error: Exception) {
                 if (error is CancellationException) throw error
-                mutableState.value = mutableState.value.copy(error = "停止请求未送达：${error.message}")
+                mutableState.value = mutableState.value.copy(error = L10n.t("m_19aab1fbad7d", error.message))
             }
         }
     }
@@ -186,7 +188,7 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
                 mutableState.value = mutableState.value.copy(
                     storageReport = if (mutableState.value.storageReport?.optString("run_id") == id) report else mutableState.value.storageReport,
                     selectedHistory = if (mutableState.value.selectedHistory?.optString("run_id") == id) report else mutableState.value.selectedHistory,
-                    notice = if (result.optString("state") == "CLEANED") "测试文件已回收" else "暂未回收：${result.optString("error")}")
+                    notice = if (result.optString("state") == "CLEANED") L10n.t("m_71b19ba2c1a1") else L10n.t("m_062fe9555cd9", result.optString("error")))
                 refreshHistory()
             } catch (error: Exception) { mutableState.value = mutableState.value.copy(error = error.message) }
         }
@@ -206,8 +208,8 @@ class RamViewModel(application: Application) : AndroidViewModel(application) {
             val notice = withContext(Dispatchers.IO) {
                 try {
                     PreparedExport(getApplication()).finish(uri, token)
-                    if (uri != null) "JSON 结果已导出" else null
-                } catch (error: Exception) { "导出失败：${error.message}" }
+                    if (uri != null) L10n.t("m_09055b9156f9") else null
+                } catch (error: Exception) { L10n.t("m_8a0302ddf022", error.message) }
             }
             mutableState.value = mutableState.value.copy(notice = notice)
         }

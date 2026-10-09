@@ -1,0 +1,601 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 自动生成，请编辑 localization/catalog.json。 / Generated; edit localization/catalog.json. -->
+<resources>
+    <string name="m_0028fe7600eb" formatted="false">"檢查支援"</string>
+    <string name="m_01087e7dcd6b" formatted="false">"普通快取寫入，統計有效寫入量"</string>
+    <string name="m_02157fab8a36" formatted="false">"核心環境、記憶體預算或測試協議變化，請重新測試"</string>
+    <string name="m_024a9ff0fc4b" formatted="false">"每個區塊 1 次"</string>
+    <string name="m_0254150f1739" formatted="false">" · 受限"</string>
+    <string name="m_038ea40471f9" formatted="false">"快取：各核心群組完整延遲曲線"</string>
+    <string name="m_039a485782b6" formatted="false">"此核心群組無法可靠地綁定至單一核心；僅保留先前通過驗證的取樣點，本次不提供完整曲線結論"</string>
+    <string name="m_041b204f1c49" formatted="false">"核心繫結持續變化，已停止該項"</string>
+    <string name="m_048a8a649e5f" formatted="false">"量測被中斷"</string>
+    <string name="m_04f95c015bbb" formatted="false">"顯示最佳完整輪次；最終同步另計。Q 為應用程式提交的未完成請求數，系統快取提示不代表裸快閃記憶體效能。"</string>
+    <string name="m_05eccf84ad3a" formatted="false">"校準中"</string>
+    <string name="m_062fe9555cd9" formatted="false">"暫未回收：{0}"</string>
+    <string name="m_078e4caeda5c" formatted="false">"線性"</string>
+    <string name="m_09055b9156f9" formatted="false">"JSON 結果已匯出"</string>
+    <string name="m_09601b7ba232" formatted="false">"處理程序架構"</string>
+    <string name="m_0aa80b09edca" formatted="false">"{0} 個效能核心 + {1} 個節能核心"</string>
+    <string name="m_0ae7312510f4" formatted="false">"收起詳情"</string>
+    <string name="m_0b24b4556a91" formatted="false">"PROCESS_DIED：工作處理程序連線中斷"</string>
+    <string name="m_0b5d72c4e222" formatted="false">"請選取有效且不重複的測試項目"</string>
+    <string name="m_0c3446e92621" formatted="false">"{0} · {1} 次 · 中位數"</string>
+    <string name="m_0df761a0cdbd" formatted="false">"佇列 × 執行緒不得超過 512"</string>
+    <string name="m_0e1ea0269d47" formatted="false">"平均延遲 · 吞吐最佳輪次"</string>
+    <string name="m_0f4c06ec156c" formatted="false">"舊協議記錄 / 掃描未完成"</string>
+    <string name="m_0f7d7860cbd3" formatted="false">"區塊大小"</string>
+    <string name="m_1006a8f10ade" formatted="false">"RND 隨機"</string>
+    <string name="m_10abac98de60" formatted="false">"曲線部分範圍未透過驗證"</string>
+    <string name="m_1116a491a0db" formatted="false">"RAM 四項完成後開始掃描；圖中僅顯示實測值。"</string>
+    <string name="m_1157929ae376" formatted="false">"{0} · {1} 核"</string>
+    <string name="m_11ab3536bf93" formatted="false">"重複次數必須為 1–10"</string>
+    <string name="m_11cc3041aa87" formatted="false">"{0} · {1} 次 · {2} ms / 輪\n預熱 {3} ms · 間隔 {4} ms · {5}"</string>
+    <string name="m_12b76a0dfc05" formatted="false">"碎形影像大小"</string>
+    <string name="m_13936b708a67" formatted="false">"無法獲取目前頁面"</string>
+    <string name="m_13a33ae5bd1e" formatted="false">"上升"</string>
+    <string name="m_13e641a3ea20" formatted="false">"裝置型號"</string>
+    <string name="m_147c26c14313" formatted="false">"曲線工作集上限 {0} MiB，按記憶體預算調整"</string>
+    <string name="m_14beda673893" formatted="false">"每個 L2 共用範圍 {0} 核"</string>
+    <string name="m_154a06ec8ea7" formatted="false">"RUN_CANCELLED：通知欄停止"</string>
+    <string name="m_15a5be0e2031" formatted="false">"記憶體複製"</string>
+    <string name="m_164906c818fe" formatted="false">"此型號有不同核心數量設定，以本機執行時報告為準。"</string>
+    <string name="m_168b218cb403" formatted="false">"高優先順序"</string>
+    <string name="m_16b108837a48" formatted="false">"RUN_CANCELLED：使用者停止"</string>
+    <string name="m_16de4707fe56" formatted="false">"記憶體寫入"</string>
+    <string name="m_1787218c5908" formatted="false">"自動 ({0})"</string>
+    <string name="m_17dfe31a9814" formatted="false">"開始測試後生成曲線"</string>
+    <string name="m_17ff543b23ac" formatted="false">"重複量測不一致或缺測，不能定位邊界"</string>
+    <string name="m_18045b8c40f1" formatted="false">"延遲"</string>
+    <string name="m_18853a64daca" formatted="false">"GPU 時間戳不可用，本輪不計成績"</string>
+    <string name="m_18b09a886b36" formatted="false">"正在完成整段掃描與交叉驗證"</string>
+    <string name="m_19575851c0a0" formatted="false">"頻寬執行緒"</string>
+    <string name="m_1961784db559" formatted="false">"中位數"</string>
+    <string name="m_19aab1fbad7d" formatted="false">"停止請求未送達：{0}"</string>
+    <string name="m_19f1d5e09199" formatted="false">"測試設定無效"</string>
+    <string name="m_1a948ecc9480" formatted="false">"測試設定"</string>
+    <string name="m_1ada9237519e" formatted="false">"頻寬 · 每項 {0} 次"</string>
+    <string name="m_1b05196fc80e" formatted="false">"連續有效點不足，不能定位邊界"</string>
+    <string name="m_1b2c942c0528" formatted="false">"{0}/{1} {2}；{3} 個連續區間，{4} 處持續轉換。"</string>
+    <string name="m_1b4527ef3747" formatted="false">"單遍掃描 · 每個區塊 1 次"</string>
+    <string name="m_1bb75d7ff2bf" formatted="false">"測試執行"</string>
+    <string name="m_1bd1893c0900" formatted="false">"準備就緒"</string>
+    <string name="m_1c66ff83323b" formatted="false">"{0} · T{1} · {2} / {3} 次"</string>
+    <string name="m_1c82c39931ab" formatted="false">"INT32 整數"</string>
+    <string name="m_1d1c0d4efeab" formatted="false">"RAM · 大工作集"</string>
+    <string name="m_1d2917695f89" formatted="false">"計算、資料或排程設定驗證失敗"</string>
+    <string name="m_1d6c5cf7cfd1" formatted="false">"CPU {0} · %.2f GHz 上限"</string>
+    <string name="m_1dbecf7ebb33" formatted="false">"{0}延遲 · 總工作集（固定 1 執行緒）"</string>
+    <string name="m_1e9f2561b7cf" formatted="false">"透過"</string>
+    <string name="m_1ec43d31e733" formatted="false">"工作處理程序未接受任務"</string>
+    <string name="m_1f0eb99b7ed0" formatted="false">"執行中"</string>
+    <string name="m_203b5978f99b" formatted="false">"還沒有測試記錄"</string>
+    <string name="m_204f61585875" formatted="false">"工作集大小—存取延遲"</string>
+    <string name="m_2051831c1a77" formatted="false">"預熱"</string>
+    <string name="m_219dc931707b" formatted="false">"目前記憶體預算或快取容量不足以區分目標層級"</string>
+    <string name="m_2251b8722155" formatted="false">"完整曲線尚未透過驗證（{0}/{1} 個穩定點），本次不能確定存取層次。"</string>
+    <string name="m_2467fc99245d" formatted="false">"RAM 引數超出範圍"</string>
+    <string name="m_248dcecf45a2" formatted="false">"8 B 存取，獨立批寬 8，預生成無重複隨機排列"</string>
+    <string name="m_2569b76b560b" formatted="false">"主值：最高完整輪次"</string>
+    <string name="m_25903839eabd" formatted="false">"頻寬 · 執行緒數"</string>
+    <string name="m_26d5509dd6d3" formatted="false">"{0} · {1} / {2} 輪"</string>
+    <string name="m_26e0e7f5ddbe" formatted="false">"{0} 容量或共用關係未確認"</string>
+    <string name="m_2745849de623" formatted="false">"目前環境沒有可用的 Metal 裝置或著色器"</string>
+    <string name="m_27fae32df122" formatted="false">"匯出準備失敗"</string>
+    <string name="m_28384d7afd2e" formatted="false">"失敗"</string>
+    <string name="m_28499a557129" formatted="false">"執行中斷，已儲存取樣"</string>
+    <string name="m_2875bc4f7fcb" formatted="false">"未透過"</string>
+    <string name="m_28927ecc2c64" formatted="false">"掃描快取曲線"</string>
+    <string name="m_290505a7ff35" formatted="false">"CPU 執行緒"</string>
+    <string name="m_295937f60619" formatted="false">"連續區間"</string>
+    <string name="m_2a24eb9a1db2" formatted="false">"{0}頻寬：{1} · {2} · {3} 次"</string>
+    <string name="m_2aa79928fce8" formatted="false">"{0} 次"</string>
+    <string name="m_2b1f270ff8f5" formatted="false">"下降"</string>
+    <string name="m_2bc9390b9cd4" formatted="false">"單遍掃描，每個區塊取樣 1 次；實線連線實測值，不復測或補造資料。不同核心共用座標軸，單位為 ns。"</string>
+    <string name="m_2c52e4b9cbae" formatted="false">"收起建置資訊"</string>
+    <string name="m_2c54f1904d61" formatted="false">"曲線 + RAM 快測"</string>
+    <string name="m_2c72c666472c" formatted="false">"驗證資料"</string>
+    <string name="m_2d167971c06b" formatted="false">"每項每方向的重複次數"</string>
+    <string name="m_2d998256d0b6" formatted="false">"快取表支援讀取、寫入、延遲和複製"</string>
+    <string name="m_2dd049355cad" formatted="false">"部分項目不支援"</string>
+    <string name="m_2e3aaaa98fc3" formatted="false">"有效取樣點"</string>
+    <string name="m_2ebebf7735d1" formatted="false">"螢幕截圖失敗：{0}"</string>
+    <string name="m_2efc112eea2b" formatted="false">"記憶體與加密測試大小"</string>
+    <string name="m_2f7693ddd129" formatted="false">"不提供，使用系統排程"</string>
+    <string name="m_2fd6fe873430" formatted="false">"記憶體或執行緒資源不足"</string>
+    <string name="m_2fe84a5837e6" formatted="false">"PROCESS_DIED：工作處理程序中斷，已完成的輪次仍保留"</string>
+    <string name="m_3005eadbbbcd" formatted="false">"未選"</string>
+    <string name="m_306cecd130cb" formatted="false">"RAM · 記憶體"</string>
+    <string name="m_3083902d65a3" formatted="false">"工作集大小（KiB / MiB，對數）"</string>
+    <string name="m_30b09c2fc1d2" formatted="false">"缺少 Metal 核心函式"</string>
+    <string name="m_30b8dcf0174f" formatted="false">"預熱時間"</string>
+    <string name="m_3131760519d0" formatted="false">"{0} 次{1}"</string>
+    <string name="m_31a7fecc073e" formatted="false">"縱軸：對數 ns"</string>
+    <string name="m_322408c53bed" formatted="false">"型號"</string>
+    <string name="m_326ae3825cdc" formatted="false">"按住曲線查看取樣；淺色點未通過重複性驗證，不跨越缺測區間連線；誤差線表示第 10–90 百分位數範圍。"</string>
+    <string name="m_32791febab2e" formatted="false">"依工作優先順序掃描，未綁定至特定 CPU；優先順序曲線不能直接視為大／小核心曲線。"</string>
+    <string name="m_32d6c632664d" formatted="false">"系統報告的快取資訊"</string>
+    <string name="m_3300bd599b46" formatted="false">"{0} · 延遲 T1"</string>
+    <string name="m_336f42c5681b" formatted="false">"L{0}參考"</string>
+    <string name="m_339768bf98bf" formatted="false">"每輪量測時間"</string>
+    <string name="m_33ff1e3cf705" formatted="false">"{0} / {1} 點次"</string>
+    <string name="m_3459a2bac987" formatted="false">"標準測試"</string>
+    <string name="m_353e9bb125b9" formatted="false">"透過 · {0} KiB"</string>
+    <string name="m_359330cdd6a0" formatted="false">"續測引數與原記錄不一致"</string>
+    <string name="m_36468ea7cc89" formatted="false">"請選擇 CPU 或 GPU"</string>
+    <string name="m_36ca663b02e0" formatted="false">"單遍掃描，每個區塊取樣 1 次；按住曲線檢視實測值。"</string>
+    <string name="m_38318f63e6d7" formatted="false">"驗證摘要"</string>
+    <string name="m_38a226d180d3" formatted="false">"重新測試"</string>
+    <string name="m_38ab936eb50d" formatted="false">"測試詳情"</string>
+    <string name="m_3a78d2b3457d" formatted="false">"SEQ 循序"</string>
+    <string name="m_3ae09f36e468" formatted="false">"正反兩遍 · 自動複核"</string>
+    <string name="m_3afcd49f3c9d" formatted="false">"正在檢查 JNI、系統頁大小與基礎記憶體讀寫。"</string>
+    <string name="m_3b3cfb43fce5" formatted="false">"每倍容量取樣間隔"</string>
+    <string name="m_3b5ec3533b0e" formatted="false">"唯讀"</string>
+    <string name="m_3b952cf84abf" formatted="false">"ROM 引數超出範圍或檔案不足以容納佇列；請增大檔案或減小塊/佇列/執行緒"</string>
+    <string name="m_3bce2ed4fd1e" formatted="false">"（讀寫合計）"</string>
+    <string name="m_3c5b1b8219fd" formatted="false">"型號資料用於說明硬體；不會填入實測成績或推斷目前執行緒所在核心。"</string>
+    <string name="m_3cb6da322842" formatted="false">"編譯器"</string>
+    <string name="m_3d645b00b875" formatted="false">"執行中斷"</string>
+    <string name="m_3da99e0ea2cc" formatted="false">"{0} · 第 {1} 輪 · {2}"</string>
+    <string name="m_3ee46fa2b072" formatted="false">"結果未寫入歷史，請匯出儲存。"</string>
+    <string name="m_3ee4ee42167b" formatted="false">"系統限制了非同步請求資源；以實測在途深度為準。"</string>
+    <string name="m_3f6bfaa4c94e" formatted="false">"應用程式當機"</string>
+    <string name="m_40d4901130a3" formatted="false">"收起原始輪次"</string>
+    <string name="m_40f963e43bdb" formatted="false">"無效的量測計數"</string>
+    <string name="m_41b0af8c5c9f" formatted="false">"驗證"</string>
+    <string name="m_42276cb4c441" formatted="false">"應用程式佇列均值 %.1f / 最大 %d · 同步 %.1f ms"</string>
+    <string name="m_423f51a28678" formatted="false">"執行環境"</string>
+    <string name="m_427bd266056e" formatted="false">"停止超時，已結束工作處理程序；重新連線後會恢復記錄並回收檔案"</string>
+    <string name="m_429db0139d03" formatted="false">"有效點"</string>
+    <string name="m_42b9aee38716" formatted="false">"工作集超出支援範圍"</string>
+    <string name="m_42c3de4a36e6" formatted="false">"這是小規模讀寫正確性檢查，不產生頻寬、延遲或磁碟效能分數。"</string>
+    <string name="m_42efb9a9ed33" formatted="false">"BUSY：已有測試正在執行"</string>
+    <string name="m_433071b8ffe4" formatted="false">"快取模式"</string>
+    <string name="m_4356bc8e66fd" formatted="false">"診斷資訊已複製"</string>
+    <string name="m_4397e9cd78d7" formatted="false">"核心分組待執行時確認"</string>
+    <string name="m_43c587192079" formatted="false">"系統記憶體不足"</string>
+    <string name="m_43f06de05be3" formatted="false">"檢視建置資訊"</string>
+    <string name="m_4479c4f8d413" formatted="false">"SoC 原始值"</string>
+    <string name="m_44a0bc2e39c6" formatted="false">"結果儲存失敗：{0}"</string>
+    <string name="m_45230cc916f6" formatted="false">"校準"</string>
+    <string name="m_456c8e944681" formatted="false">"正在單遍掃描"</string>
+    <string name="m_458748c7478e" formatted="false">"測試中"</string>
+    <string name="m_45a2d95af496" formatted="false">"RAM_DIAGNOSTIC {0} {1}；完整現場見匯出 JSON / full evidence in exported JSON"</string>
+    <string name="m_47420722b087" formatted="false">"重新檢查環境"</string>
+    <string name="m_4820fe3a6878" formatted="false">"完成測試後，結果會儲存在這裡。"</string>
+    <string name="m_48ecc65b106e" formatted="false">" · 曲線 {0}/{1} 點次"</string>
+    <string name="m_4988cc507d93" formatted="false">"讀寫方向無效"</string>
+    <string name="m_4a389e27c000" formatted="false">"舊協議記錄：僅保留原始曲線。"</string>
+    <string name="m_4a52073e7910" formatted="false">"{0}{1} · {2} / {3} 輪"</string>
+    <string name="m_4ad4d394e013" formatted="false">"正反掃描"</string>
+    <string name="m_4bc5466918c5" formatted="false">"原生自檢失敗：{0}"</string>
+    <string name="m_4bc92707958d" formatted="false">"延遲轉換：{0}–{1}"</string>
+    <string name="m_4bdd5f5904f1" formatted="false">"計算測試"</string>
+    <string name="m_4be0431f56e5" formatted="false">"正在連線原生引擎"</string>
+    <string name="m_4be6a47f4140" formatted="false">"快取行粒度"</string>
+    <string name="m_4c1ba2afa2fb" formatted="false">"曲線最大工作集"</string>
+    <string name="m_4c74eca2037f" formatted="false">"累計寫入（含初始化與預熱）{0}"</string>
+    <string name="m_4d0d5d853d24" formatted="false">"測試歷史"</string>
+    <string name="m_4e44428bb127" formatted="false">"檢查 I/O 支援"</string>
+    <string name="m_4eedec34b59e" formatted="false">"掃描 CPU {0} · {1}"</string>
+    <string name="m_4f5df723d99d" formatted="false">"間隔"</string>
+    <string name="m_505efd1fe138" formatted="false">"透過驗證"</string>
+    <string name="m_50bd6b657b01" formatted="false">"無法取得可核心綁定的 CPU 列表"</string>
+    <string name="m_51224f961d06" formatted="false">"{0} · {1} · 第 {2} 遍"</string>
+    <string name="m_5189bd4ff280" formatted="false">"穩定點"</string>
+    <string name="m_52265ff64d72" formatted="false">"最近檢查 {0}"</string>
+    <string name="m_523fb6184d48" formatted="false">"{0} 秒"</string>
+    <string name="m_5248385ccc9b" formatted="false">"原始中位數"</string>
+    <string name="m_525dd7890344" formatted="false">"頻寬 · 總工作集"</string>
+    <string name="m_530922477172" formatted="false">"高階引數與單項測試"</string>
+    <string name="m_533bff0709b3" formatted="false">"單調時鐘"</string>
+    <string name="m_534cb3fa8fbf" formatted="false">"讀取"</string>
+    <string name="m_5393322e98bb" formatted="false">"點透過驗證"</string>
+    <string name="m_53f5039a31a0" formatted="false">"儲存測試"</string>
+    <string name="m_554ec133ab30" formatted="false">"準備檔案"</string>
+    <string name="m_557fa6af954e" formatted="false">"請求繞過系統資料快取"</string>
+    <string name="m_5594262a36ec" formatted="false">"應用程式已切換至背景，已儲存完成的取樣"</string>
+    <string name="m_55954c7a1639" formatted="false">"對數"</string>
+    <string name="m_561629ae6062" formatted="false">"執行緒與核心自動校準"</string>
+    <string name="m_565d64601d4d" formatted="false">"優先順序"</string>
+    <string name="m_56e542017a0f" formatted="false">"執行緒數 T"</string>
+    <string name="m_56e7ec7ec949" formatted="false">"連續寫"</string>
+    <string name="m_570ccb623ee4" formatted="false">"{0}/{1} 點透過驗證；已測得 {2} 個連續延遲區間、{3} 處轉換，{4} 個範圍無法定位邊界。"</string>
+    <string name="m_5728e4f0b119" formatted="false">"核心群組來自系統 sysctl；曲線中的高/背景優先順序表示排程請求，不能等同於指定核心群組。"</string>
+    <string name="m_572cf45ba436" formatted="false">"返回"</string>
+    <string name="m_5760a00e6b8f" formatted="false">"{0} 測試中"</string>
+    <string name="m_577177a42191" formatted="false">"裝置暫不支援該項目"</string>
+    <string name="m_577feeefb88d" formatted="false">"編輯項目"</string>
+    <string name="m_57aa53a8194e" formatted="false">"T{0} · {1} · 總工作集 {2}"</string>
+    <string name="m_58b085ddd700" formatted="false">"部分量測未透過驗證"</string>
+    <string name="m_58b1c516d3cd" formatted="false">"測試設定"</string>
+    <string name="m_58e58564c03e" formatted="false">"RAM · 本次未測試"</string>
+    <string name="m_5a80da21c45a" formatted="false">"正反兩遍掃描 · 自動複核 · 點按核心檢視結論"</string>
+    <string name="m_5aa5c7851e03" formatted="false">"循序寫入"</string>
+    <string name="m_5ad3c0f3c7f4" formatted="false">"記憶體工作集"</string>
+    <string name="m_5b50d7c4b595" formatted="false">"系統"</string>
+    <string name="m_5b55d0f9cb66" formatted="false">"頁面尚未顯示"</string>
+    <string name="m_5b8bc489fac4" formatted="false">"{0} 次存取 · {1} B\n{2} ns · 驗證透過"</string>
+    <string name="m_5bb651c0a4e3" formatted="false">"舊協議記錄，保留原始曲線"</string>
+    <string name="m_5bec1159112b" formatted="false">"此後端暫未實現該項目"</string>
+    <string name="m_5c17b08c9dd4" formatted="false">"項目 / 區塊大小"</string>
+    <string name="m_5c55a67935af" formatted="false">"全部"</string>
+    <string name="m_5c783c467965" formatted="false">"寫入"</string>
+    <string name="m_5d3ddad7866d" formatted="false">"塊 {0}"</string>
+    <string name="m_5d9185fc7ef6" formatted="false">"引數不受支援"</string>
+    <string name="m_5e331a932238" formatted="false">"RUN_THERMAL：裝置需要降溫"</string>
+    <string name="m_5eaab4942637" formatted="false">"記憶體執行緒"</string>
+    <string name="m_5f844e919271" formatted="false">"BUSY：已有計算測試正在執行"</string>
+    <string name="m_601f23e4fb75" formatted="false">"BUSY：已有儲存測試正在執行"</string>
+    <string name="m_6112d84e742d" formatted="false">"{0} 項測試"</string>
+    <string name="m_6278cc5f2853" formatted="false">"環境檢查未透過"</string>
+    <string name="m_628d34cdd5b2" formatted="false">"各核心群組延遲 · 同一座標比較"</string>
+    <string name="m_62b92bfb5a98" formatted="false">"STORAGE_SPACE：測試檔案 {0}，可用 {1}，需保留 {2}"</string>
+    <string name="m_62c8ed604a41" formatted="false">"部分核心群組繫結受限 · 僅顯示已驗證取樣，點按檢視詳情"</string>
+    <string name="m_63d90d977348" formatted="false">"複製"</string>
+    <string name="m_64747fd5eb0e" formatted="false">"兩條優先順序曲線用於觀察排程差異，無法保證分別涵蓋兩個實體核心叢集。"</string>
+    <string name="m_648c3ecf7173" formatted="false">"延遲固定單執行緒；RAM 四項先測，曲線隨後掃描。"</string>
+    <string name="m_64a955b05a41" formatted="false">"循序讀取工作集，統計有效讀取量"</string>
+    <string name="m_64f4ed4fc3a6" formatted="false">"0.7 舊記錄：GPU 包含主機提交與等待時間，不能與目前成績直接比較。"</string>
+    <string name="m_65026b27e78f" formatted="false">"執行時核心群組"</string>
+    <string name="m_6532229cddbb" formatted="false">"固定核心 · 隨機相依存取 · "</string>
+    <string name="m_6586c0edc8b8" formatted="false">"GPU 緩衝區分配失敗"</string>
+    <string name="m_6596d1311f2d" formatted="false">"每倍容量 {0} 個間隔 · "</string>
+    <string name="m_66767f440e23" formatted="false">"每輪時間"</string>
+    <string name="m_66c9701d89aa" formatted="false">"正反兩遍 · 每倍容量 {0} 個間隔"</string>
+    <string name="m_66fee6b57603" formatted="false">"原生引擎已就緒"</string>
+    <string name="m_6707de42c29d" formatted="false">"未完成"</string>
+    <string name="m_677b8b1c0b61" formatted="false">"系統 ABI"</string>
+    <string name="m_678aa85c0014" formatted="false">"裝置需要降溫"</string>
+    <string name="m_6820bf00e022" formatted="false">"掃描快取容量與延遲拐點"</string>
+    <string name="m_68504e20fa2d" formatted="false">"初始化無快取請求：{0}"</string>
+    <string name="m_6954ee060e8a" formatted="false">"部分項目未完成"</string>
+    <string name="m_69722e50abcb" formatted="false">"等待掃描"</string>
+    <string name="m_69c10328756e" formatted="false">"{0} MiB · {1} 次 · {2} ms / 輪"</string>
+    <string name="m_69c8006e3904" formatted="false">"尚無完整輪次"</string>
+    <string name="m_69ed375721d9" formatted="false">"開始測試"</string>
+    <string name="m_69f82395883c" formatted="false">"輪間休息"</string>
+    <string name="m_6a5053f8d399" formatted="false">"中位數 %.2f MB/s"</string>
+    <string name="m_6aa2ece5a458" formatted="false">"GPU 主值使用 Metal 裝置時間；完整等待耗時另存。未實現與裝置能力限制均明確說明。"</string>
+    <string name="m_6aada8368199" formatted="false">"結果檔案過大"</string>
+    <string name="m_6b72c3d6855c" formatted="false">"正在檢查…"</string>
+    <string name="m_6b9ed24135e3" formatted="false">"工作集、執行緒和次數見各項"</string>
+    <string name="m_6c04ba2bd676" formatted="false">"測試檔案"</string>
+    <string name="m_6c07bb6fd4b6" formatted="false">"裝置資訊"</string>
+    <string name="m_6c454f29fd1d" formatted="false">"縱軸：線性 ns"</string>
+    <string name="m_6ccc37f270d5" formatted="false">"核心綁定、工作集及各次校準結果儲存在匯出 JSON 中。"</string>
+    <string name="m_6d1445a23b6c" formatted="false">"校準 {0} 個組合 · 每組合 2–3 次 × {1} ms"</string>
+    <string name="m_6d2df8033b59" formatted="false">"RUN_THERMAL：裝置熱狀態過高"</string>
+    <string name="m_6dc034e51a65" formatted="false">"無法讀取執行狀態"</string>
+    <string name="m_6ddf680b8489" formatted="false">"使用者停止"</string>
+    <string name="m_6e31188a08df" formatted="false">"此路徑不支援 Direct {0}"</string>
+    <string name="m_6eaad4ac52ca" formatted="false">"設定過長"</string>
+    <string name="m_6f02986c45d1" formatted="false">"循序讀取"</string>
+    <string name="m_6f196a7029cb" formatted="false">"每執行緒佇列深度 Q"</string>
+    <string name="m_6fa2cf18a5a6" formatted="false">"{0} / {1} 次"</string>
+    <string name="m_7076dbb68661" formatted="false">"佇列深度 Q"</string>
+    <string name="m_70c167d3b355" formatted="false">"最佳完整輪次"</string>
+    <string name="m_70e977e56223" formatted="false">"無效的執行編號"</string>
+    <string name="m_71b19ba2c1a1" formatted="false">"測試檔案已回收"</string>
+    <string name="m_7233aa1d2c0b" formatted="false">"每執行緒 {0} B · {1} × {2}"</string>
+    <string name="m_7236eb1304dd" formatted="false">"系統排程"</string>
+    <string name="m_72ebc14a58b3" formatted="false">"系統記錄原因 {0}"</string>
+    <string name="m_73e2ec6ef1c7" formatted="false">"系統頁"</string>
+    <string name="m_74c9c9420522" formatted="false">"連續讀"</string>
+    <string name="m_751ef32692cb" formatted="false">"曲線範圍或密度無效"</string>
+    <string name="m_756762e293f2" formatted="false">"未提供"</string>
+    <string name="m_75ca4f921437" formatted="false">"隨機"</string>
+    <string name="m_76169d89a3e0" formatted="false">"單執行緒隨機相依指標鏈，節點間隔 128 B"</string>
+    <string name="m_7668908d23d5" formatted="false">"GPU 算術驗證失敗"</string>
+    <string name="m_7722c7c5789d" formatted="false">"舊協議：Q1T1，寫入包含最終同步，中位數。"</string>
+    <string name="m_78cccc46cde4" formatted="false">"{0}延遲：{1} · 1 執行緒 · {2} 次"</string>
+    <string name="m_79b5c477dcd6" formatted="false">"舊版快取曲線協議：{0} · 保留原始量測引數"</string>
+    <string name="m_79cb684b679f" formatted="false">"單向複製量：%.2f MB/s"</string>
+    <string name="m_79f326be4409" formatted="false">"項目"</string>
+    <string name="m_7a0386744906" formatted="false">"快取曲線 · 工作集大小 / 延遲 ns · {0}"</string>
+    <string name="m_7a15584f2506" formatted="false">"部分項目未完成，可重新測試"</string>
+    <string name="m_7a339dc33ab2" formatted="false">"核心群組 {0}"</string>
+    <string name="m_7a34eafff5b2" formatted="false">"正式量測"</string>
+    <string name="m_7a35edf002fc" formatted="false">"所選執行緒數超過可用 CPU 數"</string>
+    <string name="m_7a459cc20275" formatted="false">"讀寫各"</string>
+    <string name="m_7a839c76d79a" formatted="false">"記錄：{0}"</string>
+    <string name="m_7ae4a3f57717" formatted="false">"頻寬執行緒自動校準"</string>
+    <string name="m_7ae645b99bf2" formatted="false">"預設組合名稱無效"</string>
+    <string name="m_7afd1844a279" formatted="false">"C++ 標準"</string>
+    <string name="m_7c5378606570" formatted="false">"不支援"</string>
+    <string name="m_7c5de8198ee3" formatted="false">"儲存量測失敗"</string>
+    <string name="m_7cbcc421dc4c" formatted="false">"隨機存取"</string>
+    <string name="m_7d50674e1361" formatted="false">"RAM 使用設定的總工作集，不按快取容量自動擴大；複製工作集為源與目標之和。"</string>
+    <string name="m_7d8f8c37ec78" formatted="false">"記憶體"</string>
+    <string name="m_7e6362d07e27" formatted="false">"實線連接實測中位數；空心點未通過一致性驗證，不用於區間結論。誤差線表示第 10–90 百分位數範圍。各核心共用座標軸，線性與對數縱軸皆以 ns 為單位。"</string>
+    <string name="m_7e67761835cd" formatted="false">"ROM · 儲存"</string>
+    <string name="m_7eb336e42cb5" formatted="false">"自動"</string>
+    <string name="m_7ecff3ff4b2d" formatted="false">"同步寫入"</string>
+    <string name="m_7f4605501fc3" formatted="false">"唯寫"</string>
+    <string name="m_7f931d4ba1d4" formatted="false">"掃描未完成，已有采樣已儲存。"</string>
+    <string name="m_7f984426d344" formatted="false">"上次執行未正常結束，已儲存的取樣仍保留"</string>
+    <string name="m_811e5f55f066" formatted="false">"執行一次輕量檢查，確認應用程式與 C++ 庫能夠協同工作。"</string>
+    <string name="m_821786e0cb91" formatted="false">"BenchBridge · {0} 測試中"</string>
+    <string name="m_82eb5676f95d" formatted="false">"項目編號無效"</string>
+    <string name="m_83781ae2b9f7" formatted="false">"本次引數"</string>
+    <string name="m_83d947e93231" formatted="false">"最高完整輪次 · {0}"</string>
+    <string name="m_83ea70933f67" formatted="false">"可用儲存空間不足"</string>
+    <string name="m_848b82159aca" formatted="false">"核心群組延遲曲線 · T1"</string>
+    <string name="m_8589564e49b5" formatted="false">"重試回收測試檔案"</string>
+    <string name="m_859f47678ef8" formatted="false">"I/O 緩衝區不得超過 256 MiB"</string>
+    <string name="m_85f9fed9c801" formatted="false">"{0} 個透過驗證的正式輪次 · {1}"</string>
+    <string name="m_862ad650feb8" formatted="false">"請選取測試項目"</string>
+    <string name="m_868f363da18e" formatted="false">"準備檢查環境"</string>
+    <string name="m_8694d9dcd9c4" formatted="false">"計分 %.2f ms · 整段 %.2f ms"</string>
+    <string name="m_86b57a9ae02e" formatted="false">"{0}每次 {1} · 預熱 {2} · 間隔 {3}"</string>
+    <string name="m_871be2654869" formatted="false">"準備中…"</string>
+    <string name="m_8783d9db6edb" formatted="false">"儲存結果"</string>
+    <string name="m_88011c572780" formatted="false">"增加背景優先順序曲線"</string>
+    <string name="m_88707137a619" formatted="false">"Buffered 包含檔案頁快取；結果獨立記錄。"</string>
+    <string name="m_8a0302ddf022" formatted="false">"匯出失敗：{0}"</string>
+    <string name="m_8a839ce77df0" formatted="false">"掃描快取"</string>
+    <string name="m_8a99be840844" formatted="false">"正在停止…"</string>
+    <string name="m_8af5c0e0f4cf" formatted="false">"頻寬 {0} 次 · 延遲 {1} 次 · {2}"</string>
+    <string name="m_8bd3bb068f32" formatted="false">"預設按次數和時間完成。設定上限後，初始化、預熱和正式測試均計入累計寫入；測試始終複用一個檔案。"</string>
+    <string name="m_8bd8dc289edf" formatted="false">"{0}/{1}次"</string>
+    <string name="m_8c1a516dbef5" formatted="false">"返回歷史列表"</string>
+    <string name="m_8c4a7419f98c" formatted="false">"系統未提供核心群組資訊"</string>
+    <string name="m_8ce9b91cc659" formatted="false">"GPU 命令建立失敗"</string>
+    <string name="m_8debe502df51" formatted="false">"記憶體用量約 {0} MiB"</string>
+    <string name="m_8ef2ac2deae8" formatted="false">"不支援的原生診斷格式"</string>
+    <string name="m_8f31a776d53b" formatted="false">"等待檢查"</string>
+    <string name="m_90c750e36f6e" formatted="false">"{0} 個有效輪次的{1}"</string>
+    <string name="m_91020453439d" formatted="false">"單次取樣"</string>
+    <string name="m_91082a74792b" formatted="false">"準備測試檔案"</string>
+    <string name="m_910887705c7a" formatted="false">"平臺"</string>
+    <string name="m_9167ee8b67db" formatted="false">"診斷資訊"</string>
+    <string name="m_917e4ce511a4" formatted="false">"RAM_BUDGET：需要約 {0} MiB，目前預算 {1} MiB；請明確選擇較小工作集"</string>
+    <string name="m_91ecc525da78" formatted="false">"頻寬 · 每項重複次數"</string>
+    <string name="m_9249ca6c2aab" formatted="false">"循序"</string>
+    <string name="m_95d6b7a416c4" formatted="false">"已儲存 {0} / {1} 個掃描點次"</string>
+    <string name="m_96c4fc9e110e" formatted="false">"區塊大小—延遲曲線"</string>
+    <string name="m_96c5161042c7" formatted="false">"GPU 碎形驗證失敗"</string>
+    <string name="m_96fceddb8ee2" formatted="false">"8EE6 已確認全核心共用 L2；獨立 CPU L3 未確認。分塊掃描曲線見快取規格與實測，不能將 L2 或系統快取填為 L3。"</string>
+    <string name="m_979a332955c8" formatted="false">"詳情"</string>
+    <string name="m_97be46dba289" formatted="false">"所選執行緒超過可用 CPU 數"</string>
+    <string name="m_984636a8319e" formatted="false">"晶片"</string>
+    <string name="m_986626b6f51c" formatted="false">"累計寫入上限"</string>
+    <string name="m_989de77d7077" formatted="false">"頻寬 T{0}"</string>
+    <string name="m_98ccf32b948e" formatted="false">"（階段 {0}，錯誤碼 {1}）"</string>
+    <string name="m_9977cb3b9e0b" formatted="false">"初始化 {0} MiB 測試檔案"</string>
+    <string name="m_99f691f98f8c" formatted="false">"檔案讀寫失敗"</string>
+    <string name="m_9a1da4458b69" formatted="false">"GPU 執行失敗"</string>
+    <string name="m_9a4ba92f53f0" formatted="false">"4 KiB–{0} MiB · 每倍容量 {1} 個間隔 · 正反兩遍交叉驗證 · 自動補測與多區間分析"</string>
+    <string name="m_9a7e8847ffef" formatted="false">"檔案在本次測試開始時初始化一次；預熱、驗證和最終同步不計入吞吐主值。"</string>
+    <string name="m_9ab4623d7a7b" formatted="false">"檢視原始輪次"</string>
+    <string name="m_9b3c6761bc04" formatted="false">"缺測範圍不推斷邊界。"</string>
+    <string name="m_9c12ee84a862" formatted="false">"{0} / {1} 輪"</string>
+    <string name="m_9c6ddc50afa0" formatted="false">"系統未提供的規格保持未知；這些資訊不等於曲線已經證明的容量。"</string>
+    <string name="m_9ca745e4e71f" formatted="false">"個有效取樣點"</string>
+    <string name="m_9cb715e053fb" formatted="false">"延遲 · 重複次數"</string>
+    <string name="m_9d869777c44d" formatted="false">"已完成 {0} / {1} 次"</string>
+    <string name="m_9e8ac889e229" formatted="false">"Metal 後端沒有原生 FP64；不以 FP32 冒充"</string>
+    <string name="m_9f7da13d0f16" formatted="false">"統計方式無效"</string>
+    <string name="m_9fde9d4b5a2f" formatted="false">"參考✓"</string>
+    <string name="m_a04ab6ee833d" formatted="false">"轉換 {0}：{1}–{2} · %.2f → %.2f ns"</string>
+    <string name="m_a097537d988c" formatted="false">"未獲得有效量測操作，請延長時間重試"</string>
+    <string name="m_a0c512dee60f" formatted="false">"正式輪次 {0}/{1}"</string>
+    <string name="m_a17ffdc11cc5" formatted="false">"執行緒數必須為 1–16"</string>
+    <string name="m_a192da71860c" formatted="false">"測試檔案：{0}"</string>
+    <string name="m_a32d83e84245" formatted="false">"執行緒模式無效"</string>
+    <string name="m_a3572a4edd11" formatted="false">"此記錄僅供功能驗證，不能代表 iPhone / iPad 效能。"</string>
+    <string name="m_a38615208dd6" formatted="false">"曲線尚未完整採集"</string>
+    <string name="m_a400359b1294" formatted="false">"讀寫驗證"</string>
+    <string name="m_a5c3ffddd0b1" formatted="false">"{0} 執行緒"</string>
+    <string name="m_a6635ea65640" formatted="false">"暫時無法開始測試，請重試"</string>
+    <string name="m_a6fc11029101" formatted="false">"未取得穩定且核心綁定有效的校準結果"</string>
+    <string name="m_a748cc074f78" formatted="false">"檢視詳情"</string>
+    <string name="m_a7e48c5429a8" formatted="false">"點按檢視結果，可隨時停止"</string>
+    <string name="m_a82b2eb1324e" formatted="false">"每次 I/O 區塊大小"</string>
+    <string name="m_a82cebdb7836" formatted="false">"RAM 六項快測"</string>
+    <string name="m_a92563d1479c" formatted="false">"使用者或系統結束處理程序"</string>
+    <string name="m_a97fa26c8c08" formatted="false">"上次執行中斷，臨時檔案回收失敗：{0}"</string>
+    <string name="m_a9d80f95e62f" formatted="false">"工作集"</string>
+    <string name="m_aa327c632b7c" formatted="false">"同時測試 RAM 四項（先測）"</string>
+    <string name="m_aa6477207270" formatted="false">"螢幕截圖失敗"</string>
+    <string name="m_aa92ccbc4662" formatted="false">"塊 / Q / T"</string>
+    <string name="m_aaca27fe170e" formatted="false">"排程優先順序"</string>
+    <string name="m_ab033612a2da" formatted="false">"層級"</string>
+    <string name="m_ab4db7c78d06" formatted="false">"無法建立結果資料夾"</string>
+    <string name="m_ac5f0f7030f3" formatted="false">"結論描述實測存取層次，不將曲線轉換直接等同於 L1/L2/L3 容量。系統頁大小、TLB、預取和頻率均可影響曲線。參考線僅代表系統或資料庫容量。"</string>
+    <string name="m_ad0aac9d9ee8" formatted="false">"只測試此項"</string>
+    <string name="m_ad12e355b8d5" formatted="false">"本輪實際完成 {0} · 提交 {1} 次"</string>
+    <string name="m_ad73cb0b8a84" formatted="false">"裝置無 GPU 時間戳，使用提交至完成時間（含主機開銷）。"</string>
+    <string name="m_ae7b99d68acf" formatted="false">"區間 {0}（{1}）：{2}–{3} · 中位 %.2f ns"</string>
+    <string name="m_aef184a3bb70" formatted="false">"RAM 四項摘要"</string>
+    <string name="m_af813a02175f" formatted="false">"{0}：{1} · {2} / {3} 次"</string>
+    <string name="m_afb2bbd126b5" formatted="false">"重複次數"</string>
+    <string name="m_b0385cfe4b42" formatted="false">"歷史"</string>
+    <string name="m_b07854a3f0a3" formatted="false">"{0} · {1} · {2}\n{3} · 第 {4} / {5} 次"</string>
+    <string name="m_b0b7715bce91" formatted="false">"降溫"</string>
+    <string name="m_b10b282b616f" formatted="false">"自動校準"</string>
+    <string name="m_b118ad4032a0" formatted="false">"模擬器僅驗證功能，數值不代表手機效能"</string>
+    <string name="m_b15fe673c089" formatted="false">"{0}：{1} · {2}/{3}次"</string>
+    <string name="m_b1977ee2eafd" formatted="false">"自動執行緒"</string>
+    <string name="m_b1df535601aa" formatted="false">"GPU 使用裝置執行時間；CPU 使用連續量測時間。"</string>
+    <string name="m_b1f1ab375a35" formatted="false">"{0} 設定"</string>
+    <string name="m_b255b35d3df0" formatted="false">"系統排程 · T1"</string>
+    <string name="m_b27845f8b95e" formatted="false">"本版未固定核心、未鎖定 CPU 頻率。快取曲線包含系統排程、地址轉換和預取的影響，不把拐點直接命名為 L1/L2/L3 容量。Metal 主計時為裝置執行時間，CPU 和完整等待時間不混入 GPU 主值。不同平臺與協議的數值不可直接視為等價。"</string>
+    <string name="m_b293459a5303" formatted="false">"輪次與延遲詳情"</string>
+    <string name="m_b34ce4d70417" formatted="false">"參考線"</string>
+    <string name="m_b39172cac39a" formatted="false">"GPU 讀取驗證失敗"</string>
+    <string name="m_b4430cb98add" formatted="false">"JNI、記憶體驗證與時鐘檢查透過。"</string>
+    <string name="m_b4c37dc2c23a" formatted="false">"校準執行緒與核心"</string>
+    <string name="m_b55d49e6860d" formatted="false">"INT64 整數"</string>
+    <string name="m_b58e741e6499" formatted="false">"節點間隔 {0} B"</string>
+    <string name="m_b64bd273c6ea" formatted="false">"{0} 次 / 方向 · {1} · {2}"</string>
+    <string name="m_b657fb990d34" formatted="false">"GPGPU 設定"</string>
+    <string name="m_b7e7f476b32b" formatted="false">"已有相同區塊大小、佇列和執行緒的項目"</string>
+    <string name="m_b7f080d32fac" formatted="false">"能力檢查失敗：{0}"</string>
+    <string name="m_b7fd58483e92" formatted="false">"取樣被中斷"</string>
+    <string name="m_b8816e62f9e5" formatted="false">"保留原始輪次與量測條件"</string>
+    <string name="m_ba6117467e72" formatted="false">"製造商"</string>
+    <string name="m_bba8fe6846f0" formatted="false">"校準時間無效"</string>
+    <string name="m_bbce140b7682" formatted="false">"複製診斷資訊"</string>
+    <string name="m_bbe20741baa2" formatted="false">"INT24 整數"</string>
+    <string name="m_bda213f5cf80" formatted="false">"第 {0} 輪 · {1} 執行緒 · {2}"</string>
+    <string name="m_be215559e2d4" formatted="false">"每項首輪預熱"</string>
+    <string name="m_be5e05024958" formatted="false">"檔案初始化失敗"</string>
+    <string name="m_be85d2712191" formatted="false">"該記錄無法續測，請重新測試"</string>
+    <string name="m_bfcbfa02abb4" formatted="false">"每項{0} {1} 次 · 每次 {2}"</string>
+    <string name="m_c098e854e60b" formatted="false">"未確認"</string>
+    <string name="m_c09e1fe8a6c2" formatted="false">"量測或預熱時間無效"</string>
+    <string name="m_c0b3fbff51cc" formatted="false">"完成"</string>
+    <string name="m_c0c264f77223" formatted="false">"檔案太小，無法劃分執行緒區域"</string>
+    <string name="m_c0cb94da1e33" formatted="false">"背景優先順序"</string>
+    <string name="m_c0fc2f139557" formatted="false">"最小 / 最大：%.2f / %.2f {0}"</string>
+    <string name="m_c150a6c42646" formatted="false">"執行未完成：{0}"</string>
+    <string name="m_c181ac47bb1d" formatted="false">"{0}每輪量測時間"</string>
+    <string name="m_c22d6262da9f" formatted="false">"從 4 KiB 起，單執行緒掃描一遍，每個區塊 1 次，不復測或加密補點。"</string>
+    <string name="m_c3688f912b82" formatted="false">"測試時間無效"</string>
+    <string name="m_c38cab8cb048" formatted="false">"項目間隔"</string>
+    <string name="m_c3eb5da0453e" formatted="false">"未測"</string>
+    <string name="m_c45660e7a02b" formatted="false">"繼續掃描"</string>
+    <string name="m_c4c041c7374a" formatted="false">"本版採用高熵資料上的 32 位相依索引鏈（含地址計算），普通系統頁。原始計時、執行緒實際執行時間、頻率及取樣結果均儲存在 JSON，比較其他工具時需使用相同存取模式。"</string>
+    <string name="m_c4c97d2bb07c" formatted="false">"對數 ns"</string>
+    <string name="m_c4c9e32ceb88" formatted="false">"實際 CPU {0} → {1}"</string>
+    <string name="m_c68978537cf3" formatted="false">"目前裝置"</string>
+    <string name="m_c6a401870fba" formatted="false">"可以複製診斷資訊，保留具體錯誤以便排查。"</string>
+    <string name="m_c71bf6710caa" formatted="false">"Q{0} · 實測每執行緒最大在途 {1}，平均 {2} · 同步 {3} ms（另計）"</string>
+    <string name="m_c71e16294857" formatted="false">"無法可靠地綁定核心，改用系統排程 · T1"</string>
+    <string name="m_c7bc208b1753" formatted="false">"快取每次 {0}；工作集按共用範圍分配。RAM 工作集至少為末級快取的兩倍，實際值見成績。"</string>
+    <string name="m_c7d9b81a063e" formatted="false">"量測"</string>
+    <string name="m_c82479f44050" formatted="false">"ROM 設定"</string>
+    <string name="m_c856ee25bdc6" formatted="false">"裝置需要降溫後再測試"</string>
+    <string name="m_c8a64119ed95" formatted="false">"分享測試螢幕截圖"</string>
+    <string name="m_c8c88b80b218" formatted="false">"可用記憶體不足，請改用快速測試"</string>
+    <string name="m_c8ce0da65773" formatted="false">"4 KiB–{0} MiB · 每倍容量 {1} 個間隔 · 單遍掃描，每個區塊 1 次"</string>
+    <string name="m_c8cf0733cb3a" formatted="false">"參考容量：顯示"</string>
+    <string name="m_c9e4e2603288" formatted="false">"單遍掃描，每個區塊 1 次"</string>
+    <string name="m_ca4d973c0b00" formatted="false">"停止"</string>
+    <string name="m_ca8961cf9d82" formatted="false">"舊版中位數"</string>
+    <string name="m_cb15f77ff481" formatted="false">"SoC 型號資料"</string>
+    <string name="m_cb49f42311a0" formatted="false">"原生程式碼當機"</string>
+    <string name="m_cc1fac4524fd" formatted="false">"核心繫結"</string>
+    <string name="m_cc78d365d7b6" formatted="false">"掃描結束 · 部分範圍受干擾"</string>
+    <string name="m_ccbf7250afd3" formatted="false">"GPGPU · 重複量測"</string>
+    <string name="m_cced402618e3" formatted="false">" · 讀寫合計"</string>
+    <string name="m_cdc46680960b" formatted="false">"DiskMark 預設"</string>
+    <string name="m_ce77bd24a3c2" formatted="false">"{0} · {1} 次 · {2} 秒"</string>
+    <string name="m_cf277021bb1b" formatted="false">"NVMe 引數"</string>
+    <string name="m_cf2ea55d770b" formatted="false">"正式輪次 {0}/{1} · 曲線 {2}/{3} 點次"</string>
+    <string name="m_cf326d2cc536" formatted="false">"轉換：{0}–{1} · {2} → {3} ns"</string>
+    <string name="m_d04056bb7f1c" formatted="false">"{0}頻寬 · 總工作集"</string>
+    <string name="m_d0e5a537ba17" formatted="false">"系統排程 · "</string>
+    <string name="m_d2ad8d08d42a" formatted="false">"本次測試"</string>
+    <string name="m_d3174a42c726" formatted="false">"部分核心群組無法固定繫結"</string>
+    <string name="m_d373809ab86b" formatted="false">"複製"</string>
+    <string name="m_d3a18faf1859" formatted="false">"停止測試"</string>
+    <string name="m_d3fe7efd8de7" formatted="false">"記憶體讀取"</string>
+    <string name="m_d430f15b51c9" formatted="false">"單執行緒相依指標鏈，隨機走訪每條快取行。"</string>
+    <string name="m_d466585af71f" formatted="false">"未透過驗證"</string>
+    <string name="m_d62f96646e4a" formatted="false">"此項目的 Metal 核心函式尚未實作"</string>
+    <string name="m_d636cf73ad9a" formatted="false">"系統不支援原生 AIO 佇列"</string>
+    <string name="m_d6404cfc96c6" formatted="false">"配置記憶體並建立存取序列"</string>
+    <string name="m_d67921a192d8" formatted="false">"測試項目"</string>
+    <string name="m_d6c273e0ec9b" formatted="false">"測試時間或次數無效"</string>
+    <string name="m_d77444c0b8c3" formatted="false">"完整曲線尚未透過驗證"</string>
+    <string name="m_d807482dac5c" formatted="false">"讀寫結果"</string>
+    <string name="m_d82e260a405e" formatted="false">"T = 執行緒 · 總工作集 · 複製計讀寫合計"</string>
+    <string name="m_d95a4e24571e" formatted="false">"分享螢幕截圖"</string>
+    <string name="m_d9728b3b2178" formatted="false">"每輪 {0} · {1}"</string>
+    <string name="m_da0900279835" formatted="false">"自動校準執行緒"</string>
+    <string name="m_da0fd4a6150d" formatted="false">"區塊大小無效"</string>
+    <string name="m_da1dcaac7708" formatted="false">"校準 {0} 的頻寬執行緒"</string>
+    <string name="m_da4c2e8f7744" formatted="false">"無法固定核心，曲線未生成"</string>
+    <string name="m_da5920919577" formatted="false">"測試檔案大小"</string>
+    <string name="m_da8e80927fd7" formatted="false">"請檢視下方診斷資訊。失敗項會保留具體原因。"</string>
+    <string name="m_db68f1777c59" formatted="false">"裝置標識"</string>
+    <string name="m_db7538b96322" formatted="false">"平均值"</string>
+    <string name="m_dc0f66986fc4" formatted="false">"Apple 官方規格"</string>
+    <string name="m_dc33506d6f13" formatted="false">"成績已複製"</string>
+    <string name="m_dcd0dc09bb78" formatted="false">"實測覆蓋 {0}–{1}，形成 {2} 個延遲區間、{3} 處轉換（含階躍與趨勢變化）。"</string>
+    <string name="m_dceda5053235" formatted="false">"STORAGE_MEMORY：I/O 緩衝需 {0} MiB 記憶體，目前預算 {1} MiB"</string>
+    <string name="m_dd01dd267ba5" formatted="false">"線性 ns"</string>
+    <string name="m_dd0646b09a48" formatted="false">"PROCESS_DIED：{0}，已儲存的取樣仍保留"</string>
+    <string name="m_dd3ec4711a76" formatted="false">"測試引數"</string>
+    <string name="m_ddc00e6620a4" formatted="false">"實體記憶體"</string>
+    <string name="m_ddcf6e77b0ee" formatted="false">"準備"</string>
+    <string name="m_de29ff706893" formatted="false">"回收檔案"</string>
+    <string name="m_de2af697b5c5" formatted="false">"每項 {0} 次"</string>
+    <string name="m_dec5d5569b23" formatted="false">"舊版協議 · 原始量測記錄"</string>
+    <string name="m_dee4b55ef0a0" formatted="false">"快取曲線：工作集大小 × 延遲 ns；每個核心群組固定一個核心"</string>
+    <string name="m_df9062b60024" formatted="false">"快取與記憶體"</string>
+    <string name="m_dfb4855c2bb0" formatted="false">"RAM 設定"</string>
+    <string name="m_dfb802238b38" formatted="false">"已啟用"</string>
+    <string name="m_dfc2e3b4df73" formatted="false">"延遲 · {0} 次"</string>
+    <string name="m_e0549b01e813" formatted="false">"選中工作集"</string>
+    <string name="m_e1506406a5bd" formatted="false">"裝置"</string>
+    <string name="m_e22847e1d869" formatted="false">"隨機寫入"</string>
+    <string name="m_e304fbe1cea4" formatted="false">"準備測試"</string>
+    <string name="m_e33b9aec6972" formatted="false">"WRITE_BUDGET：累計寫入達到 {0} 上限；測試檔案佔用為 {1}"</string>
+    <string name="m_e355b1a49e05" formatted="false">"按時間完成"</string>
+    <string name="m_e36320851da4" formatted="false">"8 B 存取，各執行緒在獨立區域內隨機寫入"</string>
+    <string name="m_e396f936a371" formatted="false">"主結果為讀取量 + 寫入量；工作集是源與目標之和"</string>
+    <string name="m_e3e42c6a76f1" formatted="false">"延遲 · 總工作集"</string>
+    <string name="m_e44652e35e27" formatted="false">"FP32 浮點"</string>
+    <string name="m_e4801bd01531" formatted="false">"目前可用記憶體不足，請減小工作集後重試"</string>
+    <string name="m_e4b60a443ba3" formatted="false">"邏輯核心"</string>
+    <string name="m_e55f2ab3e631" formatted="false">"待測"</string>
+    <string name="m_e63d157572d5" formatted="false">"RAM 頻寬 {0} MiB · 延遲 {1} MiB / T1 · {2}\n頻寬 {3} 次 · 延遲 {4} 次 · {5} · {6} ms / 輪"</string>
+    <string name="m_e6a82a78cb4b" formatted="false">"參考容量：隱藏"</string>
+    <string name="m_e72002112185" formatted="false">"頻寬 {0} 執行緒"</string>
+    <string name="m_e7659d936ff9" formatted="false">"處理程序收到終止訊號"</string>
+    <string name="m_e7add28c3dec" formatted="false">" · 最佳輪次"</string>
+    <string name="m_e7bece0a0387" formatted="false">"複製成績"</string>
+    <string name="m_e8d9c616b400" formatted="false">"FP64 浮點"</string>
+    <string name="m_e8e939f31da7" formatted="false">"等待有效取樣"</string>
+    <string name="m_e8ebd9af7227" formatted="false">"0.6 舊記錄：記憶體及加密負載不同，不能與目前成績直接比較。"</string>
+    <string name="m_e908350fc3c9" formatted="false">"每個區塊僅測一次"</string>
+    <string name="m_e9ff52678334" formatted="false">"GPGPU 引數超出範圍"</string>
+    <string name="m_ea57239324df" formatted="false">"累計寫入上限必須覆蓋檔案初始化，或設為不限"</string>
+    <string name="m_eb20c116253a" formatted="false">"未提供錯誤詳情"</string>
+    <string name="m_eb4fd500d4c1" formatted="false">"存取延遲"</string>
+    <string name="m_ebbe4d407f7c" formatted="false">"系統頁大小"</string>
+    <string name="m_ebc953d5ccb9" formatted="false">"單遍掃描 · 每個區塊 1 次 · 點按核心檢視結論"</string>
+    <string name="m_ec2501a54738" formatted="false">"隨機讀取"</string>
+    <string name="m_ed111dab3fb2" formatted="false">"應用程式無響應"</string>
+    <string name="m_ede31054bce7" formatted="false">"系統未提供"</string>
+    <string name="m_ee0d3836d307" formatted="false">"{0} · {1} 個可用 CPU"</string>
+    <string name="m_eeb6728dd913" formatted="false">"無法建立量測會話"</string>
+    <string name="m_ef9a012bd0b7" formatted="false">"COMPUTE_BUDGET：可用記憶體不足，請改用快速測試"</string>
+    <string name="m_f006455e3baf" formatted="false">"已停止"</string>
+    <string name="m_f0e1147ac22e" formatted="false">"快取曲線 + RAM"</string>
+    <string name="m_f137930818cc" formatted="false">"主值：{0}"</string>
+    <string name="m_f14d35b2a30e" formatted="false">"RAM · 讀取 / 寫入 / 延遲 / 複製"</string>
+    <string name="m_f17d9690f67a" formatted="false">"Direct 繞過檔案頁快取。"</string>
+    <string name="m_f1de1e2621de" formatted="false">"預設組合"</string>
+    <string name="m_f28461bb49c8" formatted="false">"已完成"</string>
+    <string name="m_f2aabf4a63c7" formatted="false">"無法開啟匯出檔案"</string>
+    <string name="m_f40894c9060f" formatted="false">"ROM · DiskMark 預設設定"</string>
+    <string name="m_f453e69e38b0" formatted="false">"複製 · 讀寫合計"</string>
+    <string name="m_f48870fee1c2" formatted="false">"從 4 KiB 起，單執行緒正反掃描、自動複核。"</string>
+    <string name="m_f54ac3450821" formatted="false">"實際工作集 {0} · {1} 執行緒"</string>
+    <string name="m_f8abacf7c330" formatted="false">"預設組合參數無效"</string>
+    <string name="m_f8af6f45840a" formatted="false">"收起高階引數"</string>
+    <string name="m_f95ea7f4c063" formatted="false">"未啟用"</string>
+    <string name="m_f980b82932a6" formatted="false">"原生自檢"</string>
+    <string name="m_f9a36b617bd1" formatted="false">"測試對象"</string>
+    <string name="m_f9b3beeee21f" formatted="false">"快取曲線引數超出範圍"</string>
+    <string name="m_f9d19345a067" formatted="false">"中斷"</string>
+    <string name="m_fa394156117e" formatted="false">"快速測試"</string>
+    <string name="m_fae0b6a83e05" formatted="false">"讀取 + 寫入"</string>
+    <string name="m_fae55aca1c26" formatted="false">"{0} · T{1} · {2} · {3}/{4}次"</string>
+    <string name="m_fb48367b485c" formatted="false">"匯出 JSON"</string>
+    <string name="m_fc0aae1e9699" formatted="false">"第 {0} 次："</string>
+    <string name="m_fc107498ec60" formatted="false">"已完成 {0} / {1} 輪"</string>
+    <string name="m_fd522dbc2d5d" formatted="false">"GPU 記憶體存取驗證失敗"</string>
+    <string name="m_fdf9f0908c5e" formatted="false">"檔案大小或重複次數無效"</string>
+    <string name="m_fe1c95c43e9e" formatted="false">"測試已停止"</string>
+    <string name="m_fe35d6b48a96" formatted="false">"曲線已儲存 {0} / {1} 個掃描點次"</string>
+    <string name="m_fe4cd9cc4017" formatted="false">" · {0}次"</string>
+    <string name="m_fe9b4f513410" formatted="false">"RAM 工作集會按末級快取與執行緒數增大，實際工作集見各項成績。"</string>
+    <string name="m_feacfc04ea7d" formatted="false">"所有核心群組已完成 · 分段結論見詳情"</string>
+    <string name="m_ffcc831ce558" formatted="false">"\n曲線：4 KiB–{0} MiB · T1 · {1}"</string>
+</resources>

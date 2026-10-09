@@ -31,9 +31,17 @@ for target,files in sources.items():
         references.append(ref);builds.append(add('build:'+target+path,f'isa = PBXBuildFile; fileRef = {ref};'))
     resourceBuild=[]
     if target=='BenchBridge':
-        for path,filetype in [('BenchBridge/Info.plist','text.plist.xml'),('BenchBridge/PrivacyInfo.xcprivacy','text.xml'),('BenchBridge/Assets.xcassets','folder.assetcatalog')]:
+        for path,filetype in [('BenchBridge/Info.plist','text.plist.xml'),('BenchBridge/PrivacyInfo.xcprivacy','text.xml'),('BenchBridge/Assets.xcassets','folder.assetcatalog'),('BenchBridge/localization.json','text.json')]:
             ref=add('file:'+path,f'isa = PBXFileReference; lastKnownFileType = {q(filetype)}; path = {q(path)}; sourceTree = "<group>";');references.append(ref)
-            if path.endswith(('xcprivacy','xcassets')):resourceBuild.append(add('build:'+path,f'isa = PBXBuildFile; fileRef = {ref};'))
+            if path.endswith(('xcprivacy','xcassets','localization.json')):resourceBuild.append(add('build:'+path,f'isa = PBXBuildFile; fileRef = {ref};'))
+        # 使用原生语言资源组，默认英文；三语共用同一份审校词库。
+        # Use native localization groups with English as the development language and one reviewed catalog.
+        translations=[]
+        for locale in ('en','zh-Hans','zh-Hant'):
+            path=f'BenchBridge/{locale}.lproj/Localizable.strings'
+            translations.append(add('file:'+path,f'isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = {q(locale)}; path = {q(path)}; sourceTree = "<group>";'))
+        variant=add('localizable',f'isa = PBXVariantGroup; children = {array(translations)}; name = Localizable.strings; sourceTree = "<group>";')
+        references.append(variant);resourceBuild.append(add('build:localizable',f'isa = PBXBuildFile; fileRef = {variant};'))
     groups.append(add('group:'+target,f'isa = PBXGroup; name = {q(target)}; children = {array(references)}; sourceTree = "<group>";'))
     product=add('product:'+target,f'isa = PBXFileReference; explicitFileType = {q("wrapper.application" if target=="BenchBridge" else "wrapper.cfbundle")}; includeInIndex = 0; path = {q(target+(".app" if target=="BenchBridge" else ".xctest"))}; sourceTree = BUILT_PRODUCTS_DIR;');products.append(product)
     sourcePhase=add('sources:'+target,f'isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = {array(builds)}; runOnlyForDeploymentPostprocessing = 0;')
@@ -64,7 +72,7 @@ productGroup=add('products',f'isa = PBXGroup; name = Products; children = {array
 mainGroup=add('main',f'isa = PBXGroup; children = {array(groups+[productGroup])}; sourceTree = "<group>";')
 projectConfigs=[add('projectconfig:'+c,f'isa = XCBuildConfiguration; name = {c}; buildSettings = {{}};') for c in ('Debug','Release')]
 projectList=add('projectconfigs',f'isa = XCConfigurationList; buildConfigurations = {array(projectConfigs)}; defaultConfigurationIsVisible = 0; defaultConfigurationName = Release;')
-project=add('project',f'isa = PBXProject; attributes = {{ LastUpgradeCheck = 1600; }}; buildConfigurationList = {projectList}; compatibilityVersion = "Xcode 14.0"; developmentRegion = zh-Hans; hasScannedForEncodings = 0; knownRegions = (en,Base,"zh-Hans"); mainGroup = {mainGroup}; productRefGroup = {productGroup}; projectDirPath = ""; projectRoot = ""; targets = {array(targets)};')
+project=add('project',f'isa = PBXProject; attributes = {{ LastUpgradeCheck = 1600; }}; buildConfigurationList = {projectList}; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en,Base,"zh-Hans","zh-Hant"); mainGroup = {mainGroup}; productRefGroup = {productGroup}; projectDirPath = ""; projectRoot = ""; targets = {array(targets)};')
 destination=ROOT/'BenchBridge.xcodeproj';destination.mkdir(exist_ok=True)
 (destination/'project.pbxproj').write_text('// !$*UTF8*$!\n{archiveVersion = 1; classes = {}; objectVersion = 56; objects = {\n'+'\n'.join(objects)+f'\n}}; rootObject = {project};}}\n',encoding='utf-8')
 scheme=destination/'xcshareddata/xcschemes';scheme.mkdir(parents=True,exist_ok=True)

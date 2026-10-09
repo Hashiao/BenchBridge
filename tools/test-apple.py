@@ -35,6 +35,7 @@ manifest={'host':platform.platform(),'status':'running','devices':[],'device_per
 def save(): (OUT/'verification.json').write_text(json.dumps(manifest,indent=2)+'\n')
 save()
 try:
+    run([sys.executable,'tools/check-localization.py'])
     run([sys.executable,'tools/generate-apple-project.py'])
     if args.ci:
         candidates=list(Path('/Applications').glob('Xcode*.app'))

@@ -3,8 +3,8 @@ import Foundation
 final class CancellationToken: @unchecked Sendable {
     let handle: OpaquePointer
     private let lock = NSLock()
-    private var message = "用户停止"
-    init() throws { guard let handle = bb_session_create() else { throw BenchError.message("无法创建测量会话") }; self.handle = handle }
+    private var message = L10n.t("m_6ddf680b8489")
+    init() throws { guard let handle = bb_session_create() else { throw BenchError.message(L10n.t("m_eeb6728dd913")) }; self.handle = handle }
     deinit { bb_session_destroy(handle) }
     func cancel(_ reason: String) { lock.lock(); message = reason; lock.unlock(); bb_session_cancel(handle) }
     var cancelled: Bool { bb_session_cancelled(handle) != 0 }
@@ -12,13 +12,13 @@ final class CancellationToken: @unchecked Sendable {
     func check() throws { if cancelled { throw BenchError.message(reason) } }
 }
 enum BenchWorker {
-    static let computeNames = ["内存读取", "内存写入", "内存拷贝", "FP32", "FP64", "INT24", "INT32", "INT64", "AES-256", "SHA-1", "Julia", "Mandel FP64"]
+    static var computeNames: [String] { [L10n.t("m_d3fe7efd8de7"), L10n.t("m_16de4707fe56"), L10n.t("m_15a5be0e2031"), "FP32", "FP64", "INT24", "INT32", "INT64", "AES-256", "SHA-1", "Julia", "Mandel FP64"] }
     static func computeUnit(_ kind: Int) -> String { kind <= 2 || kind == 8 || kind == 9 ? "GB/s" : kind <= 4 ? "GFLOPS" : kind <= 7 ? "GIOPS" : "MPix/s" }
     static func scorePlan(_ family: BenchFamily, config: BenchConfig = BenchConfig()) -> [ScoreItem] {
         switch family {
-        case .memory: return [(0, "读取"), (1, "写入"), (5, "延迟"), (2, "拷贝")].map { ScoreItem(id: "ram-\($0.0)", title: $0.1, unit: $0.0 == 5 ? "ns" : "GB/s", aggregation: config.ramSettings.aggregation) }
+        case .memory: return [(0, L10n.t("m_534cb3fa8fbf")), (1, L10n.t("m_5c783c467965")), (5, L10n.t("m_18045b8c40f1")), (2, L10n.t("m_d373809ab86b"))].map { ScoreItem(id: "ram-\($0.0)", title: $0.1, unit: $0.0 == 5 ? "ns" : "GB/s", aggregation: config.ramSettings.aggregation) }
         case .storage: return config.storageSettings.cases.flatMap { test in (0...1).map { operation in
-            ScoreItem(id: "\(test.id)-\(operation)", title: "\(test.title) · \(operation == 0 ? "读取" : "写入")", unit: "MB/s", aggregation: "maximum_completed_round")
+            ScoreItem(id: "\(test.id)-\(operation)", title: "\(test.title) · \(operation == 0 ? L10n.t("m_534cb3fa8fbf") : L10n.t("m_5c783c467965"))", unit: "MB/s", aggregation: "maximum_completed_round")
         } }
         case .compute: return (0...11).flatMap { kind in ["cpu", "gpu"].map { ScoreItem(id: "\($0)-\(kind)", title: "\(computeNames[kind]) · \($0.uppercased())", unit: computeUnit(kind)) } }
         }
@@ -26,7 +26,7 @@ enum BenchWorker {
     static func budget(_ bytes: UInt64) throws {
         let headroom = bb_available_memory()
         let allowance = headroom > 0 ? headroom / 2 : ProcessInfo.processInfo.physicalMemory / 8
-        guard bytes + 64 * 1048576 <= allowance else { throw BenchError.message("当前可用内存不足，请减小工作集后重试") }
+        guard bytes + 64 * 1048576 <= allowance else { throw BenchError.message(L10n.t("m_e4801bd01531")) }
     }
     static func initial(_ family: BenchFamily, config: BenchConfig) -> BenchReport {
         let device = DeviceInfo.collect(); let plan = scorePlan(family, config: config)
@@ -65,13 +65,13 @@ enum BenchWorker {
                 try budget(67108864 + maximumBuffers)
                 try FileManager.default.createDirectory(at: storageFolder, withIntermediateDirectories: true)
                 let capacity = try storageFolder.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey]).volumeAvailableCapacityForImportantUsage ?? 0
-                guard capacity > Int64(parameters.fileMiB) * 1048576 + 128 * 1048576 else { throw BenchError.message("可用存储空间不足") }
-                report.progress = "初始化 \(parameters.fileMiB) MiB 测试文件"; await progress(report)
+                guard capacity > Int64(parameters.fileMiB) * 1048576 + 128 * 1048576 else { throw BenchError.message(L10n.t("m_83ea70933f67")) }
+                report.progress = L10n.t("m_9977cb3b9e0b", parameters.fileMiB); await progress(report)
                 var prepared = BBStorageResult()
                 storageHandle = storageFolder.appendingPathComponent("data.bin").path.withCString {
                     bb_storage_create(token.handle, $0, UInt64(parameters.fileMiB) * 1048576, parameters.noCache ? 1 : 0, &prepared)
                 }
-                guard storageHandle != nil else { throw BenchError.message(NativeMeasurement(prepared.measurement).error ?? "文件初始化失败") }
+                guard storageHandle != nil else { throw BenchError.message(NativeMeasurement(prepared.measurement).error ?? L10n.t("m_be5e05024958")) }
             }
             for index in report.scores.indices {
                 try token.check()
@@ -81,7 +81,7 @@ enum BenchWorker {
                 let ram = config.ramSettings
                 var ramThreads = kind == 5 ? 1 : ram.threads
                 if report.family == .memory && kind != 5 && ram.automaticThreads {
-                    report.progress = "校准 \(item.title) 的带宽线程"; await progress(report)
+                    report.progress = L10n.t("m_da1dcaac7708", item.title); await progress(report)
                     try budget(UInt64(ram.memoryMiB) * 1048576)
                     let maximum = min(16, report.device.logicalCpuCount)
                     let candidates = Set([1,2,3,4,6,8,maximum].filter { $0 <= maximum && $0 > 0 }).sorted()
@@ -137,19 +137,19 @@ enum BenchWorker {
                             if raw.resource_limited != 0 && !report.qualityFlags.contains("storage_aio_resource_limited") { report.qualityFlags.append("storage_aio_resource_limited") }
                         }
                         report.scores[index].measurements.append(native)
-                        if native.status == 1 { try token.check(); throw BenchError.message("测量被中断") }
+                        if native.status == 1 { try token.check(); throw BenchError.message(L10n.t("m_048a8a649e5f")) }
                         if native.verified, native.status == 0, let trial = native.trials.first, trial.elapsedNs > 0 {
                             let value: Double
                             if report.family == .memory && kind == 5 { value = Double(trial.elapsedNs) / Double(trial.operations) }
                             else if report.family == .storage { value = Double(trial.logicalBytes) / Double(trial.elapsedNs) * 1000 }
                             else if report.family == .compute && kind >= 3 { value = Double(trial.operations) / Double(trial.elapsedNs) * (kind >= 10 ? 1000 : 1) }
                             else { value = Double(trial.logicalBytes) / Double(trial.elapsedNs) }
-                            guard value.isFinite && value > 0 else { throw BenchError.message("无效的测量计数") }
+                            guard value.isFinite && value > 0 else { throw BenchError.message(L10n.t("m_40f963e43bdb")) }
                             report.scores[index].values.append(value); report.completedRounds += 1
                         } else {
                             report.scores[index].state = "failed"; report.scores[index].reason = native.error
                             if let sample = report.scores[index].storageSamples?.last {
-                                report.scores[index].reason = (native.error ?? "存储测量失败") + "（阶段 \(sample.errorPhase ?? 0)，错误码 \(sample.errnoCode)）"
+                                report.scores[index].reason = (native.error ?? L10n.t("m_7c5de8198ee3")) + L10n.t("m_98ccf32b948e", sample.errorPhase ?? 0, sample.errnoCode)
                             }
                         }
                     }
@@ -158,7 +158,7 @@ enum BenchWorker {
                     try await publish()
                     if round + 1 < rounds || index + 1 < report.scores.count {
                         let interval = report.family == .memory ? ram.intervalMs : report.family == .storage ? config.storageSettings.interval(afterRound: round, lastItem: index + 1 == report.scores.count) : 0
-                        if interval > 0 { report.progress = "轮间休息"; await progress(report); try await rest(interval) }
+                        if interval > 0 { report.progress = L10n.t("m_69f82395883c"); await progress(report); try await rest(interval) }
                     }
                 }
             }
@@ -174,13 +174,13 @@ enum BenchWorker {
                     let attempts = report.curves[group].batches.filter { $0.bytes == bytes && $0.pass == pass }.count
                     guard attempts < (single ? 1 : 3) else { return }
                     let qos = report.curves[group].qos
-                    report.progress = "\(report.curves[group].title) · \(Statistics.size(bytes)) · 第 \(pass + 1) 遍"; await progress(report)
+                    report.progress = L10n.t("m_51224f961d06", report.curves[group].title, Statistics.size(bytes), pass + 1); await progress(report)
                     let seed = UInt64(0xB16B00B5 + pass * 1009 + (attempts + 1) * 7919)
                     let reportedStride = Int(report.device.reportedLineBytes ?? 0)
                     let stride = [32, 64, 128, 256].contains(reportedStride) ? reportedStride : 64
                     let measurement = NativeMeasurement(single ? bb_cache_point_once(token.handle, bytes, Int32(stride), Int32(qos), seed)
                                                         : bb_cache_point(token.handle, bytes, Int32(stride), Int32(qos), seed))
-                    if measurement.status == 1 { try token.check(); throw BenchError.message("采样被中断") }
+                    if measurement.status == 1 { try token.check(); throw BenchError.message(L10n.t("m_b7fd58483e92")) }
                     report.curves[group].batches.append(CurveBatch(bytes: bytes, pass: pass, attempt: attempts + 1, seed: seed, measurement: measurement))
                     Statistics.refresh(&report.curves[group]); try await publish()
                 }
@@ -218,7 +218,7 @@ enum BenchWorker {
         }
         report.finishedAt = Date(); report.thermalAtEnd = ProcessInfo.processInfo.thermalState.rawValue; report.progress = report.statusTitle
         report.runtimeDiagnostics = (report.runtimeDiagnostics ?? []) + [RuntimeSnapshot.capture("worker_finished_" + report.state)]
-        do { try store.save(report) } catch { report.state = "failed"; report.error = "结果保存失败：\(description(error))" }
+        do { try store.save(report) } catch { report.state = "failed"; report.error = L10n.t("m_44a0bc2e39c6", description(error)) }
         await progress(report)
     }
     static func description(_ error: Error) -> String { if case BenchError.message(let message) = error { return message }; return error.localizedDescription }

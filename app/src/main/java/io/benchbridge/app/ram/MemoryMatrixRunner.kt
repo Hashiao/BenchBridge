@@ -1,5 +1,7 @@
 package io.benchbridge.app.ram
 
+import io.benchbridge.app.i18n.L10n
+
 import android.content.Context
 import android.os.PowerManager
 import android.util.Log
@@ -35,7 +37,7 @@ class MemoryMatrixRunner(private val context: Context, private val config: RamCo
     }
 
     private fun shouldStop(): Boolean {
-        if (thermal() >= PowerManager.THERMAL_STATUS_SEVERE) cancel("RUN_THERMAL：设备需要降温")
+        if (thermal() >= PowerManager.THERMAL_STATUS_SEVERE) cancel(L10n.t("m_5e331a932238"))
         return cancelled()
     }
     private fun median(values: List<Double>): Double = values.sorted().let { if (it.size % 2 == 1) it[it.size / 2] else (it[it.size / 2 - 1] + it[it.size / 2]) / 2 }
@@ -45,7 +47,7 @@ class MemoryMatrixRunner(private val context: Context, private val config: RamCo
         report.put("failure_context", JSONObject().put("phase", report.optString("phase"))
             .put("current_round", report.optInt("current_round")).put("calibration_candidate", report.optInt("calibration_candidate"))
             .put("plan", plan).put("sample", sample))
-        Log.e("BenchBridge", "RAM_DIAGNOSTIC ${report.optString("run_id")} ${sample.optString("error")}；完整现场见导出 JSON / full evidence in exported JSON")
+        Log.e("BenchBridge", L10n.t("m_45a2d95af496", report.optString("run_id"), sample.optString("error")))
     }
     private fun run(plan: MemoryPlan, warmup: Int, duration: Int): JSONObject =
         (if (plan.systemScheduled) sampleSystem(plan, warmup, duration) else samplePinned(plan, warmup, duration)).apply {
@@ -161,13 +163,13 @@ class MemoryMatrixRunner(private val context: Context, private val config: RamCo
                 val bindingUnavailable = affinity.rejected.isNotEmpty() && candidates.all { affinity.resolve(it, config, memoryBudget) == null }
                 val plan = pinned ?: if (level == "RAM" && bindingUnavailable) MemoryPlanner.systemPlan(config, kind, memoryBudget) else null
                 if (plan == null) {
-                    cell.put("state", "FAILED").put("reason", "未取得稳定且绑核有效的校准结果")
+                    cell.put("state", "FAILED").put("reason", L10n.t("m_a6fc11029101"))
                     failed = true; processed += rounds
                     report.put("processed_rounds", processed); publish(true)
                     break
                 }
                 if (plan.systemScheduled) {
-                    cell.put("binding_notice", "无法可靠固定核心，使用系统调度 · T1")
+                    cell.put("binding_notice", L10n.t("m_c71e16294857"))
                     val flags = report.optJSONArray("quality_flags") ?: JSONArray().also { report.put("quality_flags", it) }
                     if ((0 until flags.length()).none { flags.optString(it) == "system_scheduling_fallback" }) flags.put("system_scheduling_fallback")
                 }
@@ -218,7 +220,7 @@ class MemoryMatrixRunner(private val context: Context, private val config: RamCo
                     cell.put("completed_rounds", 0).put("affinity_restarts", ++restarts).put("state", "CALIBRATING")
                     publish(true)
                     if (restarts <= topology.allowedCores.size) continue
-                    failed = true; cell.put("reason", "核心绑定持续变化，已停止该项")
+                    failed = true; cell.put("reason", L10n.t("m_041b204f1c49"))
                 }
                 cell.put("state", if (!retryBinding && cellCompleted == rounds) "COMPLETED" else if (cancelled()) "CANCELLED" else "FAILED")
                 break

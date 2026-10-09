@@ -1,5 +1,7 @@
 package io.benchbridge.app.ram
 
+import io.benchbridge.app.i18n.L10n
+
 import android.app.ActivityManager
 import android.app.Service
 import android.content.Intent
@@ -50,9 +52,9 @@ class RamRunnerService : Service() {
         compute = ComputeCoordinator(this,executor,::thermalStatus,{resources.start("GPGPU")},{resources.finish()})
         thermalListener = PowerManager.OnThermalStatusChangedListener { status ->
             if (status >= PowerManager.THERMAL_STATUS_SEVERE) {
-                requestCancel(current?.id.orEmpty(), "RUN_THERMAL：设备热状态过高")
-                storage.activeId?.let { storage.cancel(it, "RUN_THERMAL：设备需要降温") }
-                compute.activeId?.let { compute.cancel(it,"设备需要降温") }
+                requestCancel(current?.id.orEmpty(), L10n.t("m_6d2df8033b59"))
+                storage.activeId?.let { storage.cancel(it, L10n.t("m_5e331a932238")) }
+                compute.activeId?.let { compute.cancel(it,L10n.t("m_678aa85c0014")) }
             }
         }.also { power.addThermalStatusListener(it) }
     }
@@ -94,13 +96,13 @@ class RamRunnerService : Service() {
         override fun computeCapabilities():String=compute.capabilities().toString()
         override fun startCompute(configJson:String):String=synchronized(lock){
             val active=current?.takeUnless { it.finished }?.id?:storage.activeId?:compute.activeId
-            if(active!=null)JSONObject().put("accepted",false).put("error","BUSY：已有测试正在运行").put("run_id",active).toString()
+            if(active!=null)JSONObject().put("accepted",false).put("error",L10n.t("m_42efb9a9ed33")).put("run_id",active).toString()
             else compute.start(configJson)
         }
         override fun storageCapabilities(): String = storage.capabilities().toString()
         override fun startStorage(configJson: String): String = synchronized(lock) {
             val active = current?.takeUnless { it.finished }?.id ?: storage.activeId ?: compute.activeId
-            if (active != null) JSONObject().put("accepted", false).put("error", "BUSY：已有测试正在运行").put("run_id", active).toString()
+            if (active != null) JSONObject().put("accepted", false).put("error", L10n.t("m_42efb9a9ed33")).put("run_id", active).toString()
             else storage.start(configJson)
         }
         override fun cleanupStorage(runId: String): String = synchronized(lock) {
@@ -109,29 +111,29 @@ class RamRunnerService : Service() {
         }
         override fun capabilities(): String = capabilityReport().toString()
         override fun startRam(configJson: String): String = synchronized(lock) {
-            compute.activeId?.let { return@synchronized JSONObject().put("accepted",false).put("error","BUSY：已有计算测试正在运行").put("run_id",it).toString() }
+            compute.activeId?.let { return@synchronized JSONObject().put("accepted",false).put("error",L10n.t("m_5f844e919271")).put("run_id",it).toString() }
             storage.activeId?.let {
-                return@synchronized JSONObject().put("accepted", false).put("error", "BUSY：已有存储测试正在运行").put("run_id", it).toString()
+                return@synchronized JSONObject().put("accepted", false).put("error", L10n.t("m_601f23e4fb75")).put("run_id", it).toString()
             }
             current?.takeUnless { it.finished }?.let {
-                return@synchronized JSONObject().put("accepted", false).put("error", "BUSY：已有测试正在运行")
+                return@synchronized JSONObject().put("accepted", false).put("error", L10n.t("m_42efb9a9ed33"))
                     .put("run_id", it.id).toString()
             }
             try {
                 val requested = RamConfig.fromJson(configJson)
                 val resumeId = JSONObject(configJson).optString("resume_run_id")
                 val previous = if (resumeId.isEmpty()) null else store.read(resumeId).also {
-                    require(it != null && CacheProbe.canResume(it)) { "该记录无法续测，请重新测试" }
-                    require(requested.sameParameters(RamConfig.fromJson(it.getJSONObject("config").toString()))) { "续测参数与原记录不一致" }
+                    require(it != null && CacheProbe.canResume(it)) { L10n.t("m_be85d2712191") }
+                    require(requested.sameParameters(RamConfig.fromJson(it.getJSONObject("config").toString()))) { L10n.t("m_359330cdd6a0") }
                 }
                 val caps = capabilityReport()
                 caps.put("capture_stage", "before_foreground_start")
                 val config = requested.copy(curveProtocol = requested.curveProtocol.takeIf(CacheProbe::supported) ?: CacheProbe.METHOD)
                     .resolveThreads(caps.optInt("allowed_cpus", 1)).normalized()
                 require(config.estimatedBytes() <= caps.getLong("memory_budget_bytes")) {
-                    "RAM_BUDGET：需要约 ${config.estimatedBytes() / 1048576} MiB，当前预算 ${caps.getLong("memory_budget_bytes") / 1048576} MiB；请明确选择较小工作集"
+                    L10n.t("m_917e4ce511a4", config.estimatedBytes() / 1048576, caps.getLong("memory_budget_bytes") / 1048576)
                 }
-                require(thermalStatus() < PowerManager.THERMAL_STATUS_SEVERE) { "RUN_THERMAL：设备需要降温" }
+                require(thermalStatus() < PowerManager.THERMAL_STATUS_SEVERE) { L10n.t("m_5e331a932238") }
                 val id = UUID.randomUUID().toString()
                 val configuration = config.toJson()
                 val hash = MessageDigest.getInstance("SHA-256").digest(configuration.toString().toByteArray())
@@ -283,7 +285,7 @@ class RamRunnerService : Service() {
                 for (round in 1..run.config.rounds(kind)) {
                     if (run.cancelled.get()) break@outer
                     if (thermalStatus() >= PowerManager.THERMAL_STATUS_SEVERE) {
-                        requestCancel(run.id, "RUN_THERMAL：设备需要降温")
+                        requestCancel(run.id, L10n.t("m_5e331a932238"))
                         break@outer
                     }
                     run.report.put("current_kind", kind).put("current_round", round).put("phase", "PREPARING")
@@ -345,9 +347,9 @@ class RamRunnerService : Service() {
     override fun onBind(intent: Intent): IBinder = binder
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == BenchmarkRunResources.ACTION_STOP) {
-            requestCancel(current?.id.orEmpty(), "RUN_CANCELLED：通知栏停止")
-            storage.activeId?.let { storage.cancel(it, "RUN_CANCELLED：通知栏停止") }
-            compute.activeId?.let { compute.cancel(it,"用户停止") }
+            requestCancel(current?.id.orEmpty(), L10n.t("m_154a06ec8ea7"))
+            storage.activeId?.let { storage.cancel(it, L10n.t("m_154a06ec8ea7")) }
+            compute.activeId?.let { compute.cancel(it,L10n.t("m_6ddf680b8489")) }
             if (!resources.active) stopSelf(startId)
         }
         return START_NOT_STICKY

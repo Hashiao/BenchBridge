@@ -1,17 +1,21 @@
 package io.benchbridge.app.ram
 
+import io.benchbridge.app.i18n.L10n
+
 import io.benchbridge.app.BenchmarkFormat
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.sqrt
 
-enum class RamKind(val code: Int, val title: String, val explanation: String) {
-    READ(0, "顺序读取", "顺序读取工作集，统计有效读取量"),
-    WRITE(1, "顺序写入", "普通缓存写入，统计有效写入量"),
-    COPY(2, "复制", "主结果为读取量 + 写入量；工作集是源与目标之和"),
-    RANDOM_READ(3, "随机读取", "8 B 访问，独立批宽 8，预生成无重复随机排列"),
-    RANDOM_WRITE(4, "随机写入", "8 B 访问，各线程在独立区域内随机写入"),
-    LATENCY(5, "访问延迟", "单线程随机依赖指针链，节点间隔 128 B"),
+enum class RamKind(val code: Int, private val titleKey: String, private val explanationKey: String) {
+    READ(0, "m_6f02986c45d1", "m_64a955b05a41"),
+    WRITE(1, "m_5aa5c7851e03", "m_01087e7dcd6b"),
+    COPY(2, "m_63d90d977348", "m_e396f936a371"),
+    RANDOM_READ(3, "m_ec2501a54738", "m_248dcecf45a2"),
+    RANDOM_WRITE(4, "m_e22847e1d869", "m_e36320851da4"),
+    LATENCY(5, "m_eb4fd500d4c1", "m_76169d89a3e0");
+    val title: String get() = L10n.t(titleKey)
+    val explanation: String get() = L10n.t(explanationKey)
 }
 
 data class RamConfig(
@@ -37,7 +41,7 @@ data class RamConfig(
     val aggregation: String = "median",
 ) {
     val singleCurveSample: Boolean get() = curveProtocol == CacheProbe.FAST_METHOD
-    val statisticLabel: String get() = if(aggregation=="arithmetic_mean")"平均值"else"中位数"
+    val statisticLabel: String get() = if(aggregation=="arithmetic_mean")L10n.t("m_db7538b96322")else L10n.t("m_1961784db559")
     val curveMode: Boolean get() = cacheMatrix && cacheCurve
     val scoredLevels: List<String> get() = if(curveMode&&!curveIncludeRam)emptyList()else if (cacheMatrix && !curveMode) MemoryPlanner.levels else listOf("RAM")
     val hasBandwidth: Boolean get() = kinds.any { it != RamKind.LATENCY.code }
@@ -52,17 +56,17 @@ data class RamConfig(
     }
     fun normalized(): RamConfig = copy(presetId = recognizedPresetId())
     val summary: String get() = buildList {
-        if (curveMode) add("缓存曲线：工作集大小 × 延迟 ns；每个核心组固定一个核心")
-        else if (cacheMatrix) add("L1 / L2 / L3 / RAM · ${if (automaticThreads) "线程与核心自动校准" else "带宽 $threads 线程"}")
-        if (hasBandwidth && scoredLevels.isNotEmpty()) add("${if (cacheMatrix) "RAM " else ""}带宽：${BenchmarkFormat.mib(workingSetMiB)} · ${if (automaticThreads && cacheMatrix) "自动线程" else "$threads 线程"} · $rounds 次")
-        if (hasLatency && scoredLevels.isNotEmpty()) add("${if (cacheMatrix) "RAM " else ""}延迟：${BenchmarkFormat.mib(latencySetMiB)} · 1 线程 · $latencyRounds 次")
-        if(scoredLevels.isNotEmpty())add("${if (cacheMatrix) "RAM " else ""}每次 ${BenchmarkFormat.duration(durationMs)} · 预热 ${BenchmarkFormat.duration(warmupMs)} · 间隔 ${BenchmarkFormat.duration(cooldownMs)}")
-        if(scoredLevels.isNotEmpty())add("主值：$statisticLabel")
-        if (curveMode) add(if(singleCurveSample)"4 KiB–$curveMaxMiB MiB · 每倍容量 $curveSteps 个间隔 · 单遍扫描，每块 1 次"
-            else if(curveProtocol==CacheProbe.METHOD)"4 KiB–$curveMaxMiB MiB · 每倍容量 $curveSteps 个间隔 · 正反两遍交叉验证 · 自动补测与多区间分析"
-            else "旧版缓存曲线协议：$curveProtocol · 保留原始测量参数")
-        else if (cacheMatrix) add("缓存每次 ${BenchmarkFormat.duration(minOf(durationMs, 1000))}；工作集按共享域分配。RAM 工作集至少为末级缓存的两倍，实际值见成绩。")
-        if(curveMode && curveIncludeRam)add(if(expandRamWorkingSet) "RAM 工作集会按末级缓存与线程数增大，实际工作集见各项成绩。" else "RAM 使用设定的总工作集，不按缓存容量自动扩大；拷贝工作集为源与目标之和。")
+        if (curveMode) add(L10n.t("m_dee4b55ef0a0"))
+        else if (cacheMatrix) add("L1 / L2 / L3 / RAM · ${if (automaticThreads) L10n.t("m_561629ae6062") else L10n.t("m_e72002112185", threads)}")
+        if (hasBandwidth && scoredLevels.isNotEmpty()) add(L10n.t("m_2a24eb9a1db2", if (cacheMatrix) "RAM " else "", BenchmarkFormat.mib(workingSetMiB), if (automaticThreads && cacheMatrix) L10n.t("m_b1977ee2eafd") else L10n.t("m_a5c3ffddd0b1", threads), rounds))
+        if (hasLatency && scoredLevels.isNotEmpty()) add(L10n.t("m_78cccc46cde4", if (cacheMatrix) "RAM " else "", BenchmarkFormat.mib(latencySetMiB), latencyRounds))
+        if(scoredLevels.isNotEmpty())add(L10n.t("m_86b57a9ae02e", if (cacheMatrix) "RAM " else "", BenchmarkFormat.duration(durationMs), BenchmarkFormat.duration(warmupMs), BenchmarkFormat.duration(cooldownMs)))
+        if(scoredLevels.isNotEmpty())add(L10n.t("m_f137930818cc", statisticLabel))
+        if (curveMode) add(if(singleCurveSample)L10n.t("m_c8ce0da65773", curveMaxMiB, curveSteps)
+            else if(curveProtocol==CacheProbe.METHOD)L10n.t("m_9a4ba92f53f0", curveMaxMiB, curveSteps)
+            else L10n.t("m_79b5c477dcd6", curveProtocol))
+        else if (cacheMatrix) add(L10n.t("m_c7bc208b1753", BenchmarkFormat.duration(minOf(durationMs, 1000))))
+        if(curveMode && curveIncludeRam)add(if(expandRamWorkingSet) L10n.t("m_fe9b4f513410") else L10n.t("m_7d50674e1361"))
     }.joinToString("\n")
     val totalRounds: Int get() = kinds.sumOf { if (it == RamKind.LATENCY.code) latencyRounds else rounds } * scoredLevels.size
     fun bytes(kind: Int): Long = (if (kind == RamKind.LATENCY.code) latencySetMiB else workingSetMiB) * 1048576L
@@ -79,16 +83,16 @@ data class RamConfig(
     } ?: 0L
 
     fun validate() {
-        require(kinds.isNotEmpty() && kinds.size <= 6 && kinds.distinct().size == kinds.size && kinds.all { it in 0..5 }) { "请选择有效且不重复的测试项目" }
-        require(workingSetMiB in 1..2048 && latencySetMiB in 1..1024) { "工作集超出支持范围" }
-        require(threads in 1..16) { "线程数必须为 1–16" }
-        require(durationMs in 50..30000 && warmupMs in 0..10000) { "测量或预热时长无效" }
-        require(rounds in 1..10 && latencyRounds in 1..10) { "重复次数必须为 1–10" }
-        require(cooldownMs in 0..30000 && presetId.length in 1..64) { "预设参数无效" }
-        require(calibrationMs in 50..1000) { "校准时长无效" }
-        require(curveMaxMiB in 1..256 && curveSteps in 2..8) { "曲线范围或密度无效" }
-        require(!cacheMatrix || kinds.all { it in listOf(0, 1, 2, 5) }) { "缓存表支持读取、写入、延迟和拷贝" }
-        require(aggregation in setOf("median","arithmetic_mean")) { "统计方式无效" }
+        require(kinds.isNotEmpty() && kinds.size <= 6 && kinds.distinct().size == kinds.size && kinds.all { it in 0..5 }) { L10n.t("m_0b5d72c4e222") }
+        require(workingSetMiB in 1..2048 && latencySetMiB in 1..1024) { L10n.t("m_42b9aee38716") }
+        require(threads in 1..16) { L10n.t("m_a17ffdc11cc5") }
+        require(durationMs in 50..30000 && warmupMs in 0..10000) { L10n.t("m_c09e1fe8a6c2") }
+        require(rounds in 1..10 && latencyRounds in 1..10) { L10n.t("m_11ab3536bf93") }
+        require(cooldownMs in 0..30000 && presetId.length in 1..64) { L10n.t("m_f8abacf7c330") }
+        require(calibrationMs in 50..1000) { L10n.t("m_bba8fe6846f0") }
+        require(curveMaxMiB in 1..256 && curveSteps in 2..8) { L10n.t("m_751ef32692cb") }
+        require(!cacheMatrix || kinds.all { it in listOf(0, 1, 2, 5) }) { L10n.t("m_2d998256d0b6") }
+        require(aggregation in setOf("median","arithmetic_mean")) { L10n.t("m_9f7da13d0f16") }
     }
 
     fun toJson(): JSONObject = JSONObject().apply {
@@ -128,9 +132,9 @@ data class RamConfig(
             cooldownMs = 2000, presetId = "ram-standard-v3", aggregation="arithmetic_mean")
 
         fun fromJson(value: String): RamConfig {
-            require(value.length <= 8192) { "配置过长" }
+            require(value.length <= 8192) { L10n.t("m_6eaad4ac52ca") }
             val json = JSONObject(value)
-            if (json.has("thread_mode")) require(json.getString("thread_mode") in setOf("auto", "fixed")) { "线程模式无效" }
+            if (json.has("thread_mode")) require(json.getString("thread_mode") in setOf("auto", "fixed")) { L10n.t("m_a32d83e84245") }
             val kinds = json.getJSONArray("kinds")
             return RamConfig(
                 kinds = (0 until kinds.length()).map { kinds.getInt(it) },
@@ -156,8 +160,8 @@ data class RamStatistics(val median: Double, val minimum: Double, val maximum: D
                          val mean: Double, val score: Double)
 
 object RamResults {
-    fun bindingLabel(plan: JSONObject): String = if(plan.optString("binding_mode")=="system_scheduled")"系统调度"else"CPU ${plan.optJSONArray("cpu_ids")}"
-    fun statisticLabel(report: JSONObject): String = if(report.optJSONObject("config")?.optString("aggregation")=="arithmetic_mean")"平均值"else"中位数"
+    fun bindingLabel(plan: JSONObject): String = if(plan.optString("binding_mode")=="system_scheduled")L10n.t("m_7236eb1304dd")else"CPU ${plan.optJSONArray("cpu_ids")}"
+    fun statisticLabel(report: JSONObject): String = if(report.optJSONObject("config")?.optString("aggregation")=="arithmetic_mean")L10n.t("m_db7538b96322")else L10n.t("m_1961784db559")
     val terminalStates = setOf("COMPLETED", "PARTIAL", "CANCELLED", "FAILED", "INTERRUPTED")
     fun cell(report: JSONObject, level: String, kind: Int): JSONObject? {
         val cells = report.optJSONArray("cells") ?: return null
@@ -188,28 +192,28 @@ object RamResults {
         return RamStatistics(median, values.first(), values.last(), cv, values.size, mean, score)
     }
     fun stateLabel(state: String): String = when (state) {
-        "RUNNING" -> "运行中"
-        "COMPLETED" -> "已完成"
-        "PARTIAL" -> "部分项目不支持"
-        "CANCELLED" -> "已停止"
-        "INTERRUPTED" -> "运行中断"
-        "FAILED" -> "未完成"
-        else -> "准备就绪"
+        "RUNNING" -> L10n.t("m_1f0eb99b7ed0")
+        "COMPLETED" -> L10n.t("m_f28461bb49c8")
+        "PARTIAL" -> L10n.t("m_2dd049355cad")
+        "CANCELLED" -> L10n.t("m_f006455e3baf")
+        "INTERRUPTED" -> L10n.t("m_3d645b00b875")
+        "FAILED" -> L10n.t("m_6707de42c29d")
+        else -> L10n.t("m_1bd1893c0900")
     }
     fun stateLabel(report: JSONObject): String = if(report.optString("state")=="PARTIAL" && report.optJSONObject("config")?.optBoolean("cache_curve")==true)
         if(report.optJSONObject("cache_probe")?.optJSONArray("groups")?.let { groups -> (0 until groups.length()).any {
-            groups.getJSONObject(it).optString("state")=="AFFINITY_UNAVAILABLE" } }==true)"部分核心组无法固定绑定"
-        else if(report.optJSONObject("cache_probe")?.optString("state")!="COMPLETED")"曲线部分范围未通过验证"else"部分项目未完成"
+            groups.getJSONObject(it).optString("state")=="AFFINITY_UNAVAILABLE" } }==true)L10n.t("m_d3174a42c726")
+        else if(report.optJSONObject("cache_probe")?.optString("state")!="COMPLETED")L10n.t("m_10abac98de60")else L10n.t("m_6954ee060e8a")
         else stateLabel(report.optString("state"))
     fun phaseLabel(phase: String): String = when (phase) {
-        "PREPARING" -> "分配内存、建立访问序列"
-        "WARMING" -> "预热"
-        "MEASURING" -> "正式测量"
-        "VALIDATING" -> "校验数据"
-        "COOLING" -> "轮间休息"
-        "PERSISTING" -> "保存结果"
-        "CALIBRATING" -> "校准线程与核心"
-        "CACHE_PROBING" -> "扫描缓存容量与延迟拐点"
-        else -> "准备测试"
+        "PREPARING" -> L10n.t("m_d6404cfc96c6")
+        "WARMING" -> L10n.t("m_2051831c1a77")
+        "MEASURING" -> L10n.t("m_7a34eafff5b2")
+        "VALIDATING" -> L10n.t("m_2c72c666472c")
+        "COOLING" -> L10n.t("m_69f82395883c")
+        "PERSISTING" -> L10n.t("m_8783d9db6edb")
+        "CALIBRATING" -> L10n.t("m_b4c37dc2c23a")
+        "CACHE_PROBING" -> L10n.t("m_6820bf00e022")
+        else -> L10n.t("m_e304fbe1cea4")
     }
 }

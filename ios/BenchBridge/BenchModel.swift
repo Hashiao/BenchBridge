@@ -22,7 +22,7 @@ import Combine
         do { try store.recover() } catch { self.error = BenchWorker.description(error) }
         history = store.all()
         thermalObserver = NotificationCenter.default.addObserver(forName: ProcessInfo.thermalStateDidChangeNotification, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in if ProcessInfo.processInfo.thermalState.rawValue >= ProcessInfo.ThermalState.serious.rawValue { self?.stop("设备需要降温") } }
+            Task { @MainActor in if ProcessInfo.processInfo.thermalState.rawValue >= ProcessInfo.ThermalState.serious.rawValue { self?.stop(L10n.t("m_678aa85c0014")) } }
         }
     }
     func start(_ family: BenchFamily) {
@@ -31,7 +31,7 @@ import Combine
             var snapshot = config
             if family == .storage { snapshot.storage = config.storageSettings.normalized }
             try snapshot.validate(family)
-            guard ProcessInfo.processInfo.thermalState.rawValue < ProcessInfo.ThermalState.serious.rawValue else { throw BenchError.message("设备需要降温") }
+            guard ProcessInfo.processInfo.thermalState.rawValue < ProcessInfo.ThermalState.serious.rawValue else { throw BenchError.message(L10n.t("m_678aa85c0014")) }
             let session = try CancellationToken(); token = session
             let report = BenchWorker.initial(family, config: snapshot); reports[family] = report
             running = true; activeFamily = family; error = nil; UIApplication.shared.isIdleTimerDisabled = true
@@ -46,8 +46,8 @@ import Combine
         reports[report.family] = report
         if report.state != "running" { running = false; token = nil; UIApplication.shared.isIdleTimerDisabled = false; history = store.all() }
     }
-    func stop(_ reason: String = "用户停止") { token?.cancel(reason) }
-    func backgrounded() { if running { stop("应用进入后台，已保存完成的采样") } }
+    func stop(_ reason: String = L10n.t("m_6ddf680b8489")) { token?.cancel(reason) }
+    func backgrounded() { if running { stop(L10n.t("m_5594262a36ec")) } }
     func refresh() { history = store.all() }
     func export(_ report: BenchReport) -> URL? { do { return try store.export(report) } catch { self.error = BenchWorker.description(error); return nil } }
 }

@@ -1,5 +1,8 @@
 package io.benchbridge.app.ram
 
+import io.benchbridge.app.i18n.L10n
+import io.benchbridge.app.ui.resultText
+
 import android.content.Context
 import android.net.Uri
 import android.util.AtomicFile
@@ -15,10 +18,13 @@ internal class PreparedExport(private val context: Context) {
         return File(root, "$token.json")
     }
     fun prepare(report: JSONObject): String {
+        // 原始字段保持不变，另附当前语言摘要。 / Preserve original fields and add a summary in the current language.
+        val exported = JSONObject().apply { report.keys().forEach { put(it, report.get(it)) } }
+            .put("export_locale", L10n.tag).put("localized_summary", runCatching { resultText(report) }.getOrDefault(L10n.display(report.optString("error"))))
         val token = UUID.randomUUID().toString()
         val atomic = AtomicFile(file(token))
         val stream = atomic.startWrite()
-        try { stream.write(report.toString(2).toByteArray(Charsets.UTF_8)); atomic.finishWrite(stream) }
+        try { stream.write(exported.toString(2).toByteArray(Charsets.UTF_8)); atomic.finishWrite(stream) }
         catch (error: Exception) { atomic.failWrite(stream); throw error }
         return token
     }
@@ -26,7 +32,7 @@ internal class PreparedExport(private val context: Context) {
         val source = file(token)
         if (uri != null) {
             context.contentResolver.openOutputStream(uri, "wt")?.use { output -> source.inputStream().use { it.copyTo(output) } }
-                ?: error("无法打开导出文件")
+                ?: error(L10n.t("m_f2aabf4a63c7"))
         }
         source.delete()
     }

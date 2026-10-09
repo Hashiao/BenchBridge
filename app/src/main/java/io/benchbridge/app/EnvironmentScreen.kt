@@ -1,5 +1,7 @@
 package io.benchbridge.app
 
+import io.benchbridge.app.i18n.L10n
+
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -75,7 +77,7 @@ internal fun EnvironmentScreen(state: DiagnosticsState, onRefresh: () -> Unit) {
                             color = MaterialTheme.colorScheme.primaryContainer,
                         ) {
                             Text(
-                                "B",
+                                L10n.display("B"),
                                 Modifier.padding(horizontal = 15.dp, vertical = 9.dp),
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
@@ -84,9 +86,9 @@ internal fun EnvironmentScreen(state: DiagnosticsState, onRefresh: () -> Unit) {
                         }
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
-                            Text("BenchBridge", style = MaterialTheme.typography.titleLarge)
+                            Text(L10n.display("BenchBridge"), style = MaterialTheme.typography.titleLarge)
                             Text(
-                                "设备信息",
+                                L10n.t("m_6c07bb6fd4b6"),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -101,16 +103,16 @@ internal fun EnvironmentScreen(state: DiagnosticsState, onRefresh: () -> Unit) {
                         modifier = Modifier.fillMaxWidth(),
                         contentPadding = PaddingValues(16.dp),
                     ) {
-                        Text(if (state.running) "正在检查…" else "重新检查环境")
+                        Text(L10n.display(if (state.running) L10n.t("m_6b72c3d6855c") else L10n.t("m_47420722b087")))
                     }
                 }
                 item {
-                    InfoCard("当前设备") {
-                        InfoRow("制造商", state.device.manufacturer)
-                        InfoRow("设备型号", state.device.model)
-                        InfoRow("系统", "Android ${state.device.androidVersion} · API ${state.device.apiLevel}")
-                        InfoRow("SoC 原始值", state.device.socModel)
-                        InfoRow("系统 ABI", state.device.supportedAbis.joinToString(", "))
+                    InfoCard(L10n.t("m_c68978537cf3")) {
+                        InfoRow(L10n.t("m_ba6117467e72"), state.device.manufacturer)
+                        InfoRow(L10n.t("m_13e641a3ea20"), state.device.model)
+                        InfoRow(L10n.t("m_5b50d7c4b595"), "Android ${state.device.androidVersion} · API ${state.device.apiLevel}")
+                        InfoRow(L10n.t("m_4479c4f8d413"), state.device.socModel)
+                        InfoRow(L10n.t("m_677b8b1c0b61"), state.device.supportedAbis.joinToString(", "))
                     }
                 }
                 state.report?.let { report ->
@@ -125,9 +127,9 @@ internal fun EnvironmentScreen(state: DiagnosticsState, onRefresh: () -> Unit) {
                             ),
                         ) {
                             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text("诊断信息", fontWeight = FontWeight.SemiBold)
-                                Text(error, style = MaterialTheme.typography.bodySmall)
-                                Text("可以复制诊断信息，保留具体错误以便排查。", style = MaterialTheme.typography.bodySmall)
+                                Text(L10n.t("m_9167ee8b67db"), fontWeight = FontWeight.SemiBold)
+                                Text(L10n.display(error), style = MaterialTheme.typography.bodySmall)
+                                Text(L10n.t("m_c6a401870fba"), style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
@@ -139,12 +141,12 @@ internal fun EnvironmentScreen(state: DiagnosticsState, onRefresh: () -> Unit) {
                         modifier = Modifier.fillMaxWidth(),
                         contentPadding = PaddingValues(16.dp),
                     ) {
-                        Text("复制诊断信息")
+                        Text(L10n.t("m_bbce140b7682"))
                     }
                 }
                 item {
                     Text(
-                        "${BuildConfig.VERSION_NAME}  ·  ${state.checkedAt?.let { "最近检查 $it" } ?: "等待检查"}",
+                        L10n.display("${BuildConfig.VERSION_NAME}  ·  ${state.checkedAt?.let { L10n.t("m_52265ff64d72", it) } ?: L10n.t("m_8f31a776d53b")}"),
                         modifier = Modifier.padding(bottom = 12.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -166,25 +168,25 @@ private fun IntroCard(state: DiagnosticsState) {
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("ANDROID / NATIVE", style = MaterialTheme.typography.labelMedium, color = Color(0xFFBDCAFF))
+            Text(L10n.display("ANDROID / NATIVE"), style = MaterialTheme.typography.labelMedium, color = Color(0xFFBDCAFF))
             Text(
-                when {
-                    state.running -> "正在连接原生引擎"
-                    passed -> "原生引擎已就绪"
-                    failed -> "环境检查未通过"
-                    else -> "准备检查环境"
-                },
+                L10n.display(when {
+                    state.running -> L10n.t("m_4be0431f56e5")
+                    passed -> L10n.t("m_66fee6b57603")
+                    failed -> L10n.t("m_6278cc5f2853")
+                    else -> L10n.t("m_868f363da18e")
+                }),
                 color = Color.White,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                when {
-                    state.running -> "正在检查 JNI、系统页大小与基础内存读写。"
-                    passed -> "JNI、内存校验与时钟检查通过。"
-                    failed -> "请查看下方诊断信息。失败项会保留具体原因。"
-                    else -> "运行一次轻量检查，确认应用与 C++ 库能够协同工作。"
-                },
+                L10n.display(when {
+                    state.running -> L10n.t("m_3afcd49f3c9d")
+                    passed -> L10n.t("m_b4430cb98add")
+                    failed -> L10n.t("m_da8e80927fd7")
+                    else -> L10n.t("m_811e5f55f066")
+                }),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color(0xFFD9E0FF),
             )
@@ -198,24 +200,24 @@ private fun IntroCard(state: DiagnosticsState) {
 @Composable
 private fun NativeCard(report: NativeReport) {
     var expanded by rememberSaveable { mutableStateOf(false) }
-    InfoCard("原生自检") {
-        InfoRow("进程架构", report.abi)
-        InfoRow("系统页大小", "${report.pageSizeBytes} B")
-        InfoRow("读写校验", if (report.memoryOk) "通过 · ${report.checkedBytes / 1024} KiB" else "未通过")
-        InfoRow("单调时钟", if (report.clockOk) "通过" else "未通过")
-        InfoRow("C++ 标准", if (report.cppStandard >= 202002L) "C++20" else report.cppStandard.toString())
+    InfoCard(L10n.t("m_f980b82932a6")) {
+        InfoRow(L10n.t("m_09601b7ba232"), report.abi)
+        InfoRow(L10n.t("m_ebbe4d407f7c"), "${report.pageSizeBytes} B")
+        InfoRow(L10n.t("m_a400359b1294"), if (report.memoryOk) L10n.t("m_353e9bb125b9", report.checkedBytes / 1024) else L10n.t("m_2875bc4f7fcb"))
+        InfoRow(L10n.t("m_533bff0709b3"), if (report.clockOk) L10n.t("m_1e9f2561b7cf") else L10n.t("m_2875bc4f7fcb"))
+        InfoRow(L10n.t("m_7afd1844a279"), if (report.cppStandard >= 202002L) "C++20" else report.cppStandard.toString())
         TextButton(onClick = { expanded = !expanded }) {
-            Text(if (expanded) "收起构建信息" else "查看构建信息")
+            Text(L10n.display(if (expanded) L10n.t("m_2c52e4b9cbae") else L10n.t("m_43f06de05be3")))
         }
         AnimatedVisibility(expanded) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 HorizontalDivider()
                 InfoRow("NDK", report.ndkVersion)
                 InfoRow("CMake", report.cmakeVersion)
-                InfoRow("编译器", report.compiler)
-                InfoRow("校验摘要", report.checksum)
+                InfoRow(L10n.t("m_3cb6da322842"), report.compiler)
+                InfoRow(L10n.t("m_38318f63e6d7"), report.checksum)
                 Text(
-                    "这是小规模读写正确性检查，不产生带宽、延迟或磁盘性能分数。",
+                    L10n.t("m_42c3de4a36e6"),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -232,7 +234,7 @@ private fun InfoCard(title: String, content: @Composable () -> Unit) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(L10n.display(title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             content()
         }
     }
@@ -243,11 +245,11 @@ private fun InfoRow(label: String, value: String) {
     // 值按纵向排列，以适应小屏幕及较大的系统字体。
     // Stack values vertically to accommodate small displays and large system fonts.
     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(L10n.display(label), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(
-            value,
+            L10n.display(value),
             style = MaterialTheme.typography.bodyMedium,
-            fontFamily = if (label in setOf("校验摘要", "编译器")) FontFamily.Monospace else FontFamily.Default,
+            fontFamily = if (label in setOf(L10n.t("m_38318f63e6d7"), L10n.t("m_3cb6da322842"))) FontFamily.Monospace else FontFamily.Default,
         )
     }
 }
@@ -255,5 +257,5 @@ private fun InfoRow(label: String, value: String) {
 private fun copyDiagnostics(context: Context, text: String) {
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     clipboard.setPrimaryClip(ClipData.newPlainText("BenchBridge environment check", text))
-    Toast.makeText(context, "诊断信息已复制", Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, L10n.t("m_4356bc8e66fd"), Toast.LENGTH_SHORT).show()
 }

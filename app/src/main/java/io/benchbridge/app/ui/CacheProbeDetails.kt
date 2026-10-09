@@ -1,5 +1,7 @@
 package io.benchbridge.app.ui
 
+import io.benchbridge.app.i18n.L10n
+
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -55,29 +57,29 @@ internal fun CacheLatencyPanel(report: JSONObject?, modifier: Modifier = Modifie
         cpus!=null && visible.any { g->(0 until cpus.length()).any { cpus.optInt(it)==g.optInt("cpu_id") } }
     }
     Column(modifier.testTag("cache_curve_panel"),verticalArrangement=Arrangement.spacedBy(if(compact)1.dp else 4.dp)) {
-        if(!compact)Text("各核心组延迟 · 同一坐标比较",fontSize=12.sp,lineHeight=16.sp,maxLines=1)
+        if(!compact)Text(L10n.t("m_628d34cdd5b2"),fontSize=12.sp,lineHeight=16.sp,maxLines=1)
         Row(Modifier.fillMaxWidth()) {
             Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(4.dp)) {
-                FilterChip(selected=group==null,onClick={selectedCpu=-1;selectedBytes=0},label={Text("全部",fontSize=10.sp,lineHeight=12.sp,maxLines=1)},modifier=Modifier.height(if(compact)26.dp else 30.dp).testTag("curve_cpu_all"))
+                FilterChip(selected=group==null,onClick={selectedCpu=-1;selectedBytes=0},label={Text(L10n.t("m_5c55a67935af"),fontSize=10.sp,lineHeight=12.sp,maxLines=1)},modifier=Modifier.height(if(compact)26.dp else 30.dp).testTag("curve_cpu_all"))
                 groups.forEach { g->FilterChip(selected=group===g,onClick={selectedCpu=g.optInt("cpu_id");selectedBytes=0},
-                    label={Text("CPU ${g.optInt("cpu_id")}${if(g.optString("state")=="AFFINITY_UNAVAILABLE")" · 受限"else""}",color=palette[groups.indexOf(g)%palette.size],fontSize=if(compact)8.sp else 10.sp,lineHeight=12.sp,maxLines=1)},
+                    label={Text(L10n.display("CPU ${g.optInt("cpu_id")}${if(g.optString("state")=="AFFINITY_UNAVAILABLE")L10n.t("m_0254150f1739")else""}"),color=palette[groups.indexOf(g)%palette.size],fontSize=if(compact)8.sp else 10.sp,lineHeight=12.sp,maxLines=1)},
                     modifier=Modifier.height(if(compact)26.dp else 30.dp).testTag("curve_cpu_${g.optInt("cpu_id")}")) }
             }
             if(compact) {
                 TextButton(onClick={logarithmic=!logarithmic},contentPadding=PaddingValues(0.dp),modifier=Modifier.width(34.dp).height(26.dp).testTag("curve_y_scale")) {
-                    Text(if(logarithmic)"对数"else"线性",fontSize=8.sp,lineHeight=12.sp,maxLines=1)
+                    Text(L10n.display(if(logarithmic)L10n.t("m_55954c7a1639")else L10n.t("m_078e4caeda5c")),fontSize=8.sp,lineHeight=12.sp,maxLines=1)
                 }
                 TextButton(onClick={references=!references},contentPadding=PaddingValues(0.dp),modifier=Modifier.width(34.dp).height(26.dp).testTag("curve_references")) {
-                    Text(if(references)"参考✓"else"参考线",fontSize=8.sp,lineHeight=12.sp,maxLines=1)
+                    Text(L10n.display(if(references)L10n.t("m_9fde9d4b5a2f")else L10n.t("m_b34ce4d70417")),fontSize=8.sp,lineHeight=12.sp,maxLines=1)
                 }
             }
         }
         if(!compact)Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
             TextButton(onClick={logarithmic=!logarithmic},contentPadding=PaddingValues(0.dp),modifier=Modifier.height(26.dp).testTag("curve_y_scale")) {
-                Text(if(logarithmic)"纵轴：对数 ns"else"纵轴：线性 ns",fontSize=10.sp,lineHeight=13.sp,maxLines=1)
+                Text(L10n.display(if(logarithmic)L10n.t("m_31a7fecc073e")else L10n.t("m_6c454f29fd1d")),fontSize=10.sp,lineHeight=13.sp,maxLines=1)
             }
             TextButton(onClick={references=!references},contentPadding=PaddingValues(0.dp),modifier=Modifier.height(26.dp).testTag("curve_references")) {
-                Text(if(references)"参考容量：显示"else"参考容量：隐藏",fontSize=10.sp,lineHeight=13.sp,maxLines=1)
+                Text(L10n.display(if(references)L10n.t("m_c8cf0733cb3a")else L10n.t("m_e6a82a78cb4b")),fontSize=10.sp,lineHeight=13.sp,maxLines=1)
             }
         }
         val primary=MaterialTheme.colorScheme.primary
@@ -124,14 +126,14 @@ internal fun CacheLatencyPanel(report: JSONObject?, modifier: Modifier = Modifie
                     drawContext.canvas.nativeCanvas.drawText(label,tx,bottom+paint.textSize+4.dp.toPx(),paint);previous=tx+width
                 }
             }
-            val xlabel="工作集大小（KiB / MiB，对数）"
+            val xlabel=L10n.t("m_3083902d65a3")
             drawContext.canvas.nativeCanvas.drawText(xlabel,left+(right-left-paint.measureText(xlabel))/2,size.height-2.dp.toPx(),paint)
             edges.forEach { e->drawRect(primary.copy(alpha=0.13f),Offset(x(e.getLong("lower_bytes")),top),Size((x(e.getLong("upper_bytes"))-x(e.getLong("lower_bytes"))).coerceAtLeast(1f),bottom-top)) }
             if(references)caches.forEach { cache->
                 val bytes=cache.optLong("bytes")
                 if(bytes in 4096..maxBytes) {
                     val px=x(bytes);drawLine(gridColor,Offset(px,top),Offset(px,bottom),2f,pathEffect=PathEffect.dashPathEffect(floatArrayOf(6f,5f)))
-                    val label="L${cache.optInt("level")}参考"
+                    val label=L10n.t("m_336f42c5681b", cache.optInt("level"))
                     drawContext.canvas.nativeCanvas.drawText(label,(px+2f).coerceAtMost(size.width-paint.measureText(label)),top+paint.textSize,paint)
                 }
             }
@@ -150,16 +152,16 @@ internal fun CacheLatencyPanel(report: JSONObject?, modifier: Modifier = Modifie
                     if(p.getLong("working_set_bytes")==selectedBytes)drawCircle(textColor,4.dp.toPx(),Offset(px,py),style=Stroke(1.dp.toPx()))
                 }
             }
-            if(points.isEmpty())drawContext.canvas.nativeCanvas.drawText(if(probe==null)"开始测试后生成曲线"
-                else if(visible.isNotEmpty()&&visible.all { it.optString("state")=="AFFINITY_UNAVAILABLE" })"无法固定核心，曲线未生成"else"等待有效采样",left+20.dp.toPx(),(top+bottom)/2,paint)
+            if(points.isEmpty())drawContext.canvas.nativeCanvas.drawText(if(probe==null)L10n.t("m_17dfe31a9814")
+                else if(visible.isNotEmpty()&&visible.all { it.optString("state")=="AFFINITY_UNAVAILABLE" })L10n.t("m_da4c2e8f7744")else L10n.t("m_e8e939f31da7"),left+20.dp.toPx(),(top+bottom)/2,paint)
         }
         val targetBytes=selectedBytes.takeIf { it>0 }?:points.lastOrNull()?.optLong("working_set_bytes")
         val selected=visible.mapNotNull { g->samples(g).firstOrNull { it.optLong("working_set_bytes")==targetBytes }?.let { g.optInt("cpu_id") to it } }
-        Text(if(selected.isEmpty())"固定核心 · 随机依赖访问 · "+if(single)"单次采样"else"原始中位数" else "${sizeLabel(targetBytes!!)} · "+selected.joinToString(" / "){(cpu,p)->"CPU $cpu %.2f ns".format(Locale.US,p.getDouble("latency_ns"))},
+        Text(L10n.display(if(selected.isEmpty())L10n.t("m_6532229cddbb")+if(single)L10n.t("m_91020453439d")else L10n.t("m_5248385ccc9b") else "${sizeLabel(targetBytes!!)} · "+selected.joinToString(" / "){(cpu,p)->"CPU $cpu %.2f ns".format(Locale.US,p.getDouble("latency_ns"))}),
             fontSize=if(compact)8.sp else 10.sp,lineHeight=if(compact)11.sp else 13.sp,maxLines=2,modifier=Modifier.testTag("curve_selected_point"))
-        if(!compact)Text(if(group!=null)group.optJSONObject("analysis")?.optString("summary")?:if(single)"正在单遍扫描"else if(probe?.optString("method")==CacheProbe.METHOD)"正在完成整段扫描与交叉验证"else"旧协议记录，保留原始曲线"
-            else if(groups.any { it.optString("state")=="AFFINITY_UNAVAILABLE" })"部分核心组绑定受限 · 仅显示已验证采样，点按查看详情"
-            else if(probe?.optString("state")=="COMPLETED")"所有核心组已完成 · 分段结论见详情"else if(single)"单遍扫描 · 每块 1 次 · 点按核心查看结论"else"正反两遍扫描 · 自动复核 · 点按核心查看结论",
+        if(!compact)Text(L10n.display(if(group!=null)group.optJSONObject("analysis")?.optString("summary")?:if(single)L10n.t("m_456c8e944681")else if(probe?.optString("method")==CacheProbe.METHOD)L10n.t("m_18b09a886b36")else L10n.t("m_5bb651c0a4e3")
+            else if(groups.any { it.optString("state")=="AFFINITY_UNAVAILABLE" })L10n.t("m_62c8ed604a41")
+            else if(probe?.optString("state")=="COMPLETED")L10n.t("m_feacfc04ea7d")else if(single)L10n.t("m_ebc953d5ccb9")else L10n.t("m_5a80da21c45a")),
             fontSize=9.sp,lineHeight=12.sp,maxLines=3,modifier=Modifier.testTag("curve_transitions"))
     }
 }
@@ -167,30 +169,30 @@ internal fun CacheLatencyPanel(report: JSONObject?, modifier: Modifier = Modifie
 @Composable
 internal fun CacheTopologyDetails(report: JSONObject) {
     val single=report.optJSONObject("cache_probe")?.optString("method")==CacheProbe.FAST_METHOD
-    SectionCard("工作集大小—访问延迟") {
+    SectionCard(L10n.t("m_204f61585875")) {
         CacheLatencyPanel(report,Modifier.fillMaxWidth().height(360.dp))
-        Text(if(single)"单遍扫描，每块采样 1 次；实线连接实测值，不复测或补造数据。不同核心共享坐标轴，单位为 ns。"else"实线连接实测中位数；空心点未通过一致性验证，未用于分段结论。误差线为 10–90% 分位区间。不同核心共享坐标轴，线性和对数纵轴均以 ns 为单位。",style=MaterialTheme.typography.bodySmall)
+        Text(L10n.display(if(single)L10n.t("m_2bc9390b9cd4")else L10n.t("m_7e6362d07e27")),style=MaterialTheme.typography.bodySmall)
         report.optJSONObject("cache_probe")?.let { probe->
-            if(!CacheProbe.supported(probe.optString("method")))Text("旧协议记录：仅保留原始曲线。",style=MaterialTheme.typography.bodySmall)
+            if(!CacheProbe.supported(probe.optString("method")))Text(L10n.t("m_4a389e27c000"),style=MaterialTheme.typography.bodySmall)
             objects(probe.optJSONArray("groups")).forEach { g->
                 HorizontalDivider()
-                Text("CPU ${g.optInt("cpu_id")} · %.2f GHz 上限".format(Locale.US,g.optLong("max_khz")/1000000.0),style=MaterialTheme.typography.titleSmall)
+                Text(L10n.t("m_1d6c5cf7cfd1", g.optInt("cpu_id")).format(Locale.US,g.optLong("max_khz")/1000000.0),style=MaterialTheme.typography.titleSmall)
                 val analysis=g.optJSONObject("analysis")
-                Text(analysis?.optString("summary")?:"扫描未完成，已有采样已保存。",style=MaterialTheme.typography.bodySmall)
+                Text(L10n.display(analysis?.optString("summary")?:L10n.t("m_7f931d4ba1d4")),style=MaterialTheme.typography.bodySmall)
                 objects(analysis?.optJSONArray("regions")).forEach { r->
-                    val trend=when(r.optString("trend")){"plateau"->"平台";"rising"->"上升";else->"下降"}
-                    Text("区间 ${r.optInt("index")}（$trend）：${sizeLabel(r.getLong("lower_bytes"))}–${sizeLabel(r.getLong("upper_bytes"))} · 中位 %.2f ns".format(Locale.US,r.getDouble("latency_ns")),style=MaterialTheme.typography.bodySmall)
+                    val trend=when(r.optString("trend")){"plateau"->L10n.t("m_910887705c7a");"rising"->L10n.t("m_13a33ae5bd1e");else->L10n.t("m_2b1f270ff8f5")}
+                    Text(L10n.t("m_ae7b99d68acf", r.optInt("index"), trend, sizeLabel(r.getLong("lower_bytes")), sizeLabel(r.getLong("upper_bytes"))).format(Locale.US,r.getDouble("latency_ns")),style=MaterialTheme.typography.bodySmall)
                 }
                 objects(analysis?.optJSONArray("transitions")).forEachIndexed { index,e->
-                    Text("转换 ${index+1}：${sizeLabel(e.getLong("lower_bytes"))}–${sizeLabel(e.getLong("upper_bytes"))} · %.2f → %.2f ns".format(Locale.US,e.getDouble("before_ns"),e.getDouble("after_ns")),style=MaterialTheme.typography.bodySmall)
+                    Text(L10n.t("m_a04ab6ee833d", index+1, sizeLabel(e.getLong("lower_bytes")), sizeLabel(e.getLong("upper_bytes"))).format(Locale.US,e.getDouble("before_ns"),e.getDouble("after_ns")),style=MaterialTheme.typography.bodySmall)
                 }
                 objects(analysis?.optJSONArray("unresolved_intervals")).forEach { e->
-                    Text("${sizeLabel(e.getLong("lower_bytes"))}–${sizeLabel(e.getLong("upper_bytes"))}："+if(e.optString("reason")=="insufficient_contiguous_points")"连续有效点不足，不能定位边界"else"重复测量不一致或缺测，不能定位边界",style=MaterialTheme.typography.bodySmall)
+                    Text(L10n.display("${sizeLabel(e.getLong("lower_bytes"))}–${sizeLabel(e.getLong("upper_bytes"))}："+if(e.optString("reason")=="insufficient_contiguous_points")L10n.t("m_1b05196fc80e")else L10n.t("m_17ff543b23ac")),style=MaterialTheme.typography.bodySmall)
                 }
             }
         }
-        Text("结论描述实测访问层次，不将曲线转换直接等同于 L1/L2/L3 容量。系统页大小、TLB、预取和频率均可影响曲线。参考线仅代表系统或资料库容量。",style=MaterialTheme.typography.bodySmall)
-        Text("本版采用高熵数据上的 32 位依赖索引链（含地址计算），普通系统页。原始计时、线程实际运行时间、频率及采样结果均保存在 JSON，比较其他工具时需使用相同访问模式。",style=MaterialTheme.typography.bodySmall)
+        Text(L10n.t("m_ac5f0f7030f3"),style=MaterialTheme.typography.bodySmall)
+        Text(L10n.t("m_c4c041c7374a"),style=MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -205,7 +207,7 @@ internal fun ColumnScope.CacheCurveBoard(report: JSONObject?, config: RamConfig,
  * Share the four-score summary between dashboard and details; never substitute curve samples for unmeasured RAM rounds. */
 @Composable
 internal fun RamSummaryRow(report: JSONObject?, config: RamConfig, unit: String = "GB/s", compact: Boolean = false) {
-    Text(if(!config.curveIncludeRam)"RAM · 本次未测试"else"RAM · 大工作集",
+    Text(L10n.display(if(!config.curveIncludeRam)L10n.t("m_58e58564c03e")else L10n.t("m_1d1c0d4efeab")),
         fontSize=if(compact)8.sp else 11.sp,lineHeight=if(compact)11.sp else 14.sp,maxLines=1,modifier=Modifier.testTag("ram_summary_title"))
     Row(Modifier.fillMaxWidth()) {
         MemoryPlanner.columns.forEach { kind->
@@ -214,21 +216,21 @@ internal fun RamSummaryRow(report: JSONObject?, config: RamConfig, unit: String 
             val plan=cell?.optJSONObject("plan")
             val hint=when {
                 stats!=null -> plan?.let { "T${it.optInt("threads")} · ${sizeLabel(it.optLong("working_set_bytes"))}" }.orEmpty()
-                !config.curveIncludeRam -> "未测"
-                kind !in config.kinds -> "未选"
-                cell?.optString("state")=="UNSUPPORTED" -> "不支持"
-                cell?.optString("state")=="FAILED" -> "未完成"
-                report!=null && report.optString("state") in RamResults.terminalStates -> "未测"
-                else -> "待测"
+                !config.curveIncludeRam -> L10n.t("m_c3eb5da0453e")
+                kind !in config.kinds -> L10n.t("m_3005eadbbbcd")
+                cell?.optString("state")=="UNSUPPORTED" -> L10n.t("m_7c5378606570")
+                cell?.optString("state")=="FAILED" -> L10n.t("m_6707de42c29d")
+                report!=null && report.optString("state") in RamResults.terminalStates -> L10n.t("m_c3eb5da0453e")
+                else -> L10n.t("m_e55f2ab3e631")
             }
             Column(Modifier.weight(1f).padding(vertical=if(compact)1.dp else 3.dp)) {
-                val label=when(kind){0->"读取";1->"写入";5->"延迟";else->"拷贝"}
-                Text(if(compact)"$label · ${if(kind==5)"ns"else unit}"else label,fontSize=if(compact)7.sp else 10.sp,lineHeight=if(compact)10.sp else 13.sp,maxLines=1)
+                val label=when(kind){0->L10n.t("m_534cb3fa8fbf");1->L10n.t("m_5c783c467965");5->L10n.t("m_18045b8c40f1");else->L10n.t("m_d373809ab86b")}
+                Text(L10n.display(if(compact)"$label · ${if(kind==5)"ns"else unit}"else label),fontSize=if(compact)7.sp else 10.sp,lineHeight=if(compact)10.sp else 13.sp,maxLines=1)
                 ScoreNumber(stats?.let { "%.2f".format(Locale.US,it.score*if(kind==5||unit=="GB/s")1 else 1000) }?:"—",
                     stats!=null,"curve_ram_$kind",if(compact)12 else 17,Modifier.fillMaxWidth(),TextAlign.Start,8)
-                if(!compact)Text(if(kind==5)"ns"else unit,fontSize=9.sp,lineHeight=12.sp,maxLines=1)
-                if(!compact || stats==null)Text(hint,fontSize=8.sp,lineHeight=11.sp,maxLines=1,modifier=Modifier.testTag("curve_ram_hint_$kind"))
-                if(plan?.optString("binding_mode")=="system_scheduled")Text("系统调度 · T1",fontSize=8.sp,lineHeight=11.sp,maxLines=1,
+                if(!compact)Text(L10n.display(if(kind==5)"ns"else unit),fontSize=9.sp,lineHeight=12.sp,maxLines=1)
+                if(!compact || stats==null)Text(L10n.display(hint),fontSize=8.sp,lineHeight=11.sp,maxLines=1,modifier=Modifier.testTag("curve_ram_hint_$kind"))
+                if(plan?.optString("binding_mode")=="system_scheduled")Text(L10n.t("m_b255b35d3df0"),fontSize=8.sp,lineHeight=11.sp,maxLines=1,
                     modifier=Modifier.testTag("curve_ram_binding_$kind"))
             }
         }

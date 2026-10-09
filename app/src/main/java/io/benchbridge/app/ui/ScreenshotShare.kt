@@ -1,5 +1,7 @@
 package io.benchbridge.app.ui
 
+import io.benchbridge.app.i18n.L10n
+
 import android.app.Activity
 import android.content.ClipData
 import android.content.Context
@@ -27,9 +29,9 @@ private fun Context.activity(): Activity? = when (this) {
 
 /** 测试结束后按需截取当前 Activity。 / Capture the current activity on demand after measurement. */
 internal suspend fun shareScreenshot(context: Context) {
-    val activity = checkNotNull(context.activity()) { "无法获取当前页面" }
+    val activity = checkNotNull(context.activity()) { L10n.t("m_13936b708a67") }
     val view = activity.window.decorView
-    check(view.width > 0 && view.height > 0) { "页面尚未显示" }
+    check(view.width > 0 && view.height > 0) { L10n.t("m_5b55d0f9cb66") }
     val bitmap = createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
     try {
         // PixelCopy 无法取消，须等回调结束后再释放位图。
@@ -38,7 +40,7 @@ internal suspend fun shareScreenshot(context: Context) {
             PixelCopy.request(activity.window, bitmap, { result -> continuation.resume(result) }, Handler(Looper.getMainLooper()))
         }
         }
-        check(result == PixelCopy.SUCCESS) { "截图失败：$result" }
+        check(result == PixelCopy.SUCCESS) { L10n.t("m_2ebebf7735d1", result) }
         val file = withContext(Dispatchers.IO) {
             val directory = File(context.cacheDir, "shared_screenshots").apply { check(isDirectory || mkdirs()) }
             val output = File(directory, "BenchBridge-${UUID.randomUUID()}.png")
@@ -52,6 +54,6 @@ internal suspend fun shareScreenshot(context: Context) {
             clipData = ClipData.newRawUri("BenchBridge", uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        activity.startActivity(Intent.createChooser(intent, "分享测试截图"))
+        activity.startActivity(Intent.createChooser(intent, L10n.t("m_c8a64119ed95")))
     } finally { bitmap.recycle() }
 }

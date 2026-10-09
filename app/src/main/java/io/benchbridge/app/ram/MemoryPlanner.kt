@@ -1,5 +1,7 @@
 package io.benchbridge.app.ram
 
+import io.benchbridge.app.i18n.L10n
+
 import io.benchbridge.app.hardware.CpuCore
 import io.benchbridge.app.hardware.CpuTopology
 import org.json.JSONArray
@@ -97,11 +99,11 @@ object MemoryPlanner {
     }
 
     fun unsupportedReason(topology: CpuTopology, config: RamConfig, level: String, kind: Int): String {
-        if (topology.allowedCores.isEmpty()) return "无法取得可绑核的 CPU 列表"
+        if (topology.allowedCores.isEmpty()) return L10n.t("m_50bd6b657b01")
         if (level == "L3" && topology.soc?.optString("id") == "sm8975" && topology.caches.none { it.level == 3 })
-            return "8EE6 已确认全核心共享 L2；独立 CPU L3 未确认。分块扫描曲线见缓存规格与实测，不能将 L2 或系统缓存填为 L3。"
-        if (level != "RAM" && topology.caches.none { it.level == levels.indexOf(level) + 1 }) return "$level 容量或共享关系未确认"
-        if (!config.automaticThreads && kind != 5 && config.threads > topology.allowedCores.size) return "所选线程数超过可用 CPU 数"
-        return "当前内存预算或缓存容量不足以区分目标层级"
+            return L10n.t("m_96fceddb8ee2")
+        if (level != "RAM" && topology.caches.none { it.level == levels.indexOf(level) + 1 }) return L10n.t("m_26e0e7f5ddbe", level)
+        if (!config.automaticThreads && kind != 5 && config.threads > topology.allowedCores.size) return L10n.t("m_7a35edf002fc")
+        return L10n.t("m_219dc931707b")
     }
 }

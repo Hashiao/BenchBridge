@@ -1,5 +1,7 @@
 package io.benchbridge.app.storage
 
+import io.benchbridge.app.i18n.L10n
+
 import android.app.ActivityManager
 import android.content.Context
 import android.os.Build
@@ -57,12 +59,12 @@ class StorageCoordinator(private val context: Context, private val executor: Exe
             val config = requested.normalized()
             val caps = capabilities()
             require(config.fileMiB * 1048576L <= caps.getLong("free_bytes") - caps.getLong("reserve_bytes")) {
-                "STORAGE_SPACE：测试文件 ${BenchmarkFormat.mib(config.fileMiB)}，可用 ${BenchmarkFormat.bytes(caps.getLong("free_bytes"))}，需保留 ${BenchmarkFormat.bytes(caps.getLong("reserve_bytes"))}"
+                L10n.t("m_62b92bfb5a98", BenchmarkFormat.mib(config.fileMiB), BenchmarkFormat.bytes(caps.getLong("free_bytes")), BenchmarkFormat.bytes(caps.getLong("reserve_bytes")))
             }
             require(config.estimatedMemoryBytes <= caps.getLong("memory_budget_bytes")) {
-                "STORAGE_MEMORY：I/O 缓冲需 ${config.estimatedMemoryBytes / 1048576} MiB 内存，当前预算 ${caps.getLong("memory_budget_bytes") / 1048576} MiB"
+                L10n.t("m_dceda5053235", config.estimatedMemoryBytes / 1048576, caps.getLong("memory_budget_bytes") / 1048576)
             }
-            require(thermal() < PowerManager.THERMAL_STATUS_SEVERE) { "RUN_THERMAL：设备需要降温" }
+            require(thermal() < PowerManager.THERMAL_STATUS_SEVERE) { L10n.t("m_5e331a932238") }
             val id = UUID.randomUUID().toString()
             val hash = MessageDigest.getInstance("SHA-256").digest(config.toJson().toString().toByteArray())
                 .joinToString("") { "%02x".format(it) }
@@ -156,8 +158,8 @@ class StorageCoordinator(private val context: Context, private val executor: Exe
             outer@ for (direction in config.directions) for (case in config.cases) {
                 if (run.cancelled.get()) break@outer
                 val unsupported = when {
-                    config.direct && !caps.optBoolean(if (direction == "write") "direct_write" else "direct_read") -> "此路径不支持 Direct ${if (direction == "write") "写入" else "读取"}"
-                    case.queue > 1 && !caps.optBoolean("native_aio") -> "系统不支持原生 AIO 队列"
+                    config.direct && !caps.optBoolean(if (direction == "write") "direct_write" else "direct_read") -> L10n.t("m_6e31188a08df", if (direction == "write") L10n.t("m_5c783c467965") else L10n.t("m_534cb3fa8fbf"))
+                    case.queue > 1 && !caps.optBoolean("native_aio") -> L10n.t("m_d636cf73ad9a")
                     else -> null
                 }
                 if (unsupported != null) {
@@ -169,7 +171,7 @@ class StorageCoordinator(private val context: Context, private val executor: Exe
                 }
                 for (round in 1..config.rounds) {
                     if (run.cancelled.get()) break@outer
-                    if (thermal() >= PowerManager.THERMAL_STATUS_SEVERE) { cancel(run.id, "RUN_THERMAL：设备需要降温"); break@outer }
+                    if (thermal() >= PowerManager.THERMAL_STATUS_SEVERE) { cancel(run.id, L10n.t("m_5e331a932238")); break@outer }
                     run.report.put("current_case", case.id).put("current_direction", direction).put("current_round", round).put("phase", "NATIVE")
                     publish(run)
                     val before = thermal()
@@ -215,7 +217,7 @@ class StorageCoordinator(private val context: Context, private val executor: Exe
             }
             run.report.put("cleanup", cleanup).put("state", finalState).put("phase", "FINISHED").put("finished_at_ms", System.currentTimeMillis())
             if (run.cancelled.get()) run.report.put("error", run.reason)
-            else if (budget) run.report.put("error", "WRITE_BUDGET：累计写入达到 ${BenchmarkFormat.mib(config.writeBudgetMiB)} 上限；测试文件占用为 ${BenchmarkFormat.mib(config.fileMiB)}")
+            else if (budget) run.report.put("error", L10n.t("m_e33b9aec6972", BenchmarkFormat.mib(config.writeBudgetMiB), BenchmarkFormat.mib(config.fileMiB)))
             onRunFinished()
             try { publish(run, true) } catch (error: Exception) {
                 run.report.put("state", "FAILED").put("persistence_error", true).put("error", "REPORT_COMMIT_FAILED：${error.message}"); publish(run)

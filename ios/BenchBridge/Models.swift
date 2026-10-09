@@ -49,21 +49,21 @@ struct BenchConfig: Codable, Equatable, Sendable {
         switch family {
         case .memory:
             let p = ramSettings
-            return "RAM 带宽 \(p.memoryMiB) MiB · 延迟 \(p.latencyMiB) MiB / T1 · \(p.automaticThreads ? "带宽线程自动校准" : "带宽 T\(p.threads)")\n带宽 \(p.repeats) 次 · 延迟 \(p.latencyRepeats) 次 · \(p.aggregation == "arithmetic_mean" ? "平均值" : "中位数") · \(p.durationMs) ms / 轮" +
-                (includeCurve ? "\n曲线：4 KiB–\(cacheMaxMiB) MiB · T1 · \(singleCurveSample == true ? "每块 1 次" : "正反扫描")" : "")
+            return L10n.t("m_e63d157572d5", p.memoryMiB, p.latencyMiB, p.automaticThreads ? L10n.t("m_7ae4a3f57717") : L10n.t("m_989de77d7077", p.threads), p.repeats, p.latencyRepeats, p.aggregation == "arithmetic_mean" ? L10n.t("m_db7538b96322") : L10n.t("m_1961784db559"), p.durationMs) +
+                (includeCurve ? L10n.t("m_ffcc831ce558", cacheMaxMiB, singleCurveSample == true ? L10n.t("m_024a9ff0fc4b") : L10n.t("m_4ad4d394e013")) : "")
         case .storage:
             let p = storageSettings
-            return "\(Statistics.size(UInt64(p.fileMiB) * 1048576)) · \(p.repeats) 次 · \(p.durationMs) ms / 轮\n预热 \(p.warmupMs) ms · 间隔 \(p.intervalMs) ms · \(storage == nil ? "旧版中位数" : "最佳完整轮次")"
-        case .compute: return "\(memoryMiB) MiB · \(repeats) 次 · \(durationMs) ms / 轮"
+            return L10n.t("m_11cc3041aa87", Statistics.size(UInt64(p.fileMiB) * 1048576), p.repeats, p.durationMs, p.warmupMs, p.intervalMs, storage == nil ? L10n.t("m_ca8961cf9d82") : L10n.t("m_70c167d3b355"))
+        case .compute: return L10n.t("m_69c10328756e", memoryMiB, repeats, durationMs)
         }
     }
     func validate(_ family: BenchFamily? = nil) throws {
         if family == nil || family == .compute {
             guard (1...256).contains(memoryMiB), (1...8).contains(threads), (5...5000).contains(durationMs), (1...5).contains(repeats)
-            else { throw BenchError.message("GPGPU 参数超出范围") }
+            else { throw BenchError.message(L10n.t("m_e9ff52678334")) }
         }
         if family == nil || family == .memory {
-            guard (1...256).contains(cacheMaxMiB), (1...8).contains(stepsPerOctave) else { throw BenchError.message("缓存曲线参数超出范围") }
+            guard (1...256).contains(cacheMaxMiB), (1...8).contains(stepsPerOctave) else { throw BenchError.message(L10n.t("m_f9b3beeee21f")) }
             try ramSettings.validate()
         }
         if family == nil || family == .storage { try storageSettings.validate() }
@@ -84,7 +84,7 @@ struct RAMParameters: Codable, Equatable, Sendable {
     func validate() throws {
         guard (1...256).contains(memoryMiB), (1...256).contains(latencyMiB), (1...16).contains(threads),
               (0...5000).contains(warmupMs), (5...5000).contains(durationMs), (1...10).contains(repeats),
-              (1...10).contains(latencyRepeats), (0...30000).contains(intervalMs), aggregation == nil || ["arithmetic_mean","median"].contains(aggregation!) else { throw BenchError.message("RAM 参数超出范围") }
+              (1...10).contains(latencyRepeats), (0...30000).contains(intervalMs), aggregation == nil || ["arithmetic_mean","median"].contains(aggregation!) else { throw BenchError.message(L10n.t("m_2467fc99245d")) }
     }
 }
 struct StorageCase: Codable, Equatable, Identifiable, Sendable {
@@ -130,7 +130,7 @@ struct StorageParameters: Codable, Equatable, Sendable {
                   !$0.id.isEmpty && $0.id.count <= 64 && [4,8,16,32,64,128,256,512,1024,2048,4096].contains($0.blockKiB) &&
                   (1...64).contains($0.queueDepth) && (1...16).contains($0.threads) && $0.queueDepth * $0.threads <= 512 &&
                   $0.blockKiB * $0.queueDepth * $0.threads <= 256 * 1024 && fileMiB * 1024 / ($0.blockKiB * $0.threads) >= $0.queueDepth
-              }) else { throw BenchError.message("ROM 参数超出范围或文件不足以容纳队列；请增大文件或减小块/队列/线程") }
+              }) else { throw BenchError.message(L10n.t("m_3b952cf84abf")) }
     }
 }
 enum BenchError: Error { case message(String) }
@@ -171,8 +171,8 @@ struct NativeMeasurement: Codable, Sendable {
         nodeStrideBytes = Int(result.node_stride_bytes)
     }
     var error: String? { switch status {
-    case 0: nil; case 1: "测试已停止"; case 2: "参数不受支持"; case 3: "内存或线程资源不足"
-    case 4: "计算、数据或调度设置校验失败"; case 5: "文件读写失败"; case 7: "未获得有效测量操作，请延长时长重试"; default: "此后端暂未实现该项目"
+    case 0: nil; case 1: L10n.t("m_fe1c95c43e9e"); case 2: L10n.t("m_5d9185fc7ef6"); case 3: L10n.t("m_2fd6fe873430")
+    case 4: L10n.t("m_1d2917695f89"); case 5: L10n.t("m_99f691f98f8c"); case 7: L10n.t("m_a097537d988c"); default: L10n.t("m_5bec1159112b")
     } }
 }
 struct ScoreItem: Codable, Identifiable, Sendable {
@@ -189,7 +189,7 @@ struct ScoreItem: Codable, Identifiable, Sendable {
     var calibration: [NativeMeasurement]?
     var median: Double? { Statistics.median(values) }
     var score: Double? { aggregation == "maximum_completed_round" ? values.filter { $0.isFinite && $0 > 0 }.max() : aggregation == "arithmetic_mean" ? Statistics.mean(values) : median }
-    var aggregationTitle: String { aggregation == "maximum_completed_round" ? "最佳完整轮次" : aggregation == "arithmetic_mean" ? "平均值" : "中位数" }
+    var aggregationTitle: String { aggregation == "maximum_completed_round" ? L10n.t("m_70c167d3b355") : aggregation == "arithmetic_mean" ? L10n.t("m_db7538b96322") : L10n.t("m_1961784db559") }
 }
 struct StorageSample: Codable, Sendable {
     var queueDepth: Int
@@ -272,9 +272,9 @@ struct CurveGroup: Codable, Identifiable, Sendable {
     var points: [CurvePoint] = []
     var regions: [CurveRegion] = []
     var transitions: [CurveTransition] = []
-    var summary = "等待扫描"
+    var summary = L10n.t("m_69722e50abcb")
     var id: Int { qos }
-    var title: String { qos == 0 ? "高优先级" : "后台优先级" }
+    var title: String { qos == 0 ? L10n.t("m_168b218cb403") : L10n.t("m_c0cb94da1e33") }
 }
 // 苹果仅记录公开调度能力与运行状态，不推断实际物理核心。 / Record public runtime state without inferring physical cores.
 struct RuntimeSnapshot: Codable, Sendable {
@@ -303,7 +303,7 @@ struct BenchReport: Codable, Identifiable, Sendable {
     var startedAt: Date
     var finishedAt: Date?
     var state = "running"
-    var progress = "准备测试"
+    var progress = L10n.t("m_e304fbe1cea4")
     var device: DeviceInfo
     var scores: [ScoreItem]
     var curves: [CurveGroup] = []
@@ -318,11 +318,13 @@ struct BenchReport: Codable, Identifiable, Sendable {
     var thermalAtEnd: Int?
     var qualityFlags: [String]
     var runtimeDiagnostics: [RuntimeSnapshot]?
+    var exportLocale: String?
+    var localizedSummary: String?
     var curvePairs: Int { curves.reduce(0) { $0 + Set($1.batches.map { "\($0.bytes)-\($0.pass)" }).count } }
     var plannedCurvePairs: Int { curves.reduce(0) { $0 + $1.plannedSizes.count * ($1.singleSample == true ? 1 : 2) } }
     var statusTitle: String { switch state {
-    case "running": "测试中"; case "completed": "已完成"; case "partial": "部分测量未通过验证"
-    case "cancelled": "已停止"; case "interrupted": "运行中断，已保存采样"; default: "未完成"
+    case "running": L10n.t("m_458748c7478e"); case "completed": L10n.t("m_f28461bb49c8"); case "partial": L10n.t("m_58b085ddd700")
+    case "cancelled": L10n.t("m_f006455e3baf"); case "interrupted": L10n.t("m_28499a557129"); default: L10n.t("m_6707de42c29d")
     } }
 }
 enum Statistics {
@@ -397,7 +399,7 @@ enum Statistics {
             group.regions.append(CurveRegion(lowerBytes: points[start].bytes, upperBytes: points.last!.bytes, medianNs: median(points[start...].map(\.latencyNs))!))
         }
         let valid = group.points.filter(\.stable).count
-        group.summary = "\(valid)/\(group.plannedSizes.count) \(group.singleSample == true ? "个有效采样点" : "点通过验证")；\(group.regions.count) 个连续区间，\(group.transitions.count) 处持续转换。" + (valid == group.plannedSizes.count ? "" : "缺测范围不推断边界。")
+        group.summary = L10n.t("m_1b2c942c0528", valid, group.plannedSizes.count, group.singleSample == true ? L10n.t("m_9ca745e4e71f") : L10n.t("m_5393322e98bb"), group.regions.count, group.transitions.count) + (valid == group.plannedSizes.count ? "" : L10n.t("m_9b3c6761bc04"))
     }
     static func size(_ bytes: UInt64) -> String {
         if bytes >= 1073741824 { return String(format: "%.3g GiB", Double(bytes) / 1073741824) }

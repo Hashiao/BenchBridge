@@ -1,6 +1,8 @@
 package io.benchbridge.app
 
 import android.os.Bundle
+import android.content.Context
+import io.benchbridge.app.i18n.L10n
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,6 +16,7 @@ import io.benchbridge.app.ui.BenchBridgeApp
 import io.benchbridge.app.ui.BenchBridgeTheme
 
 class MainActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: Context) { super.attachBaseContext(L10n.wrap(newBase)) }
     private lateinit var ramModel: RamViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

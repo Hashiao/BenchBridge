@@ -1,13 +1,15 @@
 package io.benchbridge.app.storage
 
+import io.benchbridge.app.i18n.L10n
+
 import io.benchbridge.app.BenchmarkFormat
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.sqrt
 
 data class StorageCase(val id: String, val random: Boolean, val blockKiB: Int, val queue: Int, val threads: Int) {
-    val modeLabel: String get() = if (random) "RND 随机" else "SEQ 顺序"
-    val blockLabel: String get() = "块 ${BenchmarkFormat.kib(blockKiB)}"
+    val modeLabel: String get() = if (random) L10n.t("m_1006a8f10ade") else L10n.t("m_3a78d2b3457d")
+    val blockLabel: String get() = L10n.t("m_5d3ddad7866d", BenchmarkFormat.kib(blockKiB))
     val title: String get() = "${if (random) "RND" else "SEQ"} · $blockLabel"
     val subtitle: String get() = "Q$queue · T$threads"
     fun canonical(): StorageCase {
@@ -48,29 +50,29 @@ data class StorageConfig(
         else -> "storage-custom-v1"
     }
     fun normalized(): StorageConfig = copy(presetId = recognizedPresetId())
-    val fileLabel: String get() = "测试文件：${BenchmarkFormat.mib(fileMiB)}"
-    val timingLabel: String get() = "每项${if (directions.size == 2) "读写各" else if (directions.firstOrNull() == "write") "写入" else "读取"} $rounds 次 · 每次 ${BenchmarkFormat.duration(durationMs)}"
+    val fileLabel: String get() = L10n.t("m_a192da71860c", BenchmarkFormat.mib(fileMiB))
+    val timingLabel: String get() = L10n.t("m_bfcbfa02abb4", if (directions.size == 2) L10n.t("m_7a459cc20275") else if (directions.firstOrNull() == "write") L10n.t("m_5c783c467965") else L10n.t("m_534cb3fa8fbf"), rounds, BenchmarkFormat.duration(durationMs))
     val directionLabel: String get() = when (directions.toSet()) {
-        setOf("read") -> "只读"
-        setOf("write") -> "只写"
-        else -> "读取 + 写入"
+        setOf("read") -> L10n.t("m_3b5ec3533b0e")
+        setOf("write") -> L10n.t("m_7f4605501fc3")
+        else -> L10n.t("m_fae0b6a83e05")
     }
     val summary: String get() = "$fileLabel · $timingLabel\n${if (direct) "Direct" else "Buffered"} · $directionLabel"
     val totalRounds: Int get() = cases.size * directions.size * rounds
     val estimatedMemoryBytes: Long get() = (cases.maxOfOrNull { it.threads.toLong() * it.queue * (it.blockKiB * 1024L + 65536) + it.threads * 2097152L } ?: 0) + 100L * 1048576
     fun validate() {
-        require(cases.isNotEmpty() && cases.size <= 8 && cases.map { it.id }.distinct().size == cases.size) { "请选择测试项目" }
-        require(directions.isNotEmpty() && directions.distinct().size == directions.size && directions.all { it in listOf("read", "write") }) { "读写方向无效" }
-        require(fileMiB in 8..65536 && rounds in 1..10) { "文件大小或重复次数无效" }
-        require(durationMs in 50..30000 && warmupMs in 0..10000 && intervalMs in 0..30000) { "测试时间无效" }
-        require(writeBudgetMiB == 0 || writeBudgetMiB in fileMiB..1048576) { "累计写入上限必须覆盖文件初始化，或设为不限" }
-        require(presetId.length in 1..64) { "预设名称无效" }
+        require(cases.isNotEmpty() && cases.size <= 8 && cases.map { it.id }.distinct().size == cases.size) { L10n.t("m_862ad650feb8") }
+        require(directions.isNotEmpty() && directions.distinct().size == directions.size && directions.all { it in listOf("read", "write") }) { L10n.t("m_4988cc507d93") }
+        require(fileMiB in 8..65536 && rounds in 1..10) { L10n.t("m_fdf9f0908c5e") }
+        require(durationMs in 50..30000 && warmupMs in 0..10000 && intervalMs in 0..30000) { L10n.t("m_c3688f912b82") }
+        require(writeBudgetMiB == 0 || writeBudgetMiB in fileMiB..1048576) { L10n.t("m_ea57239324df") }
+        require(presetId.length in 1..64) { L10n.t("m_7ae645b99bf2") }
         cases.forEach {
-            require(it.id.matches(Regex("[a-z0-9-]{1,48}"))) { "项目编号无效" }
-            require(it.blockKiB in listOf(4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096)) { "块大小无效" }
-            require(it.queue in 1..64 && it.threads in 1..16 && it.queue * it.threads <= 512) { "队列 × 线程不得超过 512" }
-            require(it.blockKiB.toLong() * 1024 * it.queue * it.threads <= 256L * 1048576) { "I/O 缓冲区不得超过 256 MiB" }
-            require(fileMiB * 1024L / it.blockKiB >= it.threads * 2L) { "文件太小，无法划分线程区域" }
+            require(it.id.matches(Regex("[a-z0-9-]{1,48}"))) { L10n.t("m_82eb5676f95d") }
+            require(it.blockKiB in listOf(4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096)) { L10n.t("m_da0fd4a6150d") }
+            require(it.queue in 1..64 && it.threads in 1..16 && it.queue * it.threads <= 512) { L10n.t("m_0df761a0cdbd") }
+            require(it.blockKiB.toLong() * 1024 * it.queue * it.threads <= 256L * 1048576) { L10n.t("m_859f47678ef8") }
+            require(fileMiB * 1024L / it.blockKiB >= it.threads * 2L) { L10n.t("m_c0c264f77223") }
         }
     }
     fun toJson() = JSONObject().put("cases", JSONArray(cases.map { it.toJson() }))

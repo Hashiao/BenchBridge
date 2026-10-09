@@ -1,5 +1,7 @@
 package io.benchbridge.app.ram
 
+import io.benchbridge.app.i18n.L10n
+
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Locale
@@ -15,7 +17,7 @@ object LatencyAnalysis {
         val output=JSONObject().put("method","penalized-log-linear-segments-v1").put("coverage",coverage)
             .put("transitions",JSONArray()).put("regions",JSONArray()).put("unresolved_intervals",JSONArray())
         if(sorted.size<8)
-            return output.put("status","INCOMPLETE").put("summary","完整曲线尚未通过验证（${sorted.size}/${expected.size} 个稳定点），本次不能确定访问层次。")
+            return output.put("status","INCOMPLETE").put("summary",L10n.t("m_2251b8722155", sorted.size, expected.size))
         if(coverage<1.0) {
             // 仅分析连续有效片段，缺口两侧绝不拼接成阶跃。 / Analyze contiguous valid spans without inferring transitions across gaps.
             val valid=sorted.associateBy { it.bytes };val regions=output.getJSONArray("regions");val edges=output.getJSONArray("transitions")
@@ -34,7 +36,7 @@ object LatencyAnalysis {
                 }
                 start=end
             }
-            return output.put("status","PARTIAL").put("summary","${sorted.size}/${expected.size} 点通过验证；已测得 ${regions.length()} 个连续延迟区间、${edges.length()} 处转换，${output.getJSONArray("unresolved_intervals").length()} 个范围无法定位边界。")
+            return output.put("status","PARTIAL").put("summary",L10n.t("m_570ccb623ee4", sorted.size, expected.size, regions.length(), edges.length(), output.getJSONArray("unresolved_intervals").length()))
         }
         val n=sorted.size;val y=sorted.map { ln(it.latency) };val x=sorted.map { ln(it.bytes.toDouble()) }
         val prefix=DoubleArray(n+1);val squares=DoubleArray(n+1)
@@ -86,7 +88,7 @@ object LatencyAnalysis {
                 .put("confidence","bidirectional-repeated").put("cache_level",JSONObject.NULL)
         }
         output.put("regions",JSONArray(regions)).put("transitions",JSONArray(transitions)).put("status","COMPLETE")
-            .put("summary","实测覆盖 ${size(expected.first())}–${size(expected.last())}，形成 ${regions.size} 个延迟区间、${transitions.size} 处转换（含阶跃与趋势变化）。")
+            .put("summary",L10n.t("m_dcd0dc09bb78", size(expected.first()), size(expected.last()), regions.size, transitions.size))
         return output
     }
 }

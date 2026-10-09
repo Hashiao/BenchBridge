@@ -1,4 +1,602 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 自动生成，请编辑 localization/catalog.json。 / Generated; edit localization/catalog.json. -->
 <resources>
-    <string name="app_name">BenchBridge</string>
+    <string name="app_name" translatable="false">BenchBridge</string>
+    <string name="m_0028fe7600eb" formatted="false">"Checking support"</string>
+    <string name="m_01087e7dcd6b" formatted="false">"Use ordinary cached writes and count useful bytes written."</string>
+    <string name="m_02157fab8a36" formatted="false">"CPU availability, memory budget or protocol changed. Start a new test."</string>
+    <string name="m_024a9ff0fc4b" formatted="false">"One sample per block"</string>
+    <string name="m_0254150f1739" formatted="false">" · Restricted"</string>
+    <string name="m_038ea40471f9" formatted="false">"Cache: full latency curves by core group"</string>
+    <string name="m_039a485782b6" formatted="false">"Reliable core binding is unavailable for this group. Only previously verified points are retained; no full-curve conclusion is made."</string>
+    <string name="m_041b204f1c49" formatted="false">"Core binding keeps changing. This test was stopped."</string>
+    <string name="m_048a8a649e5f" formatted="false">"Measurement interrupted"</string>
+    <string name="m_04f95c015bbb" formatted="false">"Best complete run; final sync is recorded separately. Q counts submitted, unfinished app requests. Cache hints do not imply raw flash performance."</string>
+    <string name="m_05eccf84ad3a" formatted="false">"Calibrating"</string>
+    <string name="m_062fe9555cd9" formatted="false">"Not cleaned up yet: {0}"</string>
+    <string name="m_078e4caeda5c" formatted="false">"Linear"</string>
+    <string name="m_09055b9156f9" formatted="false">"JSON results exported"</string>
+    <string name="m_09601b7ba232" formatted="false">"Process architecture"</string>
+    <string name="m_0aa80b09edca" formatted="false">"{0} performance cores + {1} efficiency cores"</string>
+    <string name="m_0ae7312510f4" formatted="false">"Hide details"</string>
+    <string name="m_0b24b4556a91" formatted="false">"PROCESS_DIED: Worker connection lost"</string>
+    <string name="m_0b5d72c4e222" formatted="false">"Select valid tests without duplicates."</string>
+    <string name="m_0c3446e92621" formatted="false">"{0} · Runs: {1} · Median"</string>
+    <string name="m_0df761a0cdbd" formatted="false">"Queue depth × threads must not exceed 512."</string>
+    <string name="m_0e1ea0269d47" formatted="false">"Mean latency · Best-throughput run"</string>
+    <string name="m_0f4c06ec156c" formatted="false">"Legacy protocol / sweep incomplete"</string>
+    <string name="m_0f7d7860cbd3" formatted="false">"Block size"</string>
+    <string name="m_1006a8f10ade" formatted="false">"RND Random"</string>
+    <string name="m_10abac98de60" formatted="false">"Some curve ranges failed validation"</string>
+    <string name="m_1116a491a0db" formatted="false">"The sweep starts after the four RAM tests. Only measured values appear in the chart."</string>
+    <string name="m_1157929ae376" formatted="false">"{0} · Cores: {1}"</string>
+    <string name="m_11ab3536bf93" formatted="false">"Repeat count must be 1–10."</string>
+    <string name="m_11cc3041aa87" formatted="false">"{0} · Runs: {1} · {2} ms/run\nWarmup {3} ms · Interval {4} ms · {5}"</string>
+    <string name="m_12b76a0dfc05" formatted="false">"Fractal image size"</string>
+    <string name="m_13936b708a67" formatted="false">"Unable to capture the current page."</string>
+    <string name="m_13a33ae5bd1e" formatted="false">"Rising"</string>
+    <string name="m_13e641a3ea20" formatted="false">"Model"</string>
+    <string name="m_147c26c14313" formatted="false">"Curve working-set limit: {0} MiB, subject to memory budget"</string>
+    <string name="m_14beda673893" formatted="false">"Cores per L2 sharing domain: {0}"</string>
+    <string name="m_154a06ec8ea7" formatted="false">"RUN_CANCELLED: Stopped from notification"</string>
+    <string name="m_15a5be0e2031" formatted="false">"Memory copy"</string>
+    <string name="m_164906c818fe" formatted="false">"This model has variants with different core counts. Use this device\'s runtime report."</string>
+    <string name="m_168b218cb403" formatted="false">"High priority"</string>
+    <string name="m_16b108837a48" formatted="false">"RUN_CANCELLED: Stopped by user"</string>
+    <string name="m_16de4707fe56" formatted="false">"Memory write"</string>
+    <string name="m_1787218c5908" formatted="false">"Auto ({0})"</string>
+    <string name="m_17dfe31a9814" formatted="false">"Run a test to generate the curve"</string>
+    <string name="m_17ff543b23ac" formatted="false">"Inconsistent repeats or missing samples prevent boundary identification."</string>
+    <string name="m_18045b8c40f1" formatted="false">"Latency"</string>
+    <string name="m_18853a64daca" formatted="false">"GPU timestamps unavailable; this run is not scored."</string>
+    <string name="m_18b09a886b36" formatted="false">"Completing the full sweep and cross-validation"</string>
+    <string name="m_19575851c0a0" formatted="false">"Bandwidth threads"</string>
+    <string name="m_1961784db559" formatted="false">"Median"</string>
+    <string name="m_19aab1fbad7d" formatted="false">"Stop request was not delivered: {0}"</string>
+    <string name="m_19f1d5e09199" formatted="false">"Invalid test configuration."</string>
+    <string name="m_1a948ecc9480" formatted="false">"Test settings"</string>
+    <string name="m_1ada9237519e" formatted="false">"Bandwidth · Runs per test: {0}"</string>
+    <string name="m_1b05196fc80e" formatted="false">"Too few contiguous valid points to locate the boundary."</string>
+    <string name="m_1b2c942c0528" formatted="false">"{0}/{1} {2}; {3} contiguous regions and {4} sustained transitions."</string>
+    <string name="m_1b4527ef3747" formatted="false">"One sweep · One sample per block"</string>
+    <string name="m_1bb75d7ff2bf" formatted="false">"Benchmark runs"</string>
+    <string name="m_1bd1893c0900" formatted="false">"Ready"</string>
+    <string name="m_1c66ff83323b" formatted="false">"{0} · T{1} · {2} / {3} runs"</string>
+    <string name="m_1c82c39931ab" formatted="false">"INT32 integer"</string>
+    <string name="m_1d1c0d4efeab" formatted="false">"RAM · Large working set"</string>
+    <string name="m_1d2917695f89" formatted="false">"Computation, data or scheduling verification failed"</string>
+    <string name="m_1d6c5cf7cfd1" formatted="false">"CPU {0} · Up to %.2f GHz"</string>
+    <string name="m_1dbecf7ebb33" formatted="false">"{0}Latency · Total working set (T1)"</string>
+    <string name="m_1e9f2561b7cf" formatted="false">"Passed"</string>
+    <string name="m_1ec43d31e733" formatted="false">"The worker did not accept the task."</string>
+    <string name="m_1f0eb99b7ed0" formatted="false">"Running"</string>
+    <string name="m_203b5978f99b" formatted="false">"No test records yet"</string>
+    <string name="m_204f61585875" formatted="false">"Working-set size—access latency"</string>
+    <string name="m_2051831c1a77" formatted="false">"Warmup"</string>
+    <string name="m_219dc931707b" formatted="false">"The current memory budget or cache size cannot distinguish this level."</string>
+    <string name="m_2251b8722155" formatted="false">"Full curve not yet verified ({0}/{1} stable points); access levels cannot be determined."</string>
+    <string name="m_2467fc99245d" formatted="false">"RAM parameters are out of range."</string>
+    <string name="m_248dcecf45a2" formatted="false">"8 B accesses, eight independent lanes and a pregenerated nonrepeating random permutation."</string>
+    <string name="m_2569b76b560b" formatted="false">"Score: best complete run"</string>
+    <string name="m_25903839eabd" formatted="false">"Bandwidth · Threads"</string>
+    <string name="m_26d5509dd6d3" formatted="false">"{0} · {1} / {2} runs"</string>
+    <string name="m_26e0e7f5ddbe" formatted="false">"{0} capacity or sharing is unconfirmed."</string>
+    <string name="m_2745849de623" formatted="false">"No usable Metal device or shaders in this environment."</string>
+    <string name="m_27fae32df122" formatted="false">"Unable to prepare export"</string>
+    <string name="m_28384d7afd2e" formatted="false">"Failed"</string>
+    <string name="m_28499a557129" formatted="false">"Run interrupted; samples saved"</string>
+    <string name="m_2875bc4f7fcb" formatted="false">"Failed"</string>
+    <string name="m_28927ecc2c64" formatted="false">"Scan cache curves"</string>
+    <string name="m_290505a7ff35" formatted="false">"CPU threads"</string>
+    <string name="m_295937f60619" formatted="false">"Contiguous region"</string>
+    <string name="m_2a24eb9a1db2" formatted="false">"{0}Bandwidth: {1} · {2} · Runs: {3}"</string>
+    <string name="m_2aa79928fce8" formatted="false">"Runs: {0}"</string>
+    <string name="m_2b1f270ff8f5" formatted="false">"Falling"</string>
+    <string name="m_2bc9390b9cd4" formatted="false">"One sweep, one sample per block. Lines connect measured values without rechecks or invented samples. All CPUs share axes in ns."</string>
+    <string name="m_2c52e4b9cbae" formatted="false">"Hide build information"</string>
+    <string name="m_2c54f1904d61" formatted="false">"Quick curve + RAM"</string>
+    <string name="m_2c72c666472c" formatted="false">"Verifying data"</string>
+    <string name="m_2d167971c06b" formatted="false">"Runs per test and direction"</string>
+    <string name="m_2d998256d0b6" formatted="false">"The cache table supports read, write, latency and copy."</string>
+    <string name="m_2dd049355cad" formatted="false">"Some tests unavailable"</string>
+    <string name="m_2e3aaaa98fc3" formatted="false">"valid samples"</string>
+    <string name="m_2ebebf7735d1" formatted="false">"Screenshot failed: {0}"</string>
+    <string name="m_2efc112eea2b" formatted="false">"Memory and crypto working set"</string>
+    <string name="m_2f7693ddd129" formatted="false">"Unavailable; uses system scheduling"</string>
+    <string name="m_2fd6fe873430" formatted="false">"Insufficient memory or thread resources"</string>
+    <string name="m_2fe84a5837e6" formatted="false">"PROCESS_DIED: Worker interrupted; completed rounds are retained."</string>
+    <string name="m_3005eadbbbcd" formatted="false">"Not selected"</string>
+    <string name="m_306cecd130cb" formatted="false">"RAM · Memory"</string>
+    <string name="m_3083902d65a3" formatted="false">"Working-set size (KiB / MiB, log)"</string>
+    <string name="m_30b09c2fc1d2" formatted="false">"Metal kernel missing"</string>
+    <string name="m_30b8dcf0174f" formatted="false">"Warmup duration"</string>
+    <string name="m_3131760519d0" formatted="false">"Runs: {0}{1}"</string>
+    <string name="m_31a7fecc073e" formatted="false">"Y-axis: log ns"</string>
+    <string name="m_322408c53bed" formatted="false">"Model"</string>
+    <string name="m_326ae3825cdc" formatted="false">"Press the curve to inspect samples. Faint points failed repeatability checks; lines do not bridge gaps. Error bars show the 10th–90th percentiles."</string>
+    <string name="m_32791febab2e" formatted="false">"Sweeps request scheduling priorities, not specific CPUs. Priority curves must not be treated as performance/efficiency core curves."</string>
+    <string name="m_32d6c632664d" formatted="false">"System-reported cache information"</string>
+    <string name="m_3300bd599b46" formatted="false">"{0} · Latency T1"</string>
+    <string name="m_336f42c5681b" formatted="false">"L{0} reference"</string>
+    <string name="m_339768bf98bf" formatted="false">"Duration per run"</string>
+    <string name="m_33ff1e3cf705" formatted="false">"{0} / {1} samples"</string>
+    <string name="m_3459a2bac987" formatted="false">"Standard test"</string>
+    <string name="m_353e9bb125b9" formatted="false">"Passed · {0} KiB"</string>
+    <string name="m_359330cdd6a0" formatted="false">"Resume parameters do not match the original record."</string>
+    <string name="m_36468ea7cc89" formatted="false">"Select CPU or GPU."</string>
+    <string name="m_36ca663b02e0" formatted="false">"One sweep, one sample per block. Press the curve to inspect measurements."</string>
+    <string name="m_38318f63e6d7" formatted="false">"Checksum"</string>
+    <string name="m_38a226d180d3" formatted="false">"Run again"</string>
+    <string name="m_38ab936eb50d" formatted="false">"Test details"</string>
+    <string name="m_3a78d2b3457d" formatted="false">"SEQ Sequential"</string>
+    <string name="m_3ae09f36e468" formatted="false">"Forward/reverse sweeps · Automatic rechecks"</string>
+    <string name="m_3afcd49f3c9d" formatted="false">"Checking JNI, system page size and basic memory reads/writes."</string>
+    <string name="m_3b3cfb43fce5" formatted="false">"Sampling intervals per doubling"</string>
+    <string name="m_3b5ec3533b0e" formatted="false">"Read only"</string>
+    <string name="m_3b952cf84abf" formatted="false">"ROM parameters are out of range or the file is too small for the queue. Increase the file size or reduce block size, queue depth or threads."</string>
+    <string name="m_3bce2ed4fd1e" formatted="false">" (read + write total)"</string>
+    <string name="m_3c5b1b8219fd" formatted="false">"Model references describe hardware only; they do not supply measured scores or identify the CPU currently running a thread."</string>
+    <string name="m_3cb6da322842" formatted="false">"Compiler"</string>
+    <string name="m_3d645b00b875" formatted="false">"Run interrupted"</string>
+    <string name="m_3da99e0ea2cc" formatted="false">"{0} · Run {1} · {2}"</string>
+    <string name="m_3ee46fa2b072" formatted="false">"Results were not saved to history. Export them to keep a copy."</string>
+    <string name="m_3ee4ee42167b" formatted="false">"The system limited asynchronous request resources. Use the measured in-flight depth."</string>
+    <string name="m_3f6bfaa4c94e" formatted="false">"App crashed"</string>
+    <string name="m_40d4901130a3" formatted="false">"Hide raw runs"</string>
+    <string name="m_40f963e43bdb" formatted="false">"Invalid measurement counters"</string>
+    <string name="m_41b0af8c5c9f" formatted="false">"Verifying"</string>
+    <string name="m_42276cb4c441" formatted="false">"App queue mean %.1f / max %d · Sync %.1f ms"</string>
+    <string name="m_423f51a28678" formatted="false">"Runtime environment"</string>
+    <string name="m_427bd266056e" formatted="false">"Stop timed out and the worker was terminated. Reconnecting will recover records and clean up test files."</string>
+    <string name="m_429db0139d03" formatted="false">"valid points"</string>
+    <string name="m_42b9aee38716" formatted="false">"Working set is outside the supported range."</string>
+    <string name="m_42c3de4a36e6" formatted="false">"This small read/write correctness check produces no bandwidth, latency or storage performance score."</string>
+    <string name="m_42efb9a9ed33" formatted="false">"BUSY: A test is already running."</string>
+    <string name="m_433071b8ffe4" formatted="false">"Cache mode"</string>
+    <string name="m_4356bc8e66fd" formatted="false">"Diagnostics copied"</string>
+    <string name="m_4397e9cd78d7" formatted="false">"Core groups await runtime confirmation"</string>
+    <string name="m_43c587192079" formatted="false">"System ran out of memory"</string>
+    <string name="m_43f06de05be3" formatted="false">"Show build information"</string>
+    <string name="m_4479c4f8d413" formatted="false">"Reported SoC"</string>
+    <string name="m_44a0bc2e39c6" formatted="false">"Unable to save results: {0}"</string>
+    <string name="m_45230cc916f6" formatted="false">"Calibrating"</string>
+    <string name="m_456c8e944681" formatted="false">"Running a single sweep"</string>
+    <string name="m_458748c7478e" formatted="false">"Testing"</string>
+    <string name="m_45a2d95af496" formatted="false">"RAM_DIAGNOSTIC {0} {1}; full evidence in exported JSON"</string>
+    <string name="m_47420722b087" formatted="false">"Check environment again"</string>
+    <string name="m_4820fe3a6878" formatted="false">"Completed test results will appear here."</string>
+    <string name="m_48ecc65b106e" formatted="false">" · Curve samples {0}/{1}"</string>
+    <string name="m_4988cc507d93" formatted="false">"Invalid read/write direction."</string>
+    <string name="m_4a389e27c000" formatted="false">"Legacy protocol: original curve retained."</string>
+    <string name="m_4a52073e7910" formatted="false">"{0}{1} · {2} / {3} runs"</string>
+    <string name="m_4ad4d394e013" formatted="false">"Forward/reverse sweeps"</string>
+    <string name="m_4bc5466918c5" formatted="false">"Native self-test failed: {0}"</string>
+    <string name="m_4bc92707958d" formatted="false">"Latency transition: {0}–{1}"</string>
+    <string name="m_4bdd5f5904f1" formatted="false">"Compute test"</string>
+    <string name="m_4be0431f56e5" formatted="false">"Connecting to the native engine"</string>
+    <string name="m_4be6a47f4140" formatted="false">"Cache-line granule"</string>
+    <string name="m_4c1ba2afa2fb" formatted="false">"Maximum curve working set"</string>
+    <string name="m_4c74eca2037f" formatted="false">"Cumulative writes, including initialization and warmup: {0}"</string>
+    <string name="m_4d0d5d853d24" formatted="false">"Test history"</string>
+    <string name="m_4e44428bb127" formatted="false">"Checking I/O support"</string>
+    <string name="m_4eedec34b59e" formatted="false">"Scanning CPU {0} · {1}"</string>
+    <string name="m_4f5df723d99d" formatted="false">"Interval"</string>
+    <string name="m_505efd1fe138" formatted="false">"Verified"</string>
+    <string name="m_50bd6b657b01" formatted="false">"The list of CPUs available for binding could not be obtained."</string>
+    <string name="m_51224f961d06" formatted="false">"{0} · {1} · Sweep {2}"</string>
+    <string name="m_5189bd4ff280" formatted="false">"stable points"</string>
+    <string name="m_52265ff64d72" formatted="false">"Last checked {0}"</string>
+    <string name="m_523fb6184d48" formatted="false">"{0} s"</string>
+    <string name="m_5248385ccc9b" formatted="false">"Raw median"</string>
+    <string name="m_525dd7890344" formatted="false">"Bandwidth · Total working set"</string>
+    <string name="m_530922477172" formatted="false">"Advanced settings and individual tests"</string>
+    <string name="m_533bff0709b3" formatted="false">"Monotonic clock"</string>
+    <string name="m_534cb3fa8fbf" formatted="false">"Read"</string>
+    <string name="m_5393322e98bb" formatted="false">"points verified"</string>
+    <string name="m_53f5039a31a0" formatted="false">"Storage test"</string>
+    <string name="m_554ec133ab30" formatted="false">"Preparing file"</string>
+    <string name="m_557fa6af954e" formatted="false">"Request bypass of the system data cache"</string>
+    <string name="m_5594262a36ec" formatted="false">"App moved to the background; completed samples are saved."</string>
+    <string name="m_55954c7a1639" formatted="false">"Log"</string>
+    <string name="m_561629ae6062" formatted="false">"Automatic thread/core calibration"</string>
+    <string name="m_565d64601d4d" formatted="false">"Priority"</string>
+    <string name="m_56e542017a0f" formatted="false">"Threads (T)"</string>
+    <string name="m_56e7ec7ec949" formatted="false">"Seq. write"</string>
+    <string name="m_570ccb623ee4" formatted="false">"{0}/{1} points verified; {2} contiguous latency regions, {3} transitions; boundaries remain unresolved in {4} ranges."</string>
+    <string name="m_5728e4f0b119" formatted="false">"Core groups come from system sysctl data. High/background priority curves describe scheduling requests, not specific core groups."</string>
+    <string name="m_572cf45ba436" formatted="false">"Back"</string>
+    <string name="m_5760a00e6b8f" formatted="false">"Testing {0}"</string>
+    <string name="m_577177a42191" formatted="false">"This test is unavailable on the device."</string>
+    <string name="m_577feeefb88d" formatted="false">"Edit test"</string>
+    <string name="m_57aa53a8194e" formatted="false">"T{0} · {1} · Total footprint {2}"</string>
+    <string name="m_58b085ddd700" formatted="false">"Some measurements failed verification"</string>
+    <string name="m_58b1c516d3cd" formatted="false">"Test configuration"</string>
+    <string name="m_58e58564c03e" formatted="false">"RAM · Not tested in this run"</string>
+    <string name="m_5a80da21c45a" formatted="false">"Forward/reverse sweeps · Automatic rechecks · Tap a CPU for analysis"</string>
+    <string name="m_5aa5c7851e03" formatted="false">"Sequential write"</string>
+    <string name="m_5ad3c0f3c7f4" formatted="false">"Memory working set"</string>
+    <string name="m_5b50d7c4b595" formatted="false">"System"</string>
+    <string name="m_5b55d0f9cb66" formatted="false">"The page is not visible yet."</string>
+    <string name="m_5b8bc489fac4" formatted="false">"Accesses: {0} · {1} B\n{2} ns · Verified"</string>
+    <string name="m_5bb651c0a4e3" formatted="false">"Legacy protocol; original curve retained"</string>
+    <string name="m_5bec1159112b" formatted="false">"This test is not yet implemented in this backend."</string>
+    <string name="m_5c17b08c9dd4" formatted="false">"Test / block size"</string>
+    <string name="m_5c55a67935af" formatted="false">"All"</string>
+    <string name="m_5c783c467965" formatted="false">"Write"</string>
+    <string name="m_5d3ddad7866d" formatted="false">"Block {0}"</string>
+    <string name="m_5d9185fc7ef6" formatted="false">"Unsupported parameters"</string>
+    <string name="m_5e331a932238" formatted="false">"RUN_THERMAL: The device needs to cool down."</string>
+    <string name="m_5eaab4942637" formatted="false">"Memory threads"</string>
+    <string name="m_5f844e919271" formatted="false">"BUSY: A compute test is already running."</string>
+    <string name="m_601f23e4fb75" formatted="false">"BUSY: A storage test is already running."</string>
+    <string name="m_6112d84e742d" formatted="false">"Tests: {0}"</string>
+    <string name="m_6278cc5f2853" formatted="false">"Environment check failed"</string>
+    <string name="m_628d34cdd5b2" formatted="false">"Core-group latency · Shared axes"</string>
+    <string name="m_62b92bfb5a98" formatted="false">"STORAGE_SPACE: Test file {0}; available {1}; reserve required {2}."</string>
+    <string name="m_62c8ed604a41" formatted="false">"Some groups are restricted · Verified samples only; tap for details"</string>
+    <string name="m_63d90d977348" formatted="false">"Copy"</string>
+    <string name="m_64747fd5eb0e" formatted="false">"The two priority curves reveal scheduling differences; they do not guarantee coverage of two physical core clusters."</string>
+    <string name="m_648c3ecf7173" formatted="false">"Latency always uses one thread. Four RAM tests run first, followed by curve sweeps."</string>
+    <string name="m_64a955b05a41" formatted="false">"Read the working set sequentially and count useful bytes read."</string>
+    <string name="m_64f4ed4fc3a6" formatted="false">"Legacy 0.7 record: GPU timing includes host submission and waiting, so it is not directly comparable with current scores."</string>
+    <string name="m_65026b27e78f" formatted="false">"Runtime core groups"</string>
+    <string name="m_6532229cddbb" formatted="false">"Fixed CPU · Random dependent access · "</string>
+    <string name="m_6586c0edc8b8" formatted="false">"GPU buffer allocation failed"</string>
+    <string name="m_6596d1311f2d" formatted="false">"{0} intervals per doubling · "</string>
+    <string name="m_66767f440e23" formatted="false">"Duration per run"</string>
+    <string name="m_66c9701d89aa" formatted="false">"Forward/reverse sweeps · {0} intervals per doubling"</string>
+    <string name="m_66fee6b57603" formatted="false">"Native engine ready"</string>
+    <string name="m_6707de42c29d" formatted="false">"Incomplete"</string>
+    <string name="m_677b8b1c0b61" formatted="false">"System ABI"</string>
+    <string name="m_678aa85c0014" formatted="false">"The device needs to cool down."</string>
+    <string name="m_6820bf00e022" formatted="false">"Scanning cache capacity and latency transitions"</string>
+    <string name="m_68504e20fa2d" formatted="false">"No-cache request during initialization: {0}"</string>
+    <string name="m_6954ee060e8a" formatted="false">"Some tests incomplete"</string>
+    <string name="m_69722e50abcb" formatted="false">"Waiting to scan"</string>
+    <string name="m_69c10328756e" formatted="false">"{0} MiB · Runs: {1} · {2} ms/run"</string>
+    <string name="m_69c8006e3904" formatted="false">"No complete runs yet"</string>
+    <string name="m_69ed375721d9" formatted="false">"Start test"</string>
+    <string name="m_69f82395883c" formatted="false">"Rest between runs"</string>
+    <string name="m_6a5053f8d399" formatted="false">"Median %.2f MB/s"</string>
+    <string name="m_6aa2ece5a458" formatted="false">"GPU scores use Metal device time; total wait time is recorded separately. Unimplemented tests and device limits are stated explicitly."</string>
+    <string name="m_6aada8368199" formatted="false">"Result file is too large."</string>
+    <string name="m_6b72c3d6855c" formatted="false">"Checking…"</string>
+    <string name="m_6b9ed24135e3" formatted="false">"See each test for footprint, threads and repeats"</string>
+    <string name="m_6c04ba2bd676" formatted="false">"Test file"</string>
+    <string name="m_6c07bb6fd4b6" formatted="false">"Device information"</string>
+    <string name="m_6c454f29fd1d" formatted="false">"Y-axis: linear ns"</string>
+    <string name="m_6ccc37f270d5" formatted="false">"JSON exports retain affinity, working sets and every calibration trial."</string>
+    <string name="m_6d1445a23b6c" formatted="false">"Calibration: {0} plans · 2–3 trials × {1} ms per plan"</string>
+    <string name="m_6d2df8033b59" formatted="false">"RUN_THERMAL: Device thermal status is too high."</string>
+    <string name="m_6dc034e51a65" formatted="false">"Unable to read run status."</string>
+    <string name="m_6ddf680b8489" formatted="false">"Stopped by user"</string>
+    <string name="m_6e31188a08df" formatted="false">"Direct {0} is unavailable on this path."</string>
+    <string name="m_6eaad4ac52ca" formatted="false">"Configuration is too long."</string>
+    <string name="m_6f02986c45d1" formatted="false">"Sequential read"</string>
+    <string name="m_6f196a7029cb" formatted="false">"Queue depth per thread (Q)"</string>
+    <string name="m_6fa2cf18a5a6" formatted="false">"{0} / {1} runs"</string>
+    <string name="m_7076dbb68661" formatted="false">"Queue depth (Q)"</string>
+    <string name="m_70c167d3b355" formatted="false">"Best complete run"</string>
+    <string name="m_70e977e56223" formatted="false">"Invalid run ID"</string>
+    <string name="m_71b19ba2c1a1" formatted="false">"Test file cleaned up"</string>
+    <string name="m_7233aa1d2c0b" formatted="false">"Per thread: {0} B · {1} × {2}"</string>
+    <string name="m_7236eb1304dd" formatted="false">"System scheduling"</string>
+    <string name="m_72ebc14a58b3" formatted="false">"System exit reason {0}"</string>
+    <string name="m_73e2ec6ef1c7" formatted="false">"System page"</string>
+    <string name="m_74c9c9420522" formatted="false">"Seq. read"</string>
+    <string name="m_751ef32692cb" formatted="false">"Invalid curve range or density."</string>
+    <string name="m_756762e293f2" formatted="false">"Not reported"</string>
+    <string name="m_75ca4f921437" formatted="false">"Random"</string>
+    <string name="m_76169d89a3e0" formatted="false">"One thread follows a random dependent pointer chain with a 128 B node stride."</string>
+    <string name="m_7668908d23d5" formatted="false">"GPU arithmetic verification failed"</string>
+    <string name="m_7722c7c5789d" formatted="false">"Legacy protocol: Q1T1, writes include final sync, median score."</string>
+    <string name="m_78cccc46cde4" formatted="false">"{0}Latency: {1} · T1 · Runs: {2}"</string>
+    <string name="m_79b5c477dcd6" formatted="false">"Legacy cache-curve protocol: {0} · Original measurement parameters retained"</string>
+    <string name="m_79cb684b679f" formatted="false">"One-way copy: %.2f MB/s"</string>
+    <string name="m_79f326be4409" formatted="false">"Test"</string>
+    <string name="m_7a0386744906" formatted="false">"Cache curve · Working-set size / latency in ns · {0}"</string>
+    <string name="m_7a15584f2506" formatted="false">"Some tests are incomplete. You can run them again."</string>
+    <string name="m_7a339dc33ab2" formatted="false">"Core group {0}"</string>
+    <string name="m_7a34eafff5b2" formatted="false">"Measurement"</string>
+    <string name="m_7a35edf002fc" formatted="false">"Selected thread count exceeds the available CPU count."</string>
+    <string name="m_7a459cc20275" formatted="false">"Read and write separately"</string>
+    <string name="m_7a839c76d79a" formatted="false">"Record: {0}"</string>
+    <string name="m_7ae4a3f57717" formatted="false">"Automatic bandwidth-thread calibration"</string>
+    <string name="m_7ae645b99bf2" formatted="false">"Invalid preset name."</string>
+    <string name="m_7afd1844a279" formatted="false">"C++ standard"</string>
+    <string name="m_7c5378606570" formatted="false">"Unavailable"</string>
+    <string name="m_7c5de8198ee3" formatted="false">"Storage measurement failed"</string>
+    <string name="m_7cbcc421dc4c" formatted="false">"Random access"</string>
+    <string name="m_7d50674e1361" formatted="false">"RAM uses the configured total footprint without cache-based expansion. Copy includes source and destination."</string>
+    <string name="m_7d8f8c37ec78" formatted="false">"Memory"</string>
+    <string name="m_7e6362d07e27" formatted="false">"Lines connect measured medians. Hollow points failed consistency checks and are excluded from region conclusions. Error bars show the 10th–90th percentiles. CPUs share axes; linear and log Y-axes both use ns."</string>
+    <string name="m_7e67761835cd" formatted="false">"ROM · Storage"</string>
+    <string name="m_7eb336e42cb5" formatted="false">"Auto"</string>
+    <string name="m_7ecff3ff4b2d" formatted="false">"Syncing writes"</string>
+    <string name="m_7f4605501fc3" formatted="false">"Write only"</string>
+    <string name="m_7f931d4ba1d4" formatted="false">"Sweep incomplete; collected samples are saved."</string>
+    <string name="m_7f984426d344" formatted="false">"The previous run did not finish normally; saved samples are retained."</string>
+    <string name="m_811e5f55f066" formatted="false">"Run a lightweight check that the app and C++ library work together."</string>
+    <string name="m_821786e0cb91" formatted="false">"BenchBridge · Testing {0}"</string>
+    <string name="m_82eb5676f95d" formatted="false">"Invalid test ID."</string>
+    <string name="m_83781ae2b9f7" formatted="false">"Run parameters"</string>
+    <string name="m_83d947e93231" formatted="false">"Best complete run · {0}"</string>
+    <string name="m_83ea70933f67" formatted="false">"Not enough available storage space."</string>
+    <string name="m_848b82159aca" formatted="false">"Core-group latency curves · T1"</string>
+    <string name="m_8589564e49b5" formatted="false">"Retry test-file cleanup"</string>
+    <string name="m_859f47678ef8" formatted="false">"I/O buffers must not exceed 256 MiB."</string>
+    <string name="m_85f9fed9c801" formatted="false">"Verified scored runs: {0} · {1}"</string>
+    <string name="m_862ad650feb8" formatted="false">"Select at least one test."</string>
+    <string name="m_868f363da18e" formatted="false">"Ready to check the environment"</string>
+    <string name="m_8694d9dcd9c4" formatted="false">"Scored %.2f ms · Total %.2f ms"</string>
+    <string name="m_86b57a9ae02e" formatted="false">"{0}Per run: {1} · Warmup: {2} · Interval: {3}"</string>
+    <string name="m_871be2654869" formatted="false">"Preparing…"</string>
+    <string name="m_8783d9db6edb" formatted="false">"Saving results"</string>
+    <string name="m_88011c572780" formatted="false">"Add a background-priority curve"</string>
+    <string name="m_88707137a619" formatted="false">"Buffered includes the file page cache; results are recorded separately."</string>
+    <string name="m_8a0302ddf022" formatted="false">"Export failed: {0}"</string>
+    <string name="m_8a839ce77df0" formatted="false">"Scanning cache"</string>
+    <string name="m_8a99be840844" formatted="false">"Stopping…"</string>
+    <string name="m_8af5c0e0f4cf" formatted="false">"Bandwidth runs: {0} · Latency runs: {1} · {2}"</string>
+    <string name="m_8bd3bb068f32" formatted="false">"By default, runs finish by count and duration. With a write limit, initialization, warmup and measurement all count toward it. The same test file is reused."</string>
+    <string name="m_8bd8dc289edf" formatted="false">"{0}/{1} runs"</string>
+    <string name="m_8c1a516dbef5" formatted="false">"Back to history"</string>
+    <string name="m_8c4a7419f98c" formatted="false">"The system did not report core groups."</string>
+    <string name="m_8ce9b91cc659" formatted="false">"GPU command creation failed"</string>
+    <string name="m_8debe502df51" formatted="false">"Approximate memory use: {0} MiB"</string>
+    <string name="m_8ef2ac2deae8" formatted="false">"Unsupported native diagnostic format"</string>
+    <string name="m_8f31a776d53b" formatted="false">"Waiting to check"</string>
+    <string name="m_90c750e36f6e" formatted="false">"{1} of {0} valid runs"</string>
+    <string name="m_91020453439d" formatted="false">"Single sample"</string>
+    <string name="m_91082a74792b" formatted="false">"Preparing test file"</string>
+    <string name="m_910887705c7a" formatted="false">"Plateau"</string>
+    <string name="m_9167ee8b67db" formatted="false">"Diagnostics"</string>
+    <string name="m_917e4ce511a4" formatted="false">"RAM_BUDGET: About {0} MiB required; current budget is {1} MiB. Select a smaller working set explicitly."</string>
+    <string name="m_91ecc525da78" formatted="false">"Bandwidth · Runs per test"</string>
+    <string name="m_9249ca6c2aab" formatted="false">"Sequential"</string>
+    <string name="m_95d6b7a416c4" formatted="false">"Saved {0} / {1} scan samples"</string>
+    <string name="m_96c4fc9e110e" formatted="false">"Block-size/latency curve"</string>
+    <string name="m_96c5161042c7" formatted="false">"GPU fractal verification failed"</string>
+    <string name="m_96fceddb8ee2" formatted="false">"8EE6 has a confirmed shared L2 across all cores. A separate CPU L3 is unconfirmed. See the block-size sweep and cache references; L2 or system cache must not be labeled L3."</string>
+    <string name="m_979a332955c8" formatted="false">"Details"</string>
+    <string name="m_97be46dba289" formatted="false">"Selected threads exceed the available CPU count."</string>
+    <string name="m_984636a8319e" formatted="false">"Chip"</string>
+    <string name="m_986626b6f51c" formatted="false">"Cumulative write limit"</string>
+    <string name="m_989de77d7077" formatted="false">"Bandwidth T{0}"</string>
+    <string name="m_98ccf32b948e" formatted="false">" (phase {0}, error code {1})"</string>
+    <string name="m_9977cb3b9e0b" formatted="false">"Initializing a {0} MiB test file"</string>
+    <string name="m_99f691f98f8c" formatted="false">"File read/write failed"</string>
+    <string name="m_9a1da4458b69" formatted="false">"GPU execution failed"</string>
+    <string name="m_9a4ba92f53f0" formatted="false">"4 KiB–{0} MiB · {1} intervals per doubling · Forward/reverse validation · Automatic rechecks and region analysis"</string>
+    <string name="m_9a7e8847ffef" formatted="false">"Initialize the file once at the start. Warmup, verification and final sync are excluded from the throughput score."</string>
+    <string name="m_9ab4623d7a7b" formatted="false">"Show raw runs"</string>
+    <string name="m_9b3c6761bc04" formatted="false">"No boundaries are inferred across missing ranges."</string>
+    <string name="m_9c12ee84a862" formatted="false">"{0} / {1} runs"</string>
+    <string name="m_9c6ddc50afa0" formatted="false">"Unreported specifications remain unknown. These values do not mean the curve has established those capacities."</string>
+    <string name="m_9ca745e4e71f" formatted="false">"valid samples"</string>
+    <string name="m_9cb715e053fb" formatted="false">"Latency · Runs"</string>
+    <string name="m_9d869777c44d" formatted="false">"Completed {0} / {1} runs"</string>
+    <string name="m_9e8ac889e229" formatted="false">"The Metal backend has no native FP64; FP32 is not substituted."</string>
+    <string name="m_9f7da13d0f16" formatted="false">"Invalid aggregation method."</string>
+    <string name="m_9fde9d4b5a2f" formatted="false">"Refs ✓"</string>
+    <string name="m_a04ab6ee833d" formatted="false">"Transition {0}: {1}–{2} · %.2f → %.2f ns"</string>
+    <string name="m_a097537d988c" formatted="false">"No valid operations were measured. Increase the duration and retry."</string>
+    <string name="m_a0c512dee60f" formatted="false">"Scored runs {0}/{1}"</string>
+    <string name="m_a17ffdc11cc5" formatted="false">"Thread count must be 1–16."</string>
+    <string name="m_a192da71860c" formatted="false">"Test file: {0}"</string>
+    <string name="m_a32d83e84245" formatted="false">"Invalid thread mode."</string>
+    <string name="m_a3572a4edd11" formatted="false">"This record is for functional verification only and does not represent iPhone/iPad performance."</string>
+    <string name="m_a38615208dd6" formatted="false">"Curve not yet fully sampled"</string>
+    <string name="m_a400359b1294" formatted="false">"Read/write verification"</string>
+    <string name="m_a5c3ffddd0b1" formatted="false">"Threads: {0}"</string>
+    <string name="m_a6635ea65640" formatted="false">"Unable to start the test right now. Try again."</string>
+    <string name="m_a6fc11029101" formatted="false">"No stable calibration result with valid core binding was obtained."</string>
+    <string name="m_a748cc074f78" formatted="false">"View details"</string>
+    <string name="m_a7e48c5429a8" formatted="false">"Tap to view results. You can stop at any time."</string>
+    <string name="m_a82b2eb1324e" formatted="false">"I/O block size"</string>
+    <string name="m_a82cebdb7836" formatted="false">"Quick six-test RAM"</string>
+    <string name="m_a92563d1479c" formatted="false">"Process ended by the user or system"</string>
+    <string name="m_a97fa26c8c08" formatted="false">"The previous run was interrupted; temporary-file cleanup failed: {0}"</string>
+    <string name="m_a9d80f95e62f" formatted="false">"Working set"</string>
+    <string name="m_aa327c632b7c" formatted="false">"Include four RAM tests (run first)"</string>
+    <string name="m_aa6477207270" formatted="false">"Screenshot failed"</string>
+    <string name="m_aa92ccbc4662" formatted="false">"Block / Q / T"</string>
+    <string name="m_aaca27fe170e" formatted="false">"Scheduling priority"</string>
+    <string name="m_ab033612a2da" formatted="false">"Level"</string>
+    <string name="m_ab4db7c78d06" formatted="false">"Unable to create the results folder."</string>
+    <string name="m_ac5f0f7030f3" formatted="false">"Conclusions describe measured access levels, not exact L1/L2/L3 capacities. Page size, TLB, prefetching and frequency can all affect curves. Reference lines show only system or catalog capacities."</string>
+    <string name="m_ad0aac9d9ee8" formatted="false">"Run only this test"</string>
+    <string name="m_ad12e355b8d5" formatted="false">"Completed this run: {0} · Submissions: {1}"</string>
+    <string name="m_ad73cb0b8a84" formatted="false">"GPU timestamps are unavailable. Timing uses submission-to-completion, including host overhead."</string>
+    <string name="m_ae7b99d68acf" formatted="false">"Region {0} ({1}): {2}–{3} · Median %.2f ns"</string>
+    <string name="m_aef184a3bb70" formatted="false">"Four RAM scores"</string>
+    <string name="m_af813a02175f" formatted="false">"{0}: {1} · {2} / {3} runs"</string>
+    <string name="m_afb2bbd126b5" formatted="false">"Repeats"</string>
+    <string name="m_b0385cfe4b42" formatted="false">"History"</string>
+    <string name="m_b07854a3f0a3" formatted="false">"{0} · {1} · {2}\n{3} · Run {4} / {5}"</string>
+    <string name="m_b0b7715bce91" formatted="false">"Cool down"</string>
+    <string name="m_b10b282b616f" formatted="false">"Auto-calibrate"</string>
+    <string name="m_b118ad4032a0" formatted="false">"Simulator: functional checks only, not device performance"</string>
+    <string name="m_b15fe673c089" formatted="false">"{0}: {1} · {2}/{3} runs"</string>
+    <string name="m_b1977ee2eafd" formatted="false">"Automatic threads"</string>
+    <string name="m_b1df535601aa" formatted="false">"GPU scores use device execution time; CPU scores use continuous measurement time."</string>
+    <string name="m_b1f1ab375a35" formatted="false">"{0} settings"</string>
+    <string name="m_b255b35d3df0" formatted="false">"System scheduling · T1"</string>
+    <string name="m_b27845f8b95e" formatted="false">"This version does not pin CPUs or lock CPU frequency. Cache curves include scheduling, address translation and prefetch effects; transitions are not labeled directly as L1/L2/L3 capacities. Metal scores use device execution time, excluding CPU and total wait time. Results from different platforms or protocols are not automatically equivalent."</string>
+    <string name="m_b293459a5303" formatted="false">"Run and latency details"</string>
+    <string name="m_b34ce4d70417" formatted="false">"Refs"</string>
+    <string name="m_b39172cac39a" formatted="false">"GPU read verification failed"</string>
+    <string name="m_b4430cb98add" formatted="false">"JNI, memory verification and clock checks passed."</string>
+    <string name="m_b4c37dc2c23a" formatted="false">"Calibrating threads and cores"</string>
+    <string name="m_b55d49e6860d" formatted="false">"INT64 integer"</string>
+    <string name="m_b58e741e6499" formatted="false">"Node stride {0} B"</string>
+    <string name="m_b64bd273c6ea" formatted="false">"Runs per direction: {0} · {1} · {2}"</string>
+    <string name="m_b657fb990d34" formatted="false">"GPGPU settings"</string>
+    <string name="m_b7e7f476b32b" formatted="false">"A test with this block size, queue depth and thread count already exists."</string>
+    <string name="m_b7f080d32fac" formatted="false">"Capability check failed: {0}"</string>
+    <string name="m_b7fd58483e92" formatted="false">"Sampling interrupted"</string>
+    <string name="m_b8816e62f9e5" formatted="false">"Raw runs and measurement conditions retained"</string>
+    <string name="m_ba6117467e72" formatted="false">"Manufacturer"</string>
+    <string name="m_bba8fe6846f0" formatted="false">"Invalid calibration duration."</string>
+    <string name="m_bbce140b7682" formatted="false">"Copy diagnostics"</string>
+    <string name="m_bbe20741baa2" formatted="false">"INT24 integer"</string>
+    <string name="m_bda213f5cf80" formatted="false">"Run {0} · Threads: {1} · {2}"</string>
+    <string name="m_be215559e2d4" formatted="false">"Warmup before each test\'s first run"</string>
+    <string name="m_be5e05024958" formatted="false">"File initialization failed."</string>
+    <string name="m_be85d2712191" formatted="false">"This record cannot be resumed. Start a new test."</string>
+    <string name="m_bfcbfa02abb4" formatted="false">"Per test · {0} · Runs: {1} · {2} per run"</string>
+    <string name="m_c098e854e60b" formatted="false">"Unconfirmed"</string>
+    <string name="m_c09e1fe8a6c2" formatted="false">"Invalid measurement or warmup duration."</string>
+    <string name="m_c0b3fbff51cc" formatted="false">"Done"</string>
+    <string name="m_c0c264f77223" formatted="false">"The file is too small for separate thread regions."</string>
+    <string name="m_c0cb94da1e33" formatted="false">"Background priority"</string>
+    <string name="m_c0fc2f139557" formatted="false">"Minimum / maximum: %.2f / %.2f {0}"</string>
+    <string name="m_c150a6c42646" formatted="false">"Run incomplete: {0}"</string>
+    <string name="m_c181ac47bb1d" formatted="false">"{0}Duration per run"</string>
+    <string name="m_c22d6262da9f" formatted="false">"Start at 4 KiB, one thread, one sweep and one sample per block, without rechecks or refinement."</string>
+    <string name="m_c3688f912b82" formatted="false">"Invalid test duration."</string>
+    <string name="m_c38cab8cb048" formatted="false">"Interval between tests"</string>
+    <string name="m_c3eb5da0453e" formatted="false">"Not tested"</string>
+    <string name="m_c45660e7a02b" formatted="false">"Resume sweep"</string>
+    <string name="m_c4c041c7374a" formatted="false">"This version uses a dependent 32-bit index chain on high-entropy data, including address calculation, with ordinary system pages. JSON retains raw timing, thread CPU time, frequency and samples. Use matching access patterns when comparing tools."</string>
+    <string name="m_c4c97d2bb07c" formatted="false">"Log ns"</string>
+    <string name="m_c4c9e32ceb88" formatted="false">"Observed CPU {0} → {1}"</string>
+    <string name="m_c68978537cf3" formatted="false">"Current device"</string>
+    <string name="m_c6a401870fba" formatted="false">"Copy the diagnostics to retain exact errors for troubleshooting."</string>
+    <string name="m_c71bf6710caa" formatted="false">"Q{0} · Measured in-flight requests per thread: max {1}, mean {2} · Sync {3} ms (separate)"</string>
+    <string name="m_c71e16294857" formatted="false">"Reliable core binding unavailable; using system scheduling · T1"</string>
+    <string name="m_c7bc208b1753" formatted="false">"Cache runs: {0}; footprints follow shared domains. RAM uses at least twice the last-level cache size; see scores for actual footprints."</string>
+    <string name="m_c7d9b81a063e" formatted="false">"Measuring"</string>
+    <string name="m_c82479f44050" formatted="false">"ROM settings"</string>
+    <string name="m_c856ee25bdc6" formatted="false">"Let the device cool down before testing."</string>
+    <string name="m_c8a64119ed95" formatted="false">"Share test screenshot"</string>
+    <string name="m_c8c88b80b218" formatted="false">"Not enough available memory. Choose the quick test."</string>
+    <string name="m_c8ce0da65773" formatted="false">"4 KiB–{0} MiB · {1} intervals per doubling · One sweep, one sample per block"</string>
+    <string name="m_c8cf0733cb3a" formatted="false">"Reference sizes: shown"</string>
+    <string name="m_c9e4e2603288" formatted="false">"One sweep, one sample per block"</string>
+    <string name="m_ca4d973c0b00" formatted="false">"Stop"</string>
+    <string name="m_ca8961cf9d82" formatted="false">"Legacy median"</string>
+    <string name="m_cb15f77ff481" formatted="false">"SoC reference"</string>
+    <string name="m_cb49f42311a0" formatted="false">"Native code crashed"</string>
+    <string name="m_cc1fac4524fd" formatted="false">"Core binding"</string>
+    <string name="m_cc78d365d7b6" formatted="false">"Sweep finished · Some ranges affected by noise"</string>
+    <string name="m_ccbf7250afd3" formatted="false">"GPGPU · Repeated measurements"</string>
+    <string name="m_cced402618e3" formatted="false">" · Read + write total"</string>
+    <string name="m_cdc46680960b" formatted="false">"DiskMark defaults"</string>
+    <string name="m_ce77bd24a3c2" formatted="false">"{0} · Runs: {1} · {2} s"</string>
+    <string name="m_cf277021bb1b" formatted="false">"NVMe parameters"</string>
+    <string name="m_cf2ea55d770b" formatted="false">"Scored runs {0}/{1} · Curve samples {2}/{3}"</string>
+    <string name="m_cf326d2cc536" formatted="false">"Transition: {0}–{1} · {2} → {3} ns"</string>
+    <string name="m_d04056bb7f1c" formatted="false">"{0}Bandwidth · Total working set"</string>
+    <string name="m_d0e5a537ba17" formatted="false">"System scheduling · "</string>
+    <string name="m_d2ad8d08d42a" formatted="false">"This run"</string>
+    <string name="m_d3174a42c726" formatted="false">"Some core groups cannot be pinned"</string>
+    <string name="m_d373809ab86b" formatted="false">"Copy"</string>
+    <string name="m_d3a18faf1859" formatted="false">"Stop test"</string>
+    <string name="m_d3fe7efd8de7" formatted="false">"Memory read"</string>
+    <string name="m_d430f15b51c9" formatted="false">"One dependent pointer chain randomly visits each cache line on a single thread."</string>
+    <string name="m_d466585af71f" formatted="false">"Not verified"</string>
+    <string name="m_d62f96646e4a" formatted="false">"A Metal kernel for this test is not yet implemented."</string>
+    <string name="m_d636cf73ad9a" formatted="false">"Native AIO queues are unavailable on this system."</string>
+    <string name="m_d6404cfc96c6" formatted="false">"Allocating memory and building access sequences"</string>
+    <string name="m_d67921a192d8" formatted="false">"Tests"</string>
+    <string name="m_d6c273e0ec9b" formatted="false">"Invalid test duration or repeat count."</string>
+    <string name="m_d77444c0b8c3" formatted="false">"Full curve not yet verified"</string>
+    <string name="m_d807482dac5c" formatted="false">"Read/write results"</string>
+    <string name="m_d82e260a405e" formatted="false">"T = threads · Total footprint · Copy counts reads + writes"</string>
+    <string name="m_d95a4e24571e" formatted="false">"Share screenshot"</string>
+    <string name="m_d9728b3b2178" formatted="false">"Per run: {0} · {1}"</string>
+    <string name="m_da0900279835" formatted="false">"Automatic thread calibration"</string>
+    <string name="m_da0fd4a6150d" formatted="false">"Invalid block size."</string>
+    <string name="m_da1dcaac7708" formatted="false">"Calibrating bandwidth threads for {0}"</string>
+    <string name="m_da4c2e8f7744" formatted="false">"Core binding unavailable; no curve generated"</string>
+    <string name="m_da5920919577" formatted="false">"Test file size"</string>
+    <string name="m_da8e80927fd7" formatted="false">"See the diagnostics below for specific failure reasons."</string>
+    <string name="m_db68f1777c59" formatted="false">"Device identifier"</string>
+    <string name="m_db7538b96322" formatted="false">"Mean"</string>
+    <string name="m_dc0f66986fc4" formatted="false">"Apple specifications"</string>
+    <string name="m_dc33506d6f13" formatted="false">"Scores copied"</string>
+    <string name="m_dcd0dc09bb78" formatted="false">"Measured range: {0}–{1}; {2} latency regions and {3} transitions, including steps and trend changes."</string>
+    <string name="m_dceda5053235" formatted="false">"STORAGE_MEMORY: I/O buffers require {0} MiB; current budget is {1} MiB."</string>
+    <string name="m_dd01dd267ba5" formatted="false">"Linear ns"</string>
+    <string name="m_dd0646b09a48" formatted="false">"PROCESS_DIED: {0}; saved samples are retained."</string>
+    <string name="m_dd3ec4711a76" formatted="false">"Test parameters"</string>
+    <string name="m_ddc00e6620a4" formatted="false">"Physical memory"</string>
+    <string name="m_ddcf6e77b0ee" formatted="false">"Preparing"</string>
+    <string name="m_de29ff706893" formatted="false">"Cleaning up files"</string>
+    <string name="m_de2af697b5c5" formatted="false">"Runs per test: {0}"</string>
+    <string name="m_dec5d5569b23" formatted="false">"Legacy protocol · Original measurements"</string>
+    <string name="m_dee4b55ef0a0" formatted="false">"Cache curve: working-set size × latency in ns; one fixed CPU per core group"</string>
+    <string name="m_df9062b60024" formatted="false">"Cache &amp; memory"</string>
+    <string name="m_dfb4855c2bb0" formatted="false">"RAM settings"</string>
+    <string name="m_dfb802238b38" formatted="false">"Enabled"</string>
+    <string name="m_dfc2e3b4df73" formatted="false">"Latency · Runs: {0}"</string>
+    <string name="m_e0549b01e813" formatted="false">"Selected working set"</string>
+    <string name="m_e1506406a5bd" formatted="false">"Device"</string>
+    <string name="m_e22847e1d869" formatted="false">"Random write"</string>
+    <string name="m_e304fbe1cea4" formatted="false">"Preparing test"</string>
+    <string name="m_e33b9aec6972" formatted="false">"WRITE_BUDGET: Cumulative writes reached the {0} limit; the test file occupies {1}."</string>
+    <string name="m_e355b1a49e05" formatted="false">"Complete by duration"</string>
+    <string name="m_e36320851da4" formatted="false">"8 B accesses; each thread writes randomly within its own region."</string>
+    <string name="m_e396f936a371" formatted="false">"The score counts reads plus writes; the working set includes source and destination."</string>
+    <string name="m_e3e42c6a76f1" formatted="false">"Latency · Total working set"</string>
+    <string name="m_e44652e35e27" formatted="false">"FP32 floating point"</string>
+    <string name="m_e4801bd01531" formatted="false">"Not enough available memory. Reduce the working set and try again."</string>
+    <string name="m_e4b60a443ba3" formatted="false">"Logical cores"</string>
+    <string name="m_e55f2ab3e631" formatted="false">"Pending"</string>
+    <string name="m_e63d157572d5" formatted="false">"RAM bandwidth {0} MiB · Latency {1} MiB / T1 · {2}\nBandwidth runs: {3} · Latency runs: {4} · {5} · {6} ms/run"</string>
+    <string name="m_e6a82a78cb4b" formatted="false">"Reference sizes: hidden"</string>
+    <string name="m_e72002112185" formatted="false">"Bandwidth: {0} threads"</string>
+    <string name="m_e7659d936ff9" formatted="false">"Process received a termination signal"</string>
+    <string name="m_e7add28c3dec" formatted="false">" · Best run"</string>
+    <string name="m_e7bece0a0387" formatted="false">"Copy scores"</string>
+    <string name="m_e8d9c616b400" formatted="false">"FP64 floating point"</string>
+    <string name="m_e8e939f31da7" formatted="false">"Waiting for valid samples"</string>
+    <string name="m_e8ebd9af7227" formatted="false">"Legacy 0.6 record: memory and crypto workloads differ, so it is not directly comparable with current scores."</string>
+    <string name="m_e908350fc3c9" formatted="false">"One sample per block"</string>
+    <string name="m_e9ff52678334" formatted="false">"GPGPU parameters are out of range."</string>
+    <string name="m_ea57239324df" formatted="false">"The write limit must cover file initialization, or be unlimited."</string>
+    <string name="m_eb20c116253a" formatted="false">"No error details provided"</string>
+    <string name="m_eb4fd500d4c1" formatted="false">"Access latency"</string>
+    <string name="m_ebbe4d407f7c" formatted="false">"System page size"</string>
+    <string name="m_ebc953d5ccb9" formatted="false">"One sweep · One sample per block · Tap a CPU for analysis"</string>
+    <string name="m_ec2501a54738" formatted="false">"Random read"</string>
+    <string name="m_ed111dab3fb2" formatted="false">"App not responding"</string>
+    <string name="m_ede31054bce7" formatted="false">"Not reported by the system"</string>
+    <string name="m_ee0d3836d307" formatted="false">"{0} · Available CPUs: {1}"</string>
+    <string name="m_eeb6728dd913" formatted="false">"Unable to create a measurement session."</string>
+    <string name="m_ef9a012bd0b7" formatted="false">"COMPUTE_BUDGET: Not enough available memory. Choose the quick test."</string>
+    <string name="m_f006455e3baf" formatted="false">"Stopped"</string>
+    <string name="m_f0e1147ac22e" formatted="false">"Cache curve + RAM"</string>
+    <string name="m_f137930818cc" formatted="false">"Score: {0}"</string>
+    <string name="m_f14d35b2a30e" formatted="false">"RAM · Read / write / latency / copy"</string>
+    <string name="m_f17d9690f67a" formatted="false">"Direct bypasses the file page cache."</string>
+    <string name="m_f1de1e2621de" formatted="false">"Preset"</string>
+    <string name="m_f28461bb49c8" formatted="false">"Completed"</string>
+    <string name="m_f2aabf4a63c7" formatted="false">"Unable to open the export file."</string>
+    <string name="m_f40894c9060f" formatted="false">"ROM · DiskMark defaults"</string>
+    <string name="m_f453e69e38b0" formatted="false">"Copy · Read + write total"</string>
+    <string name="m_f48870fee1c2" formatted="false">"Start at 4 KiB with one thread, forward/reverse sweeps and automatic rechecks."</string>
+    <string name="m_f54ac3450821" formatted="false">"Actual footprint {0} · Threads: {1}"</string>
+    <string name="m_f8abacf7c330" formatted="false">"Invalid preset parameters."</string>
+    <string name="m_f8af6f45840a" formatted="false">"Hide advanced settings"</string>
+    <string name="m_f95ea7f4c063" formatted="false">"Disabled"</string>
+    <string name="m_f980b82932a6" formatted="false">"Native self-test"</string>
+    <string name="m_f9a36b617bd1" formatted="false">"Test target"</string>
+    <string name="m_f9b3beeee21f" formatted="false">"Cache-curve parameters are out of range."</string>
+    <string name="m_f9d19345a067" formatted="false">"Interrupted"</string>
+    <string name="m_fa394156117e" formatted="false">"Quick test"</string>
+    <string name="m_fae0b6a83e05" formatted="false">"Read + write"</string>
+    <string name="m_fae55aca1c26" formatted="false">"{0} · T{1} · {2} · {3}/{4} runs"</string>
+    <string name="m_fb48367b485c" formatted="false">"Export JSON"</string>
+    <string name="m_fc0aae1e9699" formatted="false">"Run {0}: "</string>
+    <string name="m_fc107498ec60" formatted="false">"Completed {0} / {1} runs"</string>
+    <string name="m_fd522dbc2d5d" formatted="false">"GPU memory-access verification failed"</string>
+    <string name="m_fdf9f0908c5e" formatted="false">"Invalid file size or repeat count."</string>
+    <string name="m_fe1c95c43e9e" formatted="false">"Test stopped"</string>
+    <string name="m_fe35d6b48a96" formatted="false">"Curve: saved {0} / {1} scan samples"</string>
+    <string name="m_fe4cd9cc4017" formatted="false">" · Runs: {0}"</string>
+    <string name="m_fe9b4f513410" formatted="false">"RAM footprints expand with last-level cache size and thread count. See each score for the actual footprint."</string>
+    <string name="m_feacfc04ea7d" formatted="false">"All core groups complete · See details for region analysis"</string>
+    <string name="m_ffcc831ce558" formatted="false">"\nCurve: 4 KiB–{0} MiB · T1 · {1}"</string>
 </resources>

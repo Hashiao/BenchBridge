@@ -1,5 +1,7 @@
 package io.benchbridge.app.ram
 
+import io.benchbridge.app.i18n.L10n
+
 import io.benchbridge.app.hardware.CpuCore
 import io.benchbridge.app.hardware.CpuTopology
 import org.json.JSONArray
@@ -62,7 +64,7 @@ object CacheProbe {
         val limit=minOf(config.curveMaxMiB*1048576L,((memoryBudget-40L*1048576).coerceAtLeast(0)*8/9)/256*256)
         val cores=representatives(topology)
         val signature=cores.joinToString(";"){"${it.id}:${it.maxKhz}:${it.frequencyDomain}"}
-        if(previous!=null)require(previous.optString("method")==method&&previous.optString("topology_signature")==signature&&previous.optInt("steps_per_octave")==config.curveSteps&&previous.optLong("requested_maximum_bytes")==config.curveMaxMiB*1048576L&&previous.optLong("maximum_working_set_bytes")<=limit) { "核心环境、内存预算或测试协议变化，请重新测试" }
+        if(previous!=null)require(previous.optString("method")==method&&previous.optString("topology_signature")==signature&&previous.optInt("steps_per_octave")==config.curveSteps&&previous.optLong("requested_maximum_bytes")==config.curveMaxMiB*1048576L&&previous.optLong("maximum_working_set_bytes")<=limit) { L10n.t("m_02157fab8a36") }
         val report=previous?:JSONObject().put("method",method).put("groups",JSONArray()).put("scored",false)
             .put("topology_signature",signature).put("steps_per_octave",config.curveSteps).put("passes",passes)
             .put("sampling_mode",if(single)"single-sample"else"bidirectional-repeated")
@@ -73,7 +75,7 @@ object CacheProbe {
         val groups=report.getJSONArray("groups")
         val commonGrid=sizes(limit,if(single)emptyList()else topology.caches.map { it.bytes },config.curveSteps)
         fun unavailable(g:JSONObject) {
-            val message="该核心组无法可靠固定绑定；仅保留此前已验证的点，本次不作完整曲线结论"
+            val message=L10n.t("m_039a485782b6")
             g.put("state","AFFINITY_UNAVAILABLE").put("affinity_state","unavailable").put("reason",message)
                 .put("transitions",JSONArray()).put("analysis",JSONObject().put("status","AFFINITY_UNAVAILABLE").put("summary",message))
         }
@@ -181,7 +183,7 @@ object CacheProbe {
             val analysis=LatencyAnalysis.analyze(finalPoints,grid(g))
             if(single) {
                 analysis.put("sampling_mode","single-sample").put("summary",analysis.optString("summary")
-                    .replace("点通过验证","个有效采样点").replace("稳定点","有效点").replace("完整曲线尚未通过验证","曲线尚未完整采集"))
+                    .replace(L10n.t("m_5393322e98bb"),L10n.t("m_9ca745e4e71f")).replace(L10n.t("m_5189bd4ff280"),L10n.t("m_429db0139d03")).replace(L10n.t("m_d77444c0b8c3"),L10n.t("m_a38615208dd6")))
                 val edges=analysis.getJSONArray("transitions")
                 for(e in 0 until edges.length())edges.getJSONObject(e).put("confidence","single-sample")
             }

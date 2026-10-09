@@ -20,19 +20,26 @@ struct ReportStore: Sendable {
     }
     func recover() throws {
         for var report in all() where report.state == "running" {
-            report.state = "interrupted"; report.finishedAt = Date(); report.error = "上次运行未正常结束，已保存的采样仍保留"
+            report.state = "interrupted"; report.finishedAt = Date(); report.error = L10n.t("m_7f984426d344")
             let temporary = FileManager.default.temporaryDirectory.appendingPathComponent("BenchBridgeIO-" + report.id.uuidString)
             if FileManager.default.fileExists(atPath: temporary.path) {
                 do { try FileManager.default.removeItem(at: temporary) }
-                catch { report.error = "上次运行中断，临时文件回收失败：\(error.localizedDescription)" }
+                catch { report.error = L10n.t("m_a97fa26c8c08", error.localizedDescription) }
             }
             try save(report)
         }
     }
     func export(_ report: BenchReport) throws -> URL {
+        // 保留原始测量，另附当前语言摘要。 / Preserve raw measurements and add a summary in the current language.
+        var exported = report
+        exported.exportLocale = L10n.current.rawValue
+        exported.localizedSummary = ([report.family.title, report.statusTitle, report.config.summary(report.family)] + report.scores.map { item in
+            let value = item.score.map { String(format: "%.2f", $0) } ?? "—"
+            return "\(L10n.display(item.title)): \(value) \(item.unit)"
+        } + [L10n.display(report.error ?? "")]).joined(separator: "\n")
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent("BenchBridgeExports", isDirectory: true)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         let url = folder.appendingPathComponent("BenchBridge_\(report.family.title)_\(report.id.uuidString).json")
-        try Self.encoder().encode(report).write(to: url, options: .atomic); return url
+        try Self.encoder().encode(exported).write(to: url, options: .atomic); return url
     }
 }

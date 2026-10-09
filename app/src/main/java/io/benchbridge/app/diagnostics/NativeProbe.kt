@@ -1,5 +1,7 @@
 package io.benchbridge.app.diagnostics
 
+import io.benchbridge.app.i18n.L10n
+
 import org.json.JSONObject
 
 data class NativeReport(
@@ -19,9 +21,9 @@ data class NativeReport(
     companion object {
         fun decode(rawJson: String): NativeReport {
             val json = JSONObject(rawJson)
-            require(json.getInt("schemaVersion") == 1) { "不支持的原生诊断格式" }
+            require(json.getInt("schemaVersion") == 1) { L10n.t("m_8ef2ac2deae8") }
             if (json.has("error")) {
-                error("原生自检失败：${json.getString("error")}")
+                error(L10n.t("m_4bc5466918c5", json.getString("error")))
             }
             val pageSize = json.getLong("pageSizeBytes")
             val cppStandard = json.getLong("cppStandard")

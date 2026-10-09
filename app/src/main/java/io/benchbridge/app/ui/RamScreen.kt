@@ -1,5 +1,7 @@
 package io.benchbridge.app.ui
 
+import io.benchbridge.app.i18n.L10n
+
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -89,7 +91,7 @@ fun BenchBridgeApp(state: RamUiState, model: RamViewModel) {
             } catch (error: Exception) {
                 if (pendingExport.isNotEmpty()) model.exportPrepared(null, pendingExport)
                 pendingExport = ""
-                snackbar.showSnackbar(error.message ?: "导出准备失败")
+                snackbar.showSnackbar(error.message ?: L10n.t("m_27fae32df122"))
             } finally { preparingExport = false }
         }
     }
@@ -102,14 +104,14 @@ fun BenchBridgeApp(state: RamUiState, model: RamViewModel) {
     val share: () -> Unit = {
         if (!sharing && !state.running) scope.launch {
             sharing = true
-            try { shareScreenshot(context) } catch (error: Exception) { snackbar.showSnackbar(error.message ?: "截图失败") }
+            try { shareScreenshot(context) } catch (error: Exception) { snackbar.showSnackbar(error.message ?: L10n.t("m_aa6477207270")) }
             finally { sharing = false }
         }
     }
     Scaffold(modifier = Modifier.semantics { testTagsAsResourceId = true }, snackbarHost = { SnackbarHost(snackbar) }, topBar = {
         if (settingsTab >= 0 || details) Row(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(if (details) "测试详情" else when(settingsTab){0->"RAM 设置";4->"GPGPU 设置";else->"ROM 设置"}, Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
-            TextButton(onClick = { settingsTab = -1; details = false }, modifier = Modifier.testTag("settings_done")) { Text("完成") }
+            Text(L10n.display(if (details) L10n.t("m_38ab936eb50d") else when(settingsTab){0->L10n.t("m_dfb4855c2bb0");4->L10n.t("m_b657fb990d34");else->L10n.t("m_c82479f44050")}), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+            TextButton(onClick = { settingsTab = -1; details = false }, modifier = Modifier.testTag("settings_done")) { Text(L10n.t("m_c0b3fbff51cc")) }
         }
     }, bottomBar = {
         if (settingsTab < 0 && !details)
@@ -118,28 +120,28 @@ fun BenchBridgeApp(state: RamUiState, model: RamViewModel) {
                 Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
                     Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(if (state.cancelling) "正在停止…" else "${when(state.activeFamily){"compute"->"GPGPU";"storage"->"ROM";else->"RAM"}} 测试中", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                        Text(L10n.display(if (state.cancelling) L10n.t("m_8a99be840844") else L10n.t("m_5760a00e6b8f", when(state.activeFamily){"compute"->"GPGPU";"storage"->"ROM";else->"RAM"})), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                         TextButton(onClick = { model.cancel() }, enabled = !state.cancelling,
-                            modifier = Modifier.testTag("ram_stop")) { Text("停止") }
+                            modifier = Modifier.testTag("ram_stop")) { Text(L10n.t("m_ca4d973c0b00")) }
                     }
                 }
             } else if (tab in listOf(0,1,4) || displayed != null) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     if (displayed != null) FilledTonalButton(onClick = share, enabled = !sharing, modifier = Modifier.weight(1f).testTag("share_screenshot"),
-                        contentPadding = PaddingValues(vertical = 14.dp)) { Text("分享截图") }
-                    if(displayed!=null && CacheProbe.canResume(displayed))Button(onClick={model.resumeCurve(displayed)},modifier=Modifier.weight(1f).testTag("curve_resume"),contentPadding=PaddingValues(vertical=14.dp)){Text("继续扫描")}
+                        contentPadding = PaddingValues(vertical = 14.dp)) { Text(L10n.t("m_d95a4e24571e")) }
+                    if(displayed!=null && CacheProbe.canResume(displayed))Button(onClick={model.resumeCurve(displayed)},modifier=Modifier.weight(1f).testTag("curve_resume"),contentPadding=PaddingValues(vertical=14.dp)){Text(L10n.t("m_c45660e7a02b"))}
                     if (tab in listOf(0,1,4)) Button(onClick = startBenchmark,
                         enabled = when(tab){4->state.computeConfig.kinds.isNotEmpty()&&state.computeConfig.targets.isNotEmpty();1->state.storageConfig.cases.isNotEmpty();else->state.config.kinds.isNotEmpty()},
                         modifier = Modifier.weight(1f).testTag(when(tab){4->"compute_start";1->"storage_start";else->"ram_start"}),
-                        contentPadding = PaddingValues(vertical = 14.dp)) { Text(if (displayed == null) "开始测试" else "重新测试") }
+                        contentPadding = PaddingValues(vertical = 14.dp)) { Text(L10n.display(if (displayed == null) L10n.t("m_69ed375721d9") else L10n.t("m_38a226d180d3"))) }
                 }
             }
             NavigationBar {
-                listOf(0 to "RAM",1 to "ROM",4 to "GPGPU",2 to "历史",3 to "设备").forEach { (index,title) ->
+                listOf(0 to "RAM",1 to "ROM",4 to "GPGPU",2 to L10n.t("m_b0385cfe4b42"),3 to L10n.t("m_e1506406a5bd")).forEach { (index,title) ->
                     NavigationBarItem(selected = tab == index, enabled = !state.running || index == tab,
                         onClick = { tab = index; if (index == 2) model.refreshHistory() },
                         icon = { Icon(painterResource(listOf(R.drawable.ic_memory, R.drawable.ic_storage, R.drawable.ic_history, R.drawable.ic_device,R.drawable.ic_compute)[index]), null) },
-                        label = { Text(title) }, modifier = Modifier.testTag("tab_$index"))
+                        label = { Text(L10n.display(title)) }, modifier = Modifier.testTag("tab_$index"))
                 }
             }
         }
@@ -178,8 +180,8 @@ private fun DetailedReportPage(report: JSONObject, model: RamViewModel, onExport
         } else {
             item { RunProgress(report, false) }
             val config = RamConfig.fromJson(report.getJSONObject("config").toString())
-            if (config.curveMode) item { SectionCard("RAM 四项摘要") { RamSummaryRow(report, config) } }
-            item { SectionCard("本次参数") { Text(RamConfig.fromJson(report.getJSONObject("config").toString()).summary,
+            if (config.curveMode) item { SectionCard(L10n.t("m_aef184a3bb70")) { RamSummaryRow(report, config) } }
+            item { SectionCard(L10n.t("m_83781ae2b9f7")) { Text(L10n.display(RamConfig.fromJson(report.getJSONObject("config").toString()).summary),
                 style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("ram_result_config")) } }
             if (config.cacheMatrix) item { CacheTopologyDetails(report) }
             config.scoredLevels.forEach { level ->
@@ -192,17 +194,17 @@ private fun DetailedReportPage(report: JSONObject, model: RamViewModel, onExport
 @Composable
 internal fun RunProgress(report: JSONObject, running: Boolean) {
     SectionCard(RamResults.stateLabel(report)) {
-        Text(if(report.optInt("total_rounds")==0 && report.has("cache_probe"))report.getJSONObject("cache_probe").let { "已保存 ${it.optInt("completed_points")} / ${it.optInt("planned_points")} 个扫描点次" }else "已完成 ${report.optInt("completed_rounds")} / ${report.optInt("total_rounds")} 轮", modifier = Modifier.testTag("run_state_${report.optString("state")}"))
+        Text(L10n.display(if(report.optInt("total_rounds")==0 && report.has("cache_probe"))report.getJSONObject("cache_probe").let { L10n.t("m_95d6b7a416c4", it.optInt("completed_points"), it.optInt("planned_points")) }else L10n.t("m_fc107498ec60", report.optInt("completed_rounds"), report.optInt("total_rounds"))), modifier = Modifier.testTag("run_state_${report.optString("state")}"))
         if(report.optInt("total_rounds")>0)report.optJSONObject("cache_probe")?.let { probe->
-            Text("曲线已保存 ${probe.optInt("completed_points")} / ${probe.optInt("planned_points")} 个扫描点次",style=MaterialTheme.typography.bodySmall)
+            Text(L10n.t("m_fe35d6b48a96", probe.optInt("completed_points"), probe.optInt("planned_points")),style=MaterialTheme.typography.bodySmall)
         }
         if (running) {
             val kind = RamKind.entries.getOrNull(report.optInt("current_kind", -1))
-            Text("${kind?.title ?: "RAM"} · 第 ${report.optInt("current_round", 1)} 轮 · ${RamResults.phaseLabel(report.optString("phase"))}", style = MaterialTheme.typography.bodyMedium)
+            Text(L10n.t("m_3da99e0ea2cc", kind?.title ?: "RAM", report.optInt("current_round", 1), RamResults.phaseLabel(report.optString("phase"))), style = MaterialTheme.typography.bodyMedium)
             LinearProgressIndicator(progress = { report.optInt("completed_rounds").toFloat() / report.optInt("total_rounds", 1).coerceAtLeast(1) }, modifier = Modifier.fillMaxWidth())
         }
-        if (!report.isNull("error")) Text(report.optString("error"), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-        if (report.optBoolean("persistence_error")) Text("结果未写入历史，请导出保存。", style = MaterialTheme.typography.bodySmall)
+        if (!report.isNull("error")) Text(L10n.display(report.optString("error")), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        if (report.optBoolean("persistence_error")) Text(L10n.t("m_3ee46fa2b072"), style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -211,38 +213,38 @@ private fun ResultCard(report: JSONObject, kind: RamKind, level: String = "RAM")
     var expanded by rememberSaveable(report.optString("run_id"), level, kind.code) { mutableStateOf(false) }
     val stats = RamResults.statistics(report, kind.code, level)
     val cell = RamResults.cell(report, level, kind.code)
-    SectionCard("$level · " + if (kind == RamKind.COPY) "复制 · 读写合计" else kind.title) {
+    SectionCard("$level · " + if (kind == RamKind.COPY) L10n.t("m_f453e69e38b0") else kind.title) {
         cell?.optJSONObject("plan")?.let { plan ->
-            Text("T${plan.optInt("threads")} · ${RamResults.bindingLabel(plan)} · 总工作集 ${BenchmarkFormat.bytes(plan.optLong("working_set_bytes"))}", style = MaterialTheme.typography.bodySmall)
-            Text("每线程 ${plan.optJSONArray("per_thread_working_set_bytes")} B · ${BenchmarkFormat.duration(plan.optInt("duration_ms"))} × ${plan.optInt("rounds")}", style = MaterialTheme.typography.bodySmall)
-            if (kind == RamKind.LATENCY) Text("节点间隔 ${plan.optInt("node_stride_bytes")} B", style = MaterialTheme.typography.bodySmall)
+            Text(L10n.t("m_57aa53a8194e", plan.optInt("threads"), RamResults.bindingLabel(plan), BenchmarkFormat.bytes(plan.optLong("working_set_bytes"))), style = MaterialTheme.typography.bodySmall)
+            Text(L10n.t("m_7233aa1d2c0b", plan.optJSONArray("per_thread_working_set_bytes"), BenchmarkFormat.duration(plan.optInt("duration_ms")), plan.optInt("rounds")), style = MaterialTheme.typography.bodySmall)
+            if (kind == RamKind.LATENCY) Text(L10n.t("m_b58e741e6499", plan.optInt("node_stride_bytes")), style = MaterialTheme.typography.bodySmall)
         }
-        cell?.takeIf { it.has("reason") }?.let { Text(it.optString("reason"), style = MaterialTheme.typography.bodySmall) }
-        cell?.takeIf { it.has("binding_notice") }?.let { Text(it.optString("binding_notice"), style = MaterialTheme.typography.bodySmall) }
+        cell?.takeIf { it.has("reason") }?.let { Text(L10n.display(it.optString("reason")), style = MaterialTheme.typography.bodySmall) }
+        cell?.takeIf { it.has("binding_notice") }?.let { Text(L10n.display(it.optString("binding_notice")), style = MaterialTheme.typography.bodySmall) }
         cell?.optJSONObject("calibration")?.let { calibration ->
             val candidates = calibration.optJSONArray("candidates")
-            Text("校准 ${candidates?.length() ?: 0} 个组合 · 每组合 2–3 次 × ${calibration.optInt("trial_ms")} ms", style = MaterialTheme.typography.bodySmall)
-            Text("绑核、工作集及各次校准结果保存在导出 JSON 中。", style = MaterialTheme.typography.bodySmall)
+            Text(L10n.t("m_6d1445a23b6c", candidates?.length() ?: 0, calibration.optInt("trial_ms")), style = MaterialTheme.typography.bodySmall)
+            Text(L10n.t("m_6ccc37f270d5"), style = MaterialTheme.typography.bodySmall)
         }
         Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stats?.let { "%.2f".format(Locale.US, it.score * if (kind == RamKind.LATENCY) 1 else 1000) } ?: "—", style = MaterialTheme.typography.headlineLarge,
+            Text(L10n.display(stats?.let { "%.2f".format(Locale.US, it.score * if (kind == RamKind.LATENCY) 1 else 1000) } ?: "—"), style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary, modifier = Modifier.testTag("result_${kind.code}"))
-            Text(if (kind == RamKind.LATENCY) "ns" else "MB/s", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 6.dp))
+            Text(L10n.display(if (kind == RamKind.LATENCY) "ns" else "MB/s"), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 6.dp))
         }
         stats?.let {
-            Text("${it.count} 个有效轮次的${RamResults.statisticLabel(report)}" + (it.cvPercent?.let { cv -> " · CV %.1f%%".format(Locale.US, cv) } ?: ""), style = MaterialTheme.typography.bodySmall)
-            TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "收起原始轮次" else "查看原始轮次") }
+            Text(L10n.t("m_90c750e36f6e", it.count, RamResults.statisticLabel(report)) + (it.cvPercent?.let { cv -> " · CV %.1f%%".format(Locale.US, cv) } ?: ""), style = MaterialTheme.typography.bodySmall)
+            TextButton(onClick = { expanded = !expanded }) { Text(L10n.display(if (expanded) L10n.t("m_40d4901130a3") else L10n.t("m_9ab4623d7a7b"))) }
             if (expanded) {
-                Text(if (kind == RamKind.LATENCY && cell != null) "单线程依赖指针链，随机遍历每条缓存行。" else kind.explanation, style = MaterialTheme.typography.bodySmall)
-                if (kind == RamKind.COPY) Text("单向复制量：%.2f MB/s".format(Locale.US, it.score * 500), style = MaterialTheme.typography.bodySmall)
+                Text(L10n.display(if (kind == RamKind.LATENCY && cell != null) L10n.t("m_d430f15b51c9") else kind.explanation), style = MaterialTheme.typography.bodySmall)
+                if (kind == RamKind.COPY) Text(L10n.t("m_79cb684b679f").format(Locale.US, it.score * 500), style = MaterialTheme.typography.bodySmall)
                 val scale = if (kind == RamKind.LATENCY) 1 else 1000
                 val unit = if (kind == RamKind.LATENCY) "ns" else "MB/s"
-                Text("最小 / 最大：%.2f / %.2f $unit".format(Locale.US, it.minimum * scale, it.maximum * scale), style = MaterialTheme.typography.bodySmall)
+                Text(L10n.t("m_c0fc2f139557", unit).format(Locale.US, it.minimum * scale, it.maximum * scale), style = MaterialTheme.typography.bodySmall)
                 RamResults.validRounds(report, kind.code, level).forEach { sample ->
                 HorizontalDivider()
-                Text("第 ${sample.getInt("round")} 轮 · ${sample.getInt("threads")} 线程 · ${BenchmarkFormat.bytes(sample.getLong("working_set_bytes"))}", style = MaterialTheme.typography.labelLarge)
-                Text("${sample.getLong("operations")} 次访问 · ${sample.getLong("payload_bytes")} B\n${sample.getLong("elapsed_ns")} ns · 校验通过", style = MaterialTheme.typography.bodySmall)
-                if (cell != null) Text("实际 CPU ${sample.optJSONArray("observed_start_cpus")} → ${sample.optJSONArray("observed_end_cpus")}", style = MaterialTheme.typography.bodySmall)
+                Text(L10n.t("m_bda213f5cf80", sample.getInt("round"), sample.getInt("threads"), BenchmarkFormat.bytes(sample.getLong("working_set_bytes"))), style = MaterialTheme.typography.labelLarge)
+                Text(L10n.t("m_5b8bc489fac4", sample.getLong("operations"), sample.getLong("payload_bytes"), sample.getLong("elapsed_ns")), style = MaterialTheme.typography.bodySmall)
+                if (cell != null) Text(L10n.t("m_c4c9e32ceb88", sample.optJSONArray("observed_start_cpus"), sample.optJSONArray("observed_end_cpus")), style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
@@ -256,42 +258,42 @@ internal fun ReportActions(report: JSONObject, onExport: (JSONObject) -> Unit) {
         FilledTonalButton(onClick = {
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             clipboard.setPrimaryClip(ClipData.newPlainText("BenchBridge result", resultText(report)))
-            Toast.makeText(context, "成绩已复制", Toast.LENGTH_SHORT).show()
-        }, modifier = Modifier.weight(1f).testTag("copy_scores")) { Text("复制成绩") }
-        FilledTonalButton(onClick = { onExport(report) }, modifier = Modifier.weight(1f)) { Text("导出 JSON") }
+            Toast.makeText(context, L10n.t("m_dc33506d6f13"), Toast.LENGTH_SHORT).show()
+        }, modifier = Modifier.weight(1f).testTag("copy_scores")) { Text(L10n.t("m_e7bece0a0387")) }
+        FilledTonalButton(onClick = { onExport(report) }, modifier = Modifier.weight(1f)) { Text(L10n.t("m_fb48367b485c")) }
     }
 }
 
 @Composable
 private fun HistoryPage(state: RamUiState, model: RamViewModel, onExport: (JSONObject) -> Unit) {
-    val locale = LocalLocale.current.platformLocale
+    val locale = Locale.forLanguageTag(L10n.tag)
     LazyColumn(Modifier.widthIn(max = 760.dp).fillMaxSize().testTag("history_page"), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        item { PageTitle("测试历史", "保留原始轮次与测量条件") }
+        item { PageTitle(L10n.t("m_4d0d5d853d24"), L10n.t("m_b8816e62f9e5")) }
         val selected = state.selectedHistory
         if (selected == null) {
-            if (state.history.isEmpty()) item { SectionCard("还没有测试记录") { Text("完成测试后，结果会保存在这里。") } }
+            if (state.history.isEmpty()) item { SectionCard(L10n.t("m_203b5978f99b")) { Text(L10n.t("m_4820fe3a6878")) } }
             state.history.forEach { report -> item {
                 Card(onClick = { model.selectHistory(report) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
                     Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         val disk = report.optString("kind") == "storage_benchmark"
                         val compute=report.optString("kind")=="compute_benchmark"
-                        Text("${if(compute)"GPGPU"else if (disk) "ROM" else "RAM"} · ${RamResults.stateLabel(report)}", style = MaterialTheme.typography.titleMedium)
-                        Text(SimpleDateFormat("MM-dd HH:mm:ss", locale).format(Date(report.optLong("started_at_ms"))), style = MaterialTheme.typography.bodySmall)
+                        Text(L10n.display("${if(compute)"GPGPU"else if (disk) "ROM" else "RAM"} · ${RamResults.stateLabel(report)}"), style = MaterialTheme.typography.titleMedium)
+                        Text(L10n.display(SimpleDateFormat("MM-dd HH:mm:ss", locale).format(Date(report.optLong("started_at_ms")))), style = MaterialTheme.typography.bodySmall)
                         val config = report.getJSONObject("config")
-                        Text(if(compute)ComputeConfig.fromJson(config.toString()).summary else if (disk) StorageConfig.fromJson(config.toString()).summary
-                            else RamConfig.fromJson(config.toString()).summary, style = MaterialTheme.typography.bodyMedium)
+                        Text(L10n.display(if(compute)ComputeConfig.fromJson(config.toString()).summary else if (disk) StorageConfig.fromJson(config.toString()).summary
+                            else RamConfig.fromJson(config.toString()).summary), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             } }
         } else {
-            item { TextButton(onClick = { model.selectHistory(null) }) { Text("返回历史列表") } }
+            item { TextButton(onClick = { model.selectHistory(null) }) { Text(L10n.t("m_8c1a516dbef5")) } }
             if (selected.optString("kind") == "storage_benchmark") {
                 item { StorageSummary(selected, false, model) }
                 item { ReportActions(selected, onExport) }
                 item { StorageMatrix(selected, null) }
             } else {
                 item { RunProgress(selected, false) }
-                item { SectionCard("本次参数") { Text(RamConfig.fromJson(selected.getJSONObject("config").toString()).summary,
+                item { SectionCard(L10n.t("m_83781ae2b9f7")) { Text(L10n.display(RamConfig.fromJson(selected.getJSONObject("config").toString()).summary),
                     style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("ram_result_config")) } }
                 item { ReportActions(selected, onExport) }
                 val kinds = selected.getJSONObject("config").getJSONArray("kinds")
@@ -304,15 +306,15 @@ private fun HistoryPage(state: RamUiState, model: RamViewModel, onExport: (JSONO
 @Composable
 internal fun PageTitle(title: String, subtitle: String) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
-        Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(L10n.display(title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold)
+        Text(L10n.display(subtitle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 @Composable
 internal fun SectionCard(title: String, content: @Composable () -> Unit) {
     Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(L10n.display(title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             content()
         }
     }
@@ -320,6 +322,6 @@ internal fun SectionCard(title: String, content: @Composable () -> Unit) {
 @Composable
 internal fun ErrorCard(error: String) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
-        Text(error, Modifier.padding(18.dp), color = MaterialTheme.colorScheme.onErrorContainer)
+        Text(L10n.display(error), Modifier.padding(18.dp), color = MaterialTheme.colorScheme.onErrorContainer)
     }
 }

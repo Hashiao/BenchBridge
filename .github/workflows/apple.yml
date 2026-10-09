@@ -2,9 +2,9 @@ name: Apple build and simulator tests
 on:
   push:
     branches: [main]
-    paths: ['ios/**', 'tools/*apple*', '.github/workflows/apple.yml', 'app/src/main/cpp/ram_kernels*', 'app/src/main/cpp/compute/compute_cpu_kernels*', 'app/src/main/cpp/compute/compute_common*']
+    paths: ['ios/**', 'localization/**', 'tools/*localization*', 'tools/*apple*', '.github/workflows/apple.yml', 'app/src/main/cpp/ram_kernels*', 'app/src/main/cpp/compute/compute_cpu_kernels*', 'app/src/main/cpp/compute/compute_common*']
   pull_request:
-    paths: ['ios/**', 'tools/*apple*', '.github/workflows/apple.yml']
+    paths: ['ios/**', 'localization/**', 'tools/*localization*', 'tools/*apple*', '.github/workflows/apple.yml']
   workflow_dispatch:
 permissions:
   contents: read

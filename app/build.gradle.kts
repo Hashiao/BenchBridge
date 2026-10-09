@@ -20,8 +20,8 @@ android {
         applicationId = "io.benchbridge.app"
         minSdk = 29
         targetSdk = 37
-        versionCode = 20
-        versionName = "0.12.4"
+        versionCode = 21
+        versionName = "0.13.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         shaders { glslcArgs += listOf("-O", "--target-env=vulkan1.0") }
 
@@ -78,6 +78,10 @@ android {
         aidl = true
         shaders = true
     }
+
+    // 三种语言随包提供，切换系统语言时无需下载语言拆分包。
+    // Ship all three languages together so system-language changes work offline.
+    bundle { language { enableSplit = false } }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

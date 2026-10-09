@@ -15,12 +15,12 @@ struct RootView: View {
                     ReportDetails(report: report, store: model.store)
                 } label: {
                     VStack(alignment: .leading) {
-                        Text("\(report.family.title) · \(report.statusTitle)")
-                        Text(report.startedAt.formatted(date: .abbreviated, time: .shortened)).font(.caption).foregroundStyle(.secondary)
+                        Text(L10n.display("\(report.family.title) · \(report.statusTitle)"))
+                        Text(L10n.display(report.startedAt.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(L10n.locale)))).font(.caption).foregroundStyle(.secondary)
                     }
-                } }.navigationTitle("历史").onAppear { model.refresh() }.accessibilityIdentifier("history-list")
-            }.tabItem { Label("历史", systemImage: "clock") }
-            NavigationStack { DevicePage(info: DeviceInfo.collect()) }.tabItem { Label("设备", systemImage: "iphone.and.ipad") }
+                } }.navigationTitle(L10n.t("m_b0385cfe4b42")).onAppear { model.refresh() }.accessibilityIdentifier("history-list")
+            }.tabItem { Label(L10n.t("m_b0385cfe4b42"), systemImage: "clock") }
+            NavigationStack { DevicePage(info: DeviceInfo.collect()) }.tabItem { Label(L10n.t("m_e1506406a5bd"), systemImage: "iphone.and.ipad") }
         }.tint(.indigo)
     }
 }
@@ -34,61 +34,61 @@ private struct Dashboard: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                if DeviceInfo.collect().simulator { Label("模拟器仅验证功能，数值不代表手机性能", systemImage: "desktopcomputer").font(.caption).foregroundStyle(.orange).accessibilityIdentifier("simulator-warning") }
+                if DeviceInfo.collect().simulator { Label(L10n.t("m_b118ad4032a0"), systemImage: "desktopcomputer").font(.caption).foregroundStyle(.orange).accessibilityIdentifier("simulator-warning") }
                 let device = report?.device ?? DeviceInfo.collect()
-                Text(device.displayName + (device.modelReference.map { " · \($0.soc)" } ?? "")).font(.subheadline)
-                Text(parameters.summary(family)).font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("config-summary")
-                Text(report?.progress ?? "准备就绪").font(.subheadline).foregroundStyle(.indigo).accessibilityIdentifier("run-progress")
+                Text(L10n.display(device.displayName + (device.modelReference.map { " · \($0.soc)" } ?? ""))).font(.subheadline)
+                Text(L10n.display(parameters.summary(family))).font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("config-summary")
+                Text(L10n.display(report?.progress ?? L10n.t("m_1bd1893c0900"))).font(.subheadline).foregroundStyle(.indigo).accessibilityIdentifier("run-progress")
                 if let report {
-                    Text("正式轮次 \(report.completedRounds)/\(report.plannedRounds)" + (report.curves.isEmpty ? "" : " · 曲线 \(report.curvePairs)/\(report.plannedCurvePairs) 点次"))
+                    Text(L10n.t("m_a0c512dee60f", report.completedRounds, report.plannedRounds) + (report.curves.isEmpty ? "" : L10n.t("m_48ecc65b106e", report.curvePairs, report.plannedCurvePairs)))
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 if family == .memory {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("RAM · 读取 / 写入 / 延迟 / 拷贝").font(.caption)
+                        Text(L10n.t("m_f14d35b2a30e")).font(.caption)
                         RAMRow(scores: report?.scores ?? BenchWorker.scorePlan(.memory, config: model.config))
                         Divider()
                         CurveChart(groups: report?.curves ?? [], maximumMiB: report?.config.cacheMaxMiB ?? model.config.cacheMaxMiB,
                                    height: sizeClass == .regular ? 340 : 200)
                     }.card()
-                    Text("按任务优先级扫描，未固定到某颗 CPU；优先级曲线不能直接当作大小核曲线。").font(.caption).foregroundStyle(.secondary)
+                    Text(L10n.t("m_32791febab2e")).font(.caption).foregroundStyle(.secondary)
                 } else if family == .storage {
                     VStack(alignment: .leading, spacing: 16) {
                         StorageBoard(scores: report?.scores ?? BenchWorker.scorePlan(.storage, config: model.config))
-                        Text(parameters.storage == nil ? "旧协议：Q1T1，写入包含最终同步，中位数。" : "显示最佳完整轮次；最终同步另计。Q 为应用提交的未完成请求数，系统缓存提示不代表裸闪存性能。")
+                        Text(L10n.display(parameters.storage == nil ? L10n.t("m_7722c7c5789d") : L10n.t("m_04f95c015bbb")))
                             .font(.caption).foregroundStyle(.secondary)
                     }.card()
                 } else {
                     VStack(spacing: 12) {
-                        HStack { Text("项目").frame(maxWidth: .infinity, alignment: .leading); Text("CPU").frame(width: 90); Text("GPU").frame(width: 90) }.font(.caption)
+                        HStack { Text(L10n.t("m_79f326be4409")).frame(maxWidth: .infinity, alignment: .leading); Text(L10n.display("CPU")).frame(width: 90); Text(L10n.display("GPU")).frame(width: 90) }.font(.caption)
                         ForEach(0..<12, id: \.self) { kind in
                             let plan = report?.scores ?? BenchWorker.scorePlan(.compute)
                             HStack {
-                                Text(BenchWorker.computeNames[kind]).font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
+                                Text(L10n.display(BenchWorker.computeNames[kind])).font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
                                 ScoreCell(item: plan.first { $0.id == "cpu-\(kind)" }!).frame(width: 90)
                                 ScoreCell(item: plan.first { $0.id == "gpu-\(kind)" }!).frame(width: 90)
                             }; Divider()
                         }
-                        Text("GPU 主值使用 Metal 设备时间；完整等待耗时另存。未实现与设备能力限制均明确说明。").font(.caption).foregroundStyle(.secondary)
+                        Text(L10n.t("m_6aa2ece5a458")).font(.caption).foregroundStyle(.secondary)
                     }.card()
                 }
-                if let error = report?.error ?? model.error { Text(error).font(.caption).foregroundStyle(.red) }
+                if let error = report?.error ?? model.error { Text(L10n.display(error)).font(.caption).foregroundStyle(.red) }
                 if let report, report.state != "running" {
-                    NavigationLink("查看详情", destination: ReportDetails(report: report, store: model.store)).accessibilityIdentifier("show-details")
+                    NavigationLink(L10n.t("m_a748cc074f78"), destination: ReportDetails(report: report, store: model.store)).accessibilityIdentifier("show-details")
                     ExportButton(report: report, store: model.store)
                 }
-                Text("BenchBridge \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "") · iPhone / iPad")
+                Text(L10n.display("BenchBridge \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "") · iPhone / iPad"))
                     .font(.caption2).foregroundStyle(.secondary)
             }.padding().frame(maxWidth: 1000).frame(maxWidth: .infinity)
         }
-        .navigationTitle(family == .memory ? "缓存与内存" : family == .storage ? "存储测试" : "计算测试")
+        .navigationTitle(family == .memory ? L10n.t("m_df9062b60024") : family == .storage ? L10n.t("m_53f5039a31a0") : L10n.t("m_4bdd5f5904f1"))
         .navigationBarTitleDisplayMode(.inline)
         .background(Color(uiColor: .systemGroupedBackground))
         .toolbar { Button { settings = true } label: { Image(systemName: "gearshape") }.disabled(model.running).accessibilityIdentifier("settings") }
         .safeAreaInset(edge: .bottom) {
             HStack {
                 Spacer()
-                Button(model.running ? "停止测试" : "开始测试") { if model.running { model.stop() } else { model.start(family) } }
+                Button(model.running ? L10n.t("m_d3a18faf1859") : L10n.t("m_69ed375721d9")) { if model.running { model.stop() } else { model.start(family) } }
                     .buttonStyle(.borderedProminent).controlSize(.large)
                     .accessibilityIdentifier(model.running ? "stop-test" : "start-test")
                 Spacer()
@@ -101,14 +101,14 @@ private struct ScoreCell: View {
     let item: ScoreItem
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(item.score.map { String(format: "%.2f", $0) } ?? "—")
+            Text(L10n.display(item.score.map { String(format: "%.2f", $0) } ?? "—"))
                 .font(.title3.weight(.semibold)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.55)
                 .foregroundStyle(item.score == nil ? Color.secondary : .indigo).accessibilityIdentifier("value-" + item.id)
-            Text(item.unit).font(.caption2).foregroundStyle(.secondary)
+            Text(L10n.display(item.unit)).font(.caption2).foregroundStyle(.secondary)
             if item.id.hasPrefix("ram-"), let sample = item.measurements.last(where: { $0.status == 0 && $0.verified }) {
-                Text("T\(sample.threads) · \(Statistics.size(sample.workingSetBytes))").font(.caption2).foregroundStyle(.secondary)
+                Text(L10n.display("T\(sample.threads) · \(Statistics.size(sample.workingSetBytes))")).font(.caption2).foregroundStyle(.secondary)
             }
-            if item.state == "unavailable" || item.state == "failed" { Text(item.reason ?? "未完成").font(.caption2).lineLimit(2).foregroundStyle(.secondary) }
+            if item.state == "unavailable" || item.state == "failed" { Text(L10n.display(item.reason ?? L10n.t("m_6707de42c29d"))).font(.caption2).lineLimit(2).foregroundStyle(.secondary) }
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
 }
@@ -116,10 +116,10 @@ private struct StorageBoard: View {
     let scores: [ScoreItem]
     var body: some View {
         VStack(spacing: 12) {
-            HStack { Text("项目").frame(maxWidth: .infinity, alignment: .leading); Text("读取").frame(width: 85); Text("写入").frame(width: 85) }.font(.caption)
+            HStack { Text(L10n.t("m_79f326be4409")).frame(maxWidth: .infinity, alignment: .leading); Text(L10n.t("m_534cb3fa8fbf")).frame(width: 85); Text(L10n.t("m_5c783c467965")).frame(width: 85) }.font(.caption)
             ForEach(Array(stride(from: 0, to: scores.count, by: 2)), id: \.self) { index in
                 HStack(alignment: .top) {
-                    Text(scores[index].title.components(separatedBy: " · ").first ?? scores[index].title)
+                    Text(L10n.display(scores[index].title.components(separatedBy: " · ").first ?? scores[index].title))
                         .font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
                     ScoreCell(item: scores[index]).frame(width: 85)
                     if index + 1 < scores.count { ScoreCell(item: scores[index + 1]).frame(width: 85) }
@@ -132,7 +132,7 @@ private struct RAMRow: View {
     let scores: [ScoreItem]
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
-            ForEach(scores) { item in VStack(alignment: .leading, spacing: 5) { Text(item.title).font(.caption); ScoreCell(item: item) }.frame(maxWidth: .infinity, alignment: .leading) }
+            ForEach(scores) { item in VStack(alignment: .leading, spacing: 5) { Text(L10n.display(item.title)).font(.caption); ScoreCell(item: item) }.frame(maxWidth: .infinity, alignment: .leading) }
         }
     }
 }
@@ -169,11 +169,11 @@ private struct CurveChart: View {
     private var controls: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("工作集大小—访问延迟").font(.headline); Spacer()
-                Button(logarithmic ? "对数 ns" : "线性 ns") { logarithmic.toggle() }.font(.caption).accessibilityIdentifier("curve-scale")
+                Text(L10n.t("m_204f61585875")).font(.headline); Spacer()
+                Button(logarithmic ? L10n.t("m_c4c97d2bb07c") : L10n.t("m_dd01dd267ba5")) { logarithmic.toggle() }.font(.caption).accessibilityIdentifier("curve-scale")
             }
             if groups.count > 1 {
-                Picker("调度优先级", selection: $selected) { Text("全部").tag(-1); ForEach(groups) { Text($0.title).tag($0.qos) } }.pickerStyle(.segmented)
+                Picker(L10n.t("m_aaca27fe170e"), selection: $selected) { Text(L10n.t("m_5c55a67935af")).tag(-1); ForEach(groups) { Text(L10n.display($0.title)).tag($0.qos) } }.pickerStyle(.segmented)
             }
         }
     }
@@ -181,7 +181,7 @@ private struct CurveChart: View {
         Chart {
             ForEach(visible) { group in groupMarks(group) }
             if let selectedBytes {
-                RuleMark(x: .value("选中工作集", selectedBytes)).foregroundStyle(.secondary).lineStyle(StrokeStyle(dash: [3,3]))
+                RuleMark(x: .value(L10n.t("m_e0549b01e813"), selectedBytes)).foregroundStyle(.secondary).lineStyle(StrokeStyle(dash: [3,3]))
             }
         }
         .chartXScale(domain: 4096.0...Double(maximumMiB * 1048576), type: .log)
@@ -207,29 +207,29 @@ private struct CurveChart: View {
         }
         .frame(height: height).accessibilityIdentifier("cache-chart")
     }
-    private var colorNames: [String] { visible.isEmpty ? ["高优先级"] : visible.map(\.title) }
+    private var colorNames: [String] { visible.isEmpty ? [L10n.t("m_168b218cb403")] : visible.map(\.title) }
     private var colors: [Color] { visible.isEmpty ? [.indigo] : visible.map { $0.qos == 0 ? .indigo : .teal } }
     @ChartContentBuilder private func groupMarks(_ group: CurveGroup) -> some ChartContent {
         ForEach(Array(segments(group).enumerated()), id: \.offset) { segment in
             ForEach(segment.element) { point in
-                LineMark(x: .value("工作集", Double(point.bytes)), y: .value("延迟", point.latencyNs), series: .value("连续区间", "\(group.qos)-\(segment.offset)"))
-                    .foregroundStyle(by: .value("优先级", group.title))
+                LineMark(x: .value(L10n.t("m_a9d80f95e62f"), Double(point.bytes)), y: .value(L10n.t("m_18045b8c40f1"), point.latencyNs), series: .value(L10n.t("m_295937f60619"), "\(group.qos)-\(segment.offset)"))
+                    .foregroundStyle(by: .value(L10n.t("m_565d64601d4d"), group.title))
             }
         }
         ForEach(group.points) { point in
-            RuleMark(x: .value("工作集", Double(point.bytes)), yStart: .value("10%", point.lowNs), yEnd: .value("90%", point.highNs))
-                .foregroundStyle(by: .value("优先级", group.title)).opacity(0.25)
-            PointMark(x: .value("工作集", Double(point.bytes)), y: .value("延迟", point.latencyNs))
-                .foregroundStyle(by: .value("优先级", group.title)).symbolSize(point.stable ? 12 : 28).opacity(point.stable ? 1 : 0.4)
+            RuleMark(x: .value(L10n.t("m_a9d80f95e62f"), Double(point.bytes)), yStart: .value("10%", point.lowNs), yEnd: .value("90%", point.highNs))
+                .foregroundStyle(by: .value(L10n.t("m_565d64601d4d"), group.title)).opacity(0.25)
+            PointMark(x: .value(L10n.t("m_a9d80f95e62f"), Double(point.bytes)), y: .value(L10n.t("m_18045b8c40f1"), point.latencyNs))
+                .foregroundStyle(by: .value(L10n.t("m_565d64601d4d"), group.title)).symbolSize(point.stable ? 12 : 28).opacity(point.stable ? 1 : 0.4)
         }
     }
     private var samples: some View {
         VStack(alignment: .leading, spacing: 4) {
-            if groups.flatMap(\.points).isEmpty { Text("RAM 四项完成后开始扫描；图中仅显示实测值。").font(.caption).foregroundStyle(.secondary) }
+            if groups.flatMap(\.points).isEmpty { Text(L10n.t("m_1116a491a0db")).font(.caption).foregroundStyle(.secondary) }
             else {
-                Text(singleSample ? "单遍扫描，每块采样 1 次；按住曲线查看实测值。" : "按住曲线查看采样；浅色点未通过重复性验证，不跨缺口连线；误差线为 10–90% 分位。").font(.caption2).foregroundStyle(.secondary)
+                Text(L10n.display(singleSample ? L10n.t("m_36ca663b02e0") : L10n.t("m_326ae3825cdc"))).font(.caption2).foregroundStyle(.secondary)
                 ForEach(visible) { group in
-                    if let label = sampleLabel(group) { Text(label).font(.caption).monospacedDigit().accessibilityIdentifier("curve-selected-\(group.qos)") }
+                    if let label = sampleLabel(group) { Text(L10n.display(label)).font(.caption).monospacedDigit().accessibilityIdentifier("curve-selected-\(group.qos)") }
                 }
             }
         }
@@ -238,11 +238,11 @@ private struct CurveChart: View {
         guard let target = selectedBytes, target > 0 else { return nil }
         let nearest = group.points.min { abs(log(Double($0.bytes) / target)) < abs(log(Double($1.bytes) / target)) }
         guard let point = nearest else { return nil }
-        return group.title + " · " + Statistics.size(point.bytes) + String(format: " · %.2f ns · ", point.latencyNs) + (group.singleSample == true ? "单次采样" : point.stable ? "通过验证" : "未通过验证")
+        return group.title + " · " + Statistics.size(point.bytes) + String(format: " · %.2f ns · ", point.latencyNs) + (group.singleSample == true ? L10n.t("m_91020453439d") : point.stable ? L10n.t("m_505efd1fe138") : L10n.t("m_d466585af71f"))
     }
     private func axisLabel(_ bytes: Double?) -> some View {
         let label = bytes.map { Statistics.size(UInt64($0)) } ?? ""
-        return Text(label).font(.caption2)
+        return Text(L10n.display(label)).font(.caption2)
     }
 }
 struct ReportDetails: View {
@@ -250,41 +250,41 @@ struct ReportDetails: View {
     let store: ReportStore
     var body: some View {
         ScrollView { VStack(alignment: .leading, spacing: 18) {
-            Text(report.statusTitle).font(.headline).accessibilityIdentifier("report-status")
-            Text(report.config.summary(report.family)).font(.subheadline).card()
+            Text(L10n.display(report.statusTitle)).font(.headline).accessibilityIdentifier("report-status")
+            Text(L10n.display(report.config.summary(report.family))).font(.subheadline).card()
             if report.family == .memory { RAMRow(scores: report.scores).card(); CurveChart(groups: report.curves, maximumMiB: report.config.cacheMaxMiB).card() }
             if report.family == .storage { StorageBoard(scores: report.scores).card() }
             ExportButton(report: report, store: store)
-            Text("正式轮次 \(report.completedRounds)/\(report.plannedRounds) · 曲线 \(report.curvePairs)/\(report.plannedCurvePairs) 点次").font(.subheadline)
+            Text(L10n.t("m_cf2ea55d770b", report.completedRounds, report.plannedRounds, report.curvePairs, report.plannedCurvePairs)).font(.subheadline)
             ForEach(report.curves) { group in
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(group.title).font(.headline); Text(group.summary).font(.subheadline)
+                    Text(L10n.display(group.title)).font(.headline); Text(L10n.display(group.summary)).font(.subheadline)
                     ForEach(group.regions) { region in Text("\(Statistics.size(region.lowerBytes))–\(Statistics.size(region.upperBytes)) · \(region.medianNs, specifier: "%.2f") ns").font(.caption) }
-                    ForEach(group.transitions) { edge in Text("转换：\(Statistics.size(edge.lowerBytes))–\(Statistics.size(edge.upperBytes)) · \(edge.beforeNs, specifier: "%.2f") → \(edge.afterNs, specifier: "%.2f") ns").font(.caption) }
+                    ForEach(group.transitions) { edge in Text(L10n.t("m_cf326d2cc536", Statistics.size(edge.lowerBytes), Statistics.size(edge.upperBytes), String(format: "%.2f", edge.beforeNs), String(format: "%.2f", edge.afterNs))).font(.caption) }
                 }.card()
             }
             ForEach(report.scores) { item in
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(item.title).font(.headline); ScoreCell(item: item)
-                    Text("\(item.values.count) 个通过校验的正式轮次 · \(item.aggregationTitle)").font(.caption)
-                    if let sample = item.measurements.last { Text("实际工作集 \(Statistics.size(sample.workingSetBytes)) · \(sample.threads) 线程").font(.caption) }
+                    Text(L10n.display(item.title)).font(.headline); ScoreCell(item: item)
+                    Text(L10n.t("m_85f9fed9c801", item.values.count, item.aggregationTitle)).font(.caption)
+                    if let sample = item.measurements.last { Text(L10n.t("m_f54ac3450821", Statistics.size(sample.workingSetBytes), sample.threads)).font(.caption) }
                     if let sample = item.storageSamples?.last {
-                        Text("Q\(sample.queueDepth) · 实测每线程最大在途 \(sample.maxOutstandingPerThread)，平均 \(sample.meanOutstandingPerThread, specifier: "%.2f") · 同步 \(Double(sample.flushNsSeparate) / 1e6, specifier: "%.2f") ms（另计）").font(.caption)
-                        Text("累计写入（含初始化与预热）\(Statistics.size(sample.writtenBytesTotal))").font(.caption)
+                        Text(L10n.t("m_c71bf6710caa", sample.queueDepth, sample.maxOutstandingPerThread, String(format: "%.2f", sample.meanOutstandingPerThread), String(format: "%.2f", Double(sample.flushNsSeparate) / 1e6))).font(.caption)
+                        Text(L10n.t("m_4c74eca2037f", Statistics.size(sample.writtenBytesTotal))).font(.caption)
                         if let uncached = sample.preparationNoCacheHint {
-                            Text("初始化无缓存请求：\(uncached ? "已启用" : "未启用")").font(.caption)
+                            Text(L10n.t("m_68504e20fa2d", uncached ? L10n.t("m_dfb802238b38") : L10n.t("m_f95ea7f4c063"))).font(.caption)
                         }
                         if let bytes = sample.completedBytes, let submitted = sample.submittedOperations {
-                            Text("本轮实际完成 \(Statistics.size(bytes)) · 提交 \(submitted) 次").font(.caption)
+                            Text(L10n.t("m_ad12e355b8d5", Statistics.size(bytes), submitted)).font(.caption)
                         }
-                        if sample.resourceLimited { Text("系统限制了异步请求资源；以实测在途深度为准。").font(.caption).foregroundStyle(.orange) }
+                        if sample.resourceLimited { Text(L10n.t("m_3ee4ee42167b")).font(.caption).foregroundStyle(.orange) }
                     }
-                    if let reason = item.reason { Text(reason).font(.caption).foregroundStyle(.secondary) }
+                    if let reason = item.reason { Text(L10n.display(reason)).font(.caption).foregroundStyle(.secondary) }
                 }.card()
             }
-            Text("本版未固定核心、未锁定 CPU 频率。缓存曲线包含系统调度、地址转换和预取的影响，不把拐点直接命名为 L1/L2/L3 容量。Metal 主计时为设备执行时间，CPU 和完整等待时间不混入 GPU 主值。不同平台与协议的数值不可直接视为等价。").font(.caption).foregroundStyle(.secondary)
-            if report.device.simulator || report.config.functionalTest { Text("此记录仅供功能验证，不能代表 iPhone / iPad 性能。").foregroundStyle(.orange) }
-        }.padding().frame(maxWidth: 1000).frame(maxWidth: .infinity) }.navigationTitle("测试详情")
+            Text(L10n.t("m_b27845f8b95e")).font(.caption).foregroundStyle(.secondary)
+            if report.device.simulator || report.config.functionalTest { Text(L10n.t("m_a3572a4edd11")).foregroundStyle(.orange) }
+        }.padding().frame(maxWidth: 1000).frame(maxWidth: .infinity) }.navigationTitle(L10n.t("m_38ab936eb50d"))
     }
 }
 private struct ExportButton: View {
@@ -295,9 +295,9 @@ private struct ExportButton: View {
     @State private var error: String?
     var body: some View {
         VStack(alignment: .leading) {
-            Button("导出 JSON") { do { url = try store.export(report); show = true } catch { self.error = error.localizedDescription } }
+            Button(L10n.t("m_fb48367b485c")) { do { url = try store.export(report); show = true } catch { self.error = error.localizedDescription } }
                 .buttonStyle(.bordered).accessibilityIdentifier("export-json")
-            if let error { Text(error).foregroundStyle(.red).font(.caption) }
+            if let error { Text(L10n.display(error)).foregroundStyle(.red).font(.caption) }
         }.sheet(isPresented: $show) { if let url { ShareSheet(url: url) } }
     }
 }
@@ -312,67 +312,67 @@ private struct SettingsPage: View {
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         NavigationStack { Form {
-            Section("预设") {
-                Button("标准测试") { reset(BenchConfig()) }.accessibilityIdentifier("preset-standard")
-                Button("快速测试") { reset(.quick) }.accessibilityIdentifier("preset-quick")
+            Section(L10n.t("m_f1de1e2621de")) {
+                Button(L10n.t("m_3459a2bac987")) { reset(BenchConfig()) }.accessibilityIdentifier("preset-standard")
+                Button(L10n.t("m_fa394156117e")) { reset(.quick) }.accessibilityIdentifier("preset-quick")
             }
             if family == .memory {
             Section("RAM") {
-                sizePicker("带宽 · 总工作集", value: $model.config.ramSettings.memoryMiB)
-                sizePicker("延迟 · 总工作集", value: $model.config.ramSettings.latencyMiB)
-                Toggle("带宽线程自动校准", isOn: $model.config.ramSettings.automaticThreads)
-                if !model.config.ramSettings.automaticThreads { Picker("带宽线程", selection: $model.config.ramSettings.threads) { ForEach(1...16, id: \.self) { Text("\($0)").tag($0) } } }
-                Stepper("带宽 · 每项 \(model.config.ramSettings.repeats) 次", value: $model.config.ramSettings.repeats, in: 1...10)
-                Stepper("延迟 · \(model.config.ramSettings.latencyRepeats) 次", value: $model.config.ramSettings.latencyRepeats, in: 1...10)
-                timePicker("每轮测量时间", value: $model.config.ramSettings.durationMs)
-                timePicker("预热时间", value: $model.config.ramSettings.warmupMs, zero: true)
-                timePicker("轮间休息", value: $model.config.ramSettings.intervalMs, zero: true)
-                Text("延迟固定单线程；RAM 四项先测，曲线随后扫描。").font(.caption)
+                sizePicker(L10n.t("m_525dd7890344"), value: $model.config.ramSettings.memoryMiB)
+                sizePicker(L10n.t("m_e3e42c6a76f1"), value: $model.config.ramSettings.latencyMiB)
+                Toggle(L10n.t("m_7ae4a3f57717"), isOn: $model.config.ramSettings.automaticThreads)
+                if !model.config.ramSettings.automaticThreads { Picker(L10n.t("m_19575851c0a0"), selection: $model.config.ramSettings.threads) { ForEach(1...16, id: \.self) { Text(L10n.display("\($0)")).tag($0) } } }
+                Stepper(L10n.t("m_1ada9237519e", model.config.ramSettings.repeats), value: $model.config.ramSettings.repeats, in: 1...10)
+                Stepper(L10n.t("m_dfc2e3b4df73", model.config.ramSettings.latencyRepeats), value: $model.config.ramSettings.latencyRepeats, in: 1...10)
+                timePicker(L10n.t("m_339768bf98bf"), value: $model.config.ramSettings.durationMs)
+                timePicker(L10n.t("m_30b8dcf0174f"), value: $model.config.ramSettings.warmupMs, zero: true)
+                timePicker(L10n.t("m_69f82395883c"), value: $model.config.ramSettings.intervalMs, zero: true)
+                Text(L10n.t("m_648c3ecf7173")).font(.caption)
             }
-            Section("块大小—延迟曲线") {
-                Toggle("扫描缓存曲线", isOn: $model.config.includeCurve)
-                Toggle("每块仅测一次", isOn: Binding(get: { model.config.singleCurveSample == true }, set: { model.config.singleCurveSample = $0 }))
-                sizePicker("曲线最大工作集", value: $model.config.cacheMaxMiB)
-                Picker("每倍容量采样间隔", selection: $model.config.stepsPerOctave) { ForEach([1,2,4,8], id: \.self) { Text("\($0)").tag($0) } }
-                Toggle("增加后台优先级曲线", isOn: $model.config.backgroundCurve)
-                Text(model.config.singleCurveSample == true ? "从 4 KiB 起，单线程扫描一遍，每块 1 次，不复测或加密补点。" : "从 4 KiB 起，单线程正反扫描、自动复核。").font(.caption)
-                Text("两条优先级曲线用于观察调度差异，无法保证分别覆盖两个物理核心簇。").font(.caption)
+            Section(L10n.t("m_96c4fc9e110e")) {
+                Toggle(L10n.t("m_28927ecc2c64"), isOn: $model.config.includeCurve)
+                Toggle(L10n.t("m_e908350fc3c9"), isOn: Binding(get: { model.config.singleCurveSample == true }, set: { model.config.singleCurveSample = $0 }))
+                sizePicker(L10n.t("m_4c1ba2afa2fb"), value: $model.config.cacheMaxMiB)
+                Picker(L10n.t("m_3b3cfb43fce5"), selection: $model.config.stepsPerOctave) { ForEach([1,2,4,8], id: \.self) { Text(L10n.display("\($0)")).tag($0) } }
+                Toggle(L10n.t("m_88011c572780"), isOn: $model.config.backgroundCurve)
+                Text(L10n.display(model.config.singleCurveSample == true ? L10n.t("m_c22d6262da9f") : L10n.t("m_f48870fee1c2"))).font(.caption)
+                Text(L10n.t("m_64747fd5eb0e")).font(.caption)
             }
             } else if family == .storage {
-                Section("ROM · DiskMark 默认配置") {
-                    Picker("测试文件", selection: $model.config.storageSettings.fileMiB) {
-                        ForEach(Array(Set([64,128,256,512,1024,2048,4096,model.config.storageSettings.fileMiB])).sorted(), id: \.self) { Text(Statistics.size(UInt64($0) * 1048576)).tag($0) }
+                Section(L10n.t("m_f40894c9060f")) {
+                    Picker(L10n.t("m_6c04ba2bd676"), selection: $model.config.storageSettings.fileMiB) {
+                        ForEach(Array(Set([64,128,256,512,1024,2048,4096,model.config.storageSettings.fileMiB])).sorted(), id: \.self) { Text(L10n.display(Statistics.size(UInt64($0) * 1048576))).tag($0) }
                     }.accessibilityIdentifier("storage-file-size")
-                    Stepper("每项 \(model.config.storageSettings.repeats) 次", value: $model.config.storageSettings.repeats, in: 1...9)
-                    timePicker("每轮测量时间", value: $model.config.storageSettings.durationMs)
-                    timePicker("预热时间", value: $model.config.storageSettings.warmupMs, zero: true)
-                    timePicker("轮间休息", value: $model.config.storageSettings.intervalMs, zero: true)
-                    Toggle("请求绕过系统数据缓存", isOn: $model.config.storageSettings.noCache)
-                    Text("文件在本次测试开始时初始化一次；预热、校验和最终同步不计入吞吐主值。").font(.caption)
+                    Stepper(L10n.t("m_de2af697b5c5", model.config.storageSettings.repeats), value: $model.config.storageSettings.repeats, in: 1...9)
+                    timePicker(L10n.t("m_339768bf98bf"), value: $model.config.storageSettings.durationMs)
+                    timePicker(L10n.t("m_30b8dcf0174f"), value: $model.config.storageSettings.warmupMs, zero: true)
+                    timePicker(L10n.t("m_69f82395883c"), value: $model.config.storageSettings.intervalMs, zero: true)
+                    Toggle(L10n.t("m_557fa6af954e"), isOn: $model.config.storageSettings.noCache)
+                    Text(L10n.t("m_9a7e8847ffef")).font(.caption)
                 }
                 ForEach(model.config.storageSettings.cases.indices, id: \.self) { index in
                     Section(model.config.storageSettings.cases[index].title) {
-                        Toggle("随机访问", isOn: $model.config.storageSettings.cases[index].random)
-                        Picker("块大小", selection: $model.config.storageSettings.cases[index].blockKiB) { ForEach([4,8,16,32,64,128,256,512,1024,2048,4096], id: \.self) { Text("\($0) KiB").tag($0) } }
-                        Picker("队列深度 Q", selection: $model.config.storageSettings.cases[index].queueDepth) { ForEach([1,2,4,8,16,32,64], id: \.self) { Text("\($0)").tag($0) } }
-                        Picker("线程数 T", selection: $model.config.storageSettings.cases[index].threads) { ForEach(1...16, id: \.self) { Text("\($0)").tag($0) } }
+                        Toggle(L10n.t("m_7cbcc421dc4c"), isOn: $model.config.storageSettings.cases[index].random)
+                        Picker(L10n.t("m_0f7d7860cbd3"), selection: $model.config.storageSettings.cases[index].blockKiB) { ForEach([4,8,16,32,64,128,256,512,1024,2048,4096], id: \.self) { Text(L10n.display("\($0) KiB")).tag($0) } }
+                        Picker(L10n.t("m_7076dbb68661"), selection: $model.config.storageSettings.cases[index].queueDepth) { ForEach([1,2,4,8,16,32,64], id: \.self) { Text(L10n.display("\($0)")).tag($0) } }
+                        Picker(L10n.t("m_56e542017a0f"), selection: $model.config.storageSettings.cases[index].threads) { ForEach(1...16, id: \.self) { Text(L10n.display("\($0)")).tag($0) } }
                     }
                 }
             } else {
-            Section("GPGPU · 重复测量") {
-                sizePicker("内存工作集", value: $model.config.memoryMiB)
-                Picker("内存线程", selection: $model.config.threads) { ForEach([1,2,4,8], id: \.self) { Text("\($0)").tag($0) } }
-                Stepper("每项 \(model.config.repeats) 次", value: $model.config.repeats, in: 1...5)
-                timePicker("每轮测量时间", value: $model.config.durationMs)
+            Section(L10n.t("m_ccbf7250afd3")) {
+                sizePicker(L10n.t("m_5ad3c0f3c7f4"), value: $model.config.memoryMiB)
+                Picker(L10n.t("m_5eaab4942637"), selection: $model.config.threads) { ForEach([1,2,4,8], id: \.self) { Text(L10n.display("\($0)")).tag($0) } }
+                Stepper(L10n.t("m_de2af697b5c5", model.config.repeats), value: $model.config.repeats, in: 1...5)
+                timePicker(L10n.t("m_339768bf98bf"), value: $model.config.durationMs)
             }
             }
-        }.navigationTitle("\(family.title) 设置").toolbar { Button("完成") { dismiss() }.accessibilityIdentifier("settings-done") } }
+        }.navigationTitle(L10n.t("m_b1f1ab375a35", family.title)).toolbar { Button(L10n.t("m_c0b3fbff51cc")) { dismiss() }.accessibilityIdentifier("settings-done") } }
     }
     private func sizePicker(_ title: String, value: Binding<Int>) -> some View {
-        Picker(title, selection: value) { ForEach(Array(Set([16,32,64,128,256,value.wrappedValue])).sorted(), id: \.self) { Text("\($0) MiB").tag($0) } }
+        Picker(title, selection: value) { ForEach(Array(Set([16,32,64,128,256,value.wrappedValue])).sorted(), id: \.self) { Text(L10n.display("\($0) MiB")).tag($0) } }
     }
     private func timePicker(_ title: String, value: Binding<Int>, zero: Bool = false) -> some View {
-        Picker(title, selection: value) { ForEach(Array(Set([100,500,1000,2000,3000,5000,value.wrappedValue] + (zero ? [0] : []))).sorted(), id: \.self) { Text("\($0) ms").tag($0) } }
+        Picker(title, selection: value) { ForEach(Array(Set([100,500,1000,2000,3000,5000,value.wrappedValue] + (zero ? [0] : []))).sorted(), id: \.self) { Text(L10n.display("\($0) ms")).tag($0) } }
     }
     private func reset(_ value: BenchConfig) {
         switch family {
@@ -388,41 +388,41 @@ private struct DevicePage: View {
     let info: DeviceInfo
     var body: some View {
         Form {
-            Section("运行环境") {
-                LabeledContent("型号", value: info.displayName)
-                LabeledContent("设备标识", value: info.machine); LabeledContent("系统", value: info.osVersion)
-                LabeledContent("逻辑核心", value: "\(info.logicalCpuCount)"); LabeledContent("物理内存", value: Statistics.size(info.physicalMemoryBytes))
-                LabeledContent("系统页", value: "\(info.pageBytes) B"); LabeledContent("核心绑定", value: "不提供，使用系统调度")
+            Section(L10n.t("m_423f51a28678")) {
+                LabeledContent(L10n.t("m_322408c53bed"), value: info.displayName)
+                LabeledContent(L10n.t("m_db68f1777c59"), value: info.machine); LabeledContent(L10n.t("m_5b50d7c4b595"), value: info.osVersion)
+                LabeledContent(L10n.t("m_e4b60a443ba3"), value: "\(info.logicalCpuCount)"); LabeledContent(L10n.t("m_ddc00e6620a4"), value: Statistics.size(info.physicalMemoryBytes))
+                LabeledContent(L10n.t("m_73e2ec6ef1c7"), value: "\(info.pageBytes) B"); LabeledContent(L10n.t("m_cc1fac4524fd"), value: L10n.t("m_2f7693ddd129"))
             }
             if let reference = info.modelReference {
-                Section("SoC 型号资料") {
-                    LabeledContent("芯片", value: reference.soc)
-                    Text(reference.coreSummary)
-                    if reference.performanceCores.count > 1 { Text("此型号有不同核心数量配置，以本机运行时报告为准。").font(.caption) }
-                    Link("Apple 官方规格", destination: URL(string: reference.source)!)
-                    Text("型号资料用于说明硬件；不会填入实测成绩或推断当前线程所在核心。").font(.caption)
+                Section(L10n.t("m_cb15f77ff481")) {
+                    LabeledContent(L10n.t("m_984636a8319e"), value: reference.soc)
+                    Text(L10n.display(reference.coreSummary))
+                    if reference.performanceCores.count > 1 { Text(L10n.t("m_164906c818fe")).font(.caption) }
+                    Link(L10n.t("m_dc0f66986fc4"), destination: URL(string: reference.source)!)
+                    Text(L10n.t("m_3c5b1b8219fd")).font(.caption)
                 }
             }
-            Section("运行时核心组") {
+            Section(L10n.t("m_65026b27e78f")) {
                 if let levels = info.performanceLevels, !levels.isEmpty {
                     ForEach(levels) { level in
                         VStack(alignment: .leading, spacing: 5) {
-                            Text("\(level.name) · \(level.count) 核")
-                            Text("L1D \(level.l1DataBytes.map(Statistics.size) ?? "未提供") · L2 \(level.l2Bytes.map(Statistics.size) ?? "未提供")").font(.caption)
-                            if let count = level.coresPerL2 { Text("每个 L2 共享域 \(count) 核").font(.caption) }
+                            Text(L10n.t("m_1157929ae376", level.name, level.count))
+                            Text(L10n.display("L1D \(level.l1DataBytes.map(Statistics.size) ?? L10n.t("m_756762e293f2")) · L2 \(level.l2Bytes.map(Statistics.size) ?? L10n.t("m_756762e293f2"))")).font(.caption)
+                            if let count = level.coresPerL2 { Text(L10n.t("m_14beda673893", count)).font(.caption) }
                         }
                     }
-                } else { Text("系统未提供核心组信息") }
-                Text("核心组来自系统 sysctl；曲线中的高/后台优先级表示调度请求，不能等同于指定核心组。").font(.caption)
+                } else { Text(L10n.t("m_8c4a7419f98c")) }
+                Text(L10n.t("m_5728e4f0b119")).font(.caption)
             }
-            Section("系统报告的缓存信息") {
-                LabeledContent("L1", value: info.reportedL1Bytes.map(Statistics.size) ?? "未提供")
-                LabeledContent("L2", value: info.reportedL2Bytes.map(Statistics.size) ?? "未提供")
-                LabeledContent("L3", value: info.reportedL3Bytes.map(Statistics.size) ?? "未提供")
-                LabeledContent("缓存行粒度", value: info.reportedLineBytes.map { "\($0) B" } ?? "未提供")
-                Text("系统未提供的规格保持未知；这些信息不等于曲线已经证明的容量。").font(.caption)
+            Section(L10n.t("m_32d6c632664d")) {
+                LabeledContent("L1", value: info.reportedL1Bytes.map(Statistics.size) ?? L10n.t("m_756762e293f2"))
+                LabeledContent("L2", value: info.reportedL2Bytes.map(Statistics.size) ?? L10n.t("m_756762e293f2"))
+                LabeledContent("L3", value: info.reportedL3Bytes.map(Statistics.size) ?? L10n.t("m_756762e293f2"))
+                LabeledContent(L10n.t("m_4be6a47f4140"), value: info.reportedLineBytes.map { "\($0) B" } ?? L10n.t("m_756762e293f2"))
+                Text(L10n.t("m_9c6ddc50afa0")).font(.caption)
             }
-        }.navigationTitle("设备")
+        }.navigationTitle(L10n.t("m_e1506406a5bd"))
     }
 }
 private extension View {

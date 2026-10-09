@@ -1,13 +1,16 @@
 package io.benchbridge.app.compute
 
+import io.benchbridge.app.i18n.L10n
+
 import org.json.JSONArray
 import org.json.JSONObject
 
-enum class ComputeKind(val code: Int, val title: String, val unit: String) {
-    READ(0,"内存读取","MB/s"), WRITE(1,"内存写入","MB/s"), COPY(2,"内存拷贝","MB/s"),
-    FP32(3,"FP32 浮点","GFLOPS"), FP64(4,"FP64 浮点","GFLOPS"),
-    INT24(5,"INT24 整数","GIOPS"), INT32(6,"INT32 整数","GIOPS"), INT64(7,"INT64 整数","GIOPS"),
-    AES(8,"AES-256","MB/s"), SHA(9,"SHA-1","MB/s"), JULIA(10,"Julia","MPix/s"), MANDEL(11,"Mandel","MPix/s")
+enum class ComputeKind(val code: Int, private val titleKey: String, val unit: String) {
+    READ(0,"m_d3fe7efd8de7","MB/s"), WRITE(1,"m_16de4707fe56","MB/s"), COPY(2,"m_15a5be0e2031","MB/s"),
+    FP32(3,"m_e44652e35e27","GFLOPS"), FP64(4,"m_e8d9c616b400","GFLOPS"),
+    INT24(5,"m_bbe20741baa2","GIOPS"), INT32(6,"m_1c82c39931ab","GIOPS"), INT64(7,"m_b55d49e6860d","GIOPS"),
+    AES(8,"AES-256","MB/s"), SHA(9,"SHA-1","MB/s"), JULIA(10,"Julia","MPix/s"), MANDEL(11,"Mandel","MPix/s");
+    val title: String get() = if(titleKey.startsWith("m_")) L10n.t(titleKey) else titleKey
 }
 
 data class ComputeConfig(val kinds: List<Int> = ComputeKind.entries.map { it.code },
@@ -15,7 +18,7 @@ data class ComputeConfig(val kinds: List<Int> = ComputeKind.entries.map { it.cod
                          val durationMs: Int = 1000, val warmupMs: Int = 200, val memoryMiB: Int = 64,
                          val threads: Int = 0, val imageSize: Int = 512) {
     val totalRounds: Int get() = kinds.size * targets.size * rounds
-    val summary: String get() = "${targets.joinToString(" + ") { it.uppercase() }} · $rounds 次 · ${durationMs / 1000.0} 秒"
+    val summary: String get() = L10n.t("m_ce77bd24a3c2", targets.joinToString(" + ") { it.uppercase() }, rounds, durationMs / 1000.0)
     val estimatedBytes: Long get() {
         val memorySelected=kinds.any { it<=2 || it==8 || it==9 }
         val gpu=if("gpu" in targets)(if(memorySelected)memoryMiB else 4)*3L*1048576 else 0L
@@ -24,10 +27,10 @@ data class ComputeConfig(val kinds: List<Int> = ComputeKind.entries.map { it.cod
         return maxOf(gpu,cpuMemory,cpuFrames)+96L*1048576
     }
     fun validate() {
-        require(kinds.isNotEmpty() && kinds.distinct().size == kinds.size && kinds.all { it in 0..11 }) { "请选择测试项目" }
-        require(targets.isNotEmpty() && targets.distinct().size == targets.size && targets.all { it in listOf("cpu","gpu") }) { "请选择 CPU 或 GPU" }
-        require(rounds in 1..5 && durationMs in 50..5000 && warmupMs in 0..1000) { "测试时长或次数无效" }
-        require(memoryMiB in 4..256 && threads in 0..16 && imageSize in listOf(64,128,256,512,1024)) { "测试配置无效" }
+        require(kinds.isNotEmpty() && kinds.distinct().size == kinds.size && kinds.all { it in 0..11 }) { L10n.t("m_862ad650feb8") }
+        require(targets.isNotEmpty() && targets.distinct().size == targets.size && targets.all { it in listOf("cpu","gpu") }) { L10n.t("m_36468ea7cc89") }
+        require(rounds in 1..5 && durationMs in 50..5000 && warmupMs in 0..1000) { L10n.t("m_d6c273e0ec9b") }
+        require(memoryMiB in 4..256 && threads in 0..16 && imageSize in listOf(64,128,256,512,1024)) { L10n.t("m_19f1d5e09199") }
     }
     fun toJson() = JSONObject().put("kinds",JSONArray(kinds)).put("targets",JSONArray(targets)).put("rounds",rounds)
         .put("duration_ms",durationMs).put("warmup_ms",warmupMs).put("memory_mib",memoryMiB).put("cpu_threads",threads)

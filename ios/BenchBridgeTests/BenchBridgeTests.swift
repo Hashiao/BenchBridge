@@ -2,6 +2,29 @@ import XCTest
 @testable import BenchBridge
 
 final class BenchBridgeTests: XCTestCase {
+    func testPrimaryLanguageAndReviewedTerminology() {
+        for tag in ["zh", "zh-CN", "zh-SG", "zh-Hans-TW", "zh_Hans_HK"] { XCTAssertEqual(L10n.language(for: tag), .simplified) }
+        for tag in ["zh-TW", "zh-HK", "zh-MO", "zh-Hant-CN", "zh_Hant_SG"] { XCTAssertEqual(L10n.language(for: tag), .traditional) }
+        for tag in ["en", "ja-JP", "fr-FR", "ar-EG", "zh-Latn", ""] { XCTAssertEqual(L10n.language(for: tag), .english) }
+        XCTAssertEqual(L10n.text("m_df9062b60024", language: .traditional), "快取與記憶體")
+        XCTAssertEqual(L10n.text("m_290505a7ff35", language: .traditional), "CPU 執行緒")
+        XCTAssertEqual(L10n.text("m_6f02986c45d1", language: .traditional), "循序讀取")
+        XCTAssertEqual(L10n.display("CPU 6 · 5.01 GHz 上限", language: .english), "CPU 6 · Up to 5.01 GHz")
+        XCTAssertEqual(L10n.display("Export JSON", language: .traditional), "匯出 JSON")
+        XCTAssertEqual(L10n.display("AFFINITY_VERIFY_FAILED", language: .traditional), "AFFINITY_VERIFY_FAILED")
+    }
+
+    func testEveryLocalizationResourceHasCompleteArguments() throws {
+        let url = try XCTUnwrap(Bundle.main.url(forResource: "localization", withExtension: "json"))
+        let entries = try JSONDecoder().decode([String: [String: String]].self, from: Data(contentsOf: url))
+        XCTAssertGreaterThan(entries.count, 500)
+        for key in entries.keys { for language in L10n.Language.allCases {
+            let value = L10n.text(key, language: language, values: (0..<12).map { "ARG\($0)" })
+            XCTAssertNotEqual(value, key); XCTAssertFalse(value.isEmpty)
+            XCTAssertNil(value.range(of: #"\{\d+\}"#, options: .regularExpression))
+            if language == .english { XCTAssertNil(value.range(of: #"[\u3400-\u9fff]"#, options: .regularExpression)) }
+        } }
+    }
     func testAlignedDefaultsAndLegacyDecoding() throws {
         let config = BenchConfig()
         XCTAssertEqual(config.ramSettings.memoryMiB, 64); XCTAssertEqual(config.ramSettings.latencyMiB, 64)
@@ -150,14 +173,17 @@ final class BenchBridgeTests: XCTestCase {
         let data = try Data(contentsOf: exported)
         let decoded = try ReportStore.decoder().decode(BenchReport.self, from: data)
         XCTAssertEqual(decoded.scores[0].values, [12.5, 13.5]); XCTAssertFalse(decoded.coreBinding)
+        XCTAssertEqual(decoded.exportLocale, L10n.current.rawValue); XCTAssertFalse(decoded.localizedSummary?.isEmpty ?? true)
         XCTAssertTrue(decoded.qualityFlags.contains("functional_test_not_device_performance"))
         let diagnostic = try XCTUnwrap(decoded.runtimeDiagnostics?.first)
         XCTAssertEqual(diagnostic.stage, "report_created"); XCTAssertGreaterThan(diagnostic.processId, 0)
         XCTAssertEqual(diagnostic.affinityCapability, "unavailable_system_scheduled_qos")
         var legacy = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
         legacy.removeValue(forKey: "runtime_diagnostics")
+        legacy.removeValue(forKey: "export_locale"); legacy.removeValue(forKey: "localized_summary")
         let old = try ReportStore.decoder().decode(BenchReport.self, from: JSONSerialization.data(withJSONObject: legacy))
         XCTAssertNil(old.runtimeDiagnostics); XCTAssertEqual(old.scores[0].values, decoded.scores[0].values)
+        XCTAssertNil(old.exportLocale); XCTAssertNil(old.localizedSummary)
     }
     func testMetalValidationAndDeviceTimer() throws {
         guard let backend = try? MetalRunner() else { throw XCTSkip("No Metal device in this simulator environment") }
@@ -166,7 +192,7 @@ final class BenchBridgeTests: XCTestCase {
             do {
                 let result = try backend.run(kind: kind, config: .test, token: token)
                 XCTAssertTrue(result.verified); XCTAssertGreaterThan(result.gpuElapsedNs, 0); XCTAssertGreaterThan(result.workUnits, 0)
-            } catch BenchError.message(let message) where message.contains("时间戳不可用") { throw XCTSkip(message) }
+            } catch BenchError.message(let message) where message == L10n.t("m_18853a64daca") { throw XCTSkip(message) }
         }
         XCTAssertNotNil(MetalRunner.unavailable(4)); XCTAssertNotNil(MetalRunner.unavailable(8))
     }

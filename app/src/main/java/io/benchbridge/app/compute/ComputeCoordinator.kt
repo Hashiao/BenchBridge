@@ -1,5 +1,7 @@
 package io.benchbridge.app.compute
 
+import io.benchbridge.app.i18n.L10n
+
 import android.app.ActivityManager
 import android.content.Context
 import android.os.Build
@@ -46,8 +48,8 @@ class ComputeCoordinator(private val context:Context,private val executor:Execut
             check(activeId==null){"COMPUTE_BUSY"}
             val config=ComputeConfig.fromJson(text)
             val info=ActivityManager.MemoryInfo();context.getSystemService(ActivityManager::class.java).getMemoryInfo(info)
-            require(config.estimatedBytes<=minOf(info.availMem/3,(info.availMem-maxOf(info.threshold,256L*1048576)).coerceAtLeast(0))){"COMPUTE_BUDGET：可用内存不足，请选择快速测试"}
-            require(thermal()<PowerManager.THERMAL_STATUS_SEVERE){"设备需要降温后再测试"}
+            require(config.estimatedBytes<=minOf(info.availMem/3,(info.availMem-maxOf(info.threshold,256L*1048576)).coerceAtLeast(0))){L10n.t("m_ef9a012bd0b7")}
+            require(thermal()<PowerManager.THERMAL_STATUS_SEVERE){L10n.t("m_c856ee25bdc6")}
             val id=UUID.randomUUID().toString()
             val report=JSONObject().put("schema_version",1).put("kind","compute_benchmark").put("run_id",id).put("state","RUNNING").put("phase","PREPARING")
                 .put("started_at_ms",System.currentTimeMillis()).put("app_version",BuildConfig.VERSION_NAME).put("config",config.toJson())
@@ -76,7 +78,7 @@ class ComputeCoordinator(private val context:Context,private val executor:Execut
             caps.put("cpu",JSONObject(ComputeNative.cpuCapabilities()));report.put("capabilities",caps)
             val ids=caps.getJSONObject("cpu").getJSONArray("cpu_ids")
             val cpus=(0 until ids.length()).map { ids.getInt(it) }.take(if(c.threads==0)16 else c.threads)
-            require("cpu" !in c.targets||cpus.isNotEmpty()&&(c.threads==0||cpus.size==c.threads)){"所选线程超过可用 CPU 数"}
+            require("cpu" !in c.targets||cpus.isNotEmpty()&&(c.threads==0||cpus.size==c.threads)){L10n.t("m_97be46dba289")}
             check(ComputeNative.selfTest()){"CRYPTO_SELF_TEST_FAILED"}
             val gpu=caps.getJSONObject("gpu")
             for(target in c.targets)for(kind in c.kinds)report.getJSONArray("cells").put(JSONObject().put("target",target).put("kind",kind).put("state","PENDING"))
@@ -84,7 +86,7 @@ class ComputeCoordinator(private val context:Context,private val executor:Execut
             outer@ for(target in listOf("gpu","cpu").filter(c.targets::contains)){
                 for(kind in c.kinds){
                     if(run.cancelled.get())break@outer
-                    if(thermal()>=PowerManager.THERMAL_STATUS_SEVERE){cancel(run.id,"设备需要降温");break@outer}
+                    if(thermal()>=PowerManager.THERMAL_STATUS_SEVERE){cancel(run.id,L10n.t("m_678aa85c0014"));break@outer}
                     val cell=ComputeResults.cell(report,kind,target)!!
                     report.put("current_target",target).put("current_kind",kind).put("current_round",0)
                     val unsupported=target=="gpu"&&(!gpu.optBoolean("supported")||kind in listOf(4,11)&&!gpu.optBoolean("fp64")||kind==7&&!gpu.optBoolean("int64"))

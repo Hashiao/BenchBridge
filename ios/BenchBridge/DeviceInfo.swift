@@ -36,7 +36,7 @@ struct DeviceInfo: Codable, Sendable {
         let levels = (0..<levelCount).compactMap { index -> ApplePerformanceLevel? in
             let prefix = "hw.perflevel\(index)."
             guard let count = integer(prefix + "physicalcpu") ?? integer(prefix + "logicalcpu") else { return nil }
-            return ApplePerformanceLevel(index: index, name: string(prefix + "name") ?? "核心组 \(index)", count: Int(count),
+            return ApplePerformanceLevel(index: index, name: string(prefix + "name") ?? L10n.t("m_7a339dc33ab2", index), count: Int(count),
                                          l1DataBytes: integer(prefix + "l1dcachesize"), l2Bytes: integer(prefix + "l2cachesize"),
                                          coresPerL2: integer(prefix + "cpusperl2").map(Int.init))
         }
@@ -76,7 +76,7 @@ struct AppleModelReference: Codable, Sendable {
     var identitySource = "https://github.com/devicekit/DeviceKit"
     var revision = "2026-10-09"
     var coreSummary: String {
-        guard !performanceCores.isEmpty, !efficiencyCores.isEmpty else { return "核心分组待运行时确认" }
-        return "\(performanceCores.map(String.init).joined(separator: "/")) 个高性能核 + \(efficiencyCores.map(String.init).joined(separator: "/")) 个能效核"
+        guard !performanceCores.isEmpty, !efficiencyCores.isEmpty else { return L10n.t("m_4397e9cd78d7") }
+        return L10n.t("m_0aa80b09edca", performanceCores.map(String.init).joined(separator: "/"), efficiencyCores.map(String.init).joined(separator: "/"))
     }
 }
