@@ -154,6 +154,7 @@
     <string name="m_433071b8ffe4" formatted="false">"快取模式"</string>
     <string name="m_4356bc8e66fd" formatted="false">"診斷資訊已複製"</string>
     <string name="m_4397e9cd78d7" formatted="false">"核心分組待執行時確認"</string>
+    <string name="m_43a5dcecdbe4" formatted="false">"{0}/{1} {2}；{3} 個連續區間，{4} 處持續轉換。缺測範圍不推斷邊界。"</string>
     <string name="m_43c587192079" formatted="false">"系統記憶體不足"</string>
     <string name="m_43f06de05be3" formatted="false">"檢視建置資訊"</string>
     <string name="m_4479c4f8d413" formatted="false">"SoC 原始值"</string>

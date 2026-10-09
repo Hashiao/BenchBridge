@@ -11,6 +11,7 @@ final class BenchBridgeTests: XCTestCase {
         XCTAssertEqual(L10n.text("m_6f02986c45d1", language: .traditional), "循序讀取")
         XCTAssertEqual(L10n.display("CPU 6 · 5.01 GHz 上限", language: .english), "CPU 6 · Up to 5.01 GHz")
         XCTAssertEqual(L10n.display("Export JSON", language: .traditional), "匯出 JSON")
+        XCTAssertEqual(L10n.display("112/113 个有效采样点；4 个连续区间，2 处持续转换。缺测范围不推断边界。", language: .english), "112/113 valid samples; 4 contiguous regions and 2 sustained transitions. No boundaries are inferred across missing ranges.")
         XCTAssertEqual(L10n.display("AFFINITY_VERIFY_FAILED", language: .traditional), "AFFINITY_VERIFY_FAILED")
     }
 

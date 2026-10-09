@@ -399,7 +399,7 @@ enum Statistics {
             group.regions.append(CurveRegion(lowerBytes: points[start].bytes, upperBytes: points.last!.bytes, medianNs: median(points[start...].map(\.latencyNs))!))
         }
         let valid = group.points.filter(\.stable).count
-        group.summary = L10n.t("m_1b2c942c0528", valid, group.plannedSizes.count, group.singleSample == true ? L10n.t("m_9ca745e4e71f") : L10n.t("m_5393322e98bb"), group.regions.count, group.transitions.count) + (valid == group.plannedSizes.count ? "" : L10n.t("m_9b3c6761bc04"))
+        group.summary = L10n.t(valid == group.plannedSizes.count ? "m_1b2c942c0528" : "m_43a5dcecdbe4", valid, group.plannedSizes.count, group.singleSample == true ? L10n.t("m_9ca745e4e71f") : L10n.t("m_5393322e98bb"), group.regions.count, group.transitions.count)
     }
     static func size(_ bytes: UInt64) -> String {
         if bytes >= 1073741824 { return String(format: "%.3g GiB", Double(bytes) / 1073741824) }

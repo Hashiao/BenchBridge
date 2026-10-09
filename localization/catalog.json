@@ -5538,5 +5538,14 @@
     "uses": [
       "ios/BenchBridge/Views.swift:423"
     ]
+  },
+  "m_43a5dcecdbe4": {
+    "source": "{0}/{1} {2}；{3} 个连续区间，{4} 处持续转换。缺测范围不推断边界。",
+    "en": "{0}/{1} {2}; {3} contiguous regions and {4} sustained transitions. No boundaries are inferred across missing ranges.",
+    "zh-Hans": "{0}/{1} {2}；{3} 个连续区间，{4} 处持续转换。缺测范围不推断边界。",
+    "zh-Hant": "{0}/{1} {2}；{3} 個連續區間，{4} 處持續轉換。缺測範圍不推斷邊界。",
+    "uses": [
+      "ios/BenchBridge/Models.swift:Statistics.analyze (including legacy partial summaries)"
+    ]
   }
 }

@@ -50,6 +50,7 @@ class LocalizationTest {
         assertEquals("匯出 JSON",L10n.display("Export JSON",L10n.Language.HANT))
         assertEquals("CPU 6 · Up to 5.01 GHz",L10n.display("CPU 6 · 5.01 GHz 上限",L10n.Language.EN))
         assertEquals("Completed 12 / 12 runs",L10n.display("已完成 12 / 12 轮",L10n.Language.EN))
+        assertEquals("112/113 valid samples; 4 contiguous regions and 2 sustained transitions. No boundaries are inferred across missing ranges.",L10n.display("112/113 个有效采样点；4 个连续区间，2 处持续转换。缺测范围不推断边界。",L10n.Language.EN))
         assertEquals("AFFINITY_VERIFY_FAILED",L10n.display("AFFINITY_VERIFY_FAILED",L10n.Language.HANT))
     }
 

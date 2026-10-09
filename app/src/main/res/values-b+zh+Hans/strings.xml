@@ -154,6 +154,7 @@
     <string name="m_433071b8ffe4" formatted="false">"缓存模式"</string>
     <string name="m_4356bc8e66fd" formatted="false">"诊断信息已复制"</string>
     <string name="m_4397e9cd78d7" formatted="false">"核心分组待运行时确认"</string>
+    <string name="m_43a5dcecdbe4" formatted="false">"{0}/{1} {2}；{3} 个连续区间，{4} 处持续转换。缺测范围不推断边界。"</string>
     <string name="m_43c587192079" formatted="false">"系统内存不足"</string>
     <string name="m_43f06de05be3" formatted="false">"查看构建信息"</string>
     <string name="m_4479c4f8d413" formatted="false">"SoC 原始值"</string>

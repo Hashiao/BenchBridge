@@ -152,6 +152,7 @@
 "m_433071b8ffe4" = "Cache mode";
 "m_4356bc8e66fd" = "Diagnostics copied";
 "m_4397e9cd78d7" = "Core groups await runtime confirmation";
+"m_43a5dcecdbe4" = "{0}/{1} {2}; {3} contiguous regions and {4} sustained transitions. No boundaries are inferred across missing ranges.";
 "m_43c587192079" = "System ran out of memory";
 "m_43f06de05be3" = "Show build information";
 "m_4479c4f8d413" = "Reported SoC";

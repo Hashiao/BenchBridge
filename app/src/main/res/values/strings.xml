@@ -155,6 +155,7 @@
     <string name="m_433071b8ffe4" formatted="false">"Cache mode"</string>
     <string name="m_4356bc8e66fd" formatted="false">"Diagnostics copied"</string>
     <string name="m_4397e9cd78d7" formatted="false">"Core groups await runtime confirmation"</string>
+    <string name="m_43a5dcecdbe4" formatted="false">"{0}/{1} {2}; {3} contiguous regions and {4} sustained transitions. No boundaries are inferred across missing ranges."</string>
     <string name="m_43c587192079" formatted="false">"System ran out of memory"</string>
     <string name="m_43f06de05be3" formatted="false">"Show build information"</string>
     <string name="m_4479c4f8d413" formatted="false">"Reported SoC"</string>
