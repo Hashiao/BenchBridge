@@ -71,3 +71,7 @@ The release requires fresh native, Android build/Lint/device and both Apple tool
 
 Apple 核心信息接口依据：[官方调度技术讲解](https://developer.apple.com/videos/play/tech-talks/110147/)。
 Apple topology API reference: [official scheduling technical talk](https://developer.apple.com/videos/play/tech-talks/110147/).
+
+0.12.1 ROM 预热仅在每项、每个方向的首轮执行；三轮连续测量后，切换下一项/方向前等待 1 秒，最后一项不等待。苹果旧 v2 协议保留逐轮预热/间隔；新 v3 协议与安卓执行顺序一致，`storage_samples.warmup_ms` 记录每轮实际预热。标准 24 轮共计约 135 秒预热、正式测量与间隔，另加文件初始化、校验和同步；这不是完整运行耗时保证。
+
+For 0.12.1 storage, warm up only before the first round of each item/direction, run three rounds consecutively, then wait one second before the next item/direction; do not wait after the last item. Apple v2 retains per-round timing; v3 matches Android and exports actual `storage_samples.warmup_ms`. The standard 24 rounds budget about 135 seconds for warmup, measurement and intervals, plus initialization, validation and synchronization, not a guaranteed total duration.

@@ -127,10 +127,11 @@ enum BenchWorker {
                                 : bb_cpu_compute(token.handle, Int32(kind), Int32(config.durationMs)))
                         case .storage:
                             let parameters = config.storageSettings; let test = parameters.cases[index / 2]
+                            let warmup = parameters.warmup(forRound: round)
                             let raw = bb_storage_run(storageHandle, Int32(kind), test.random ? 1 : 0, Int32(test.blockKiB * 1024),
-                                                     Int32(test.queueDepth), Int32(test.threads), Int32(parameters.warmupMs), Int32(parameters.durationMs))
+                                                     Int32(test.queueDepth), Int32(test.threads), Int32(warmup), Int32(parameters.durationMs))
                             native = NativeMeasurement(raw.measurement)
-                            report.scores[index].storageSamples = (report.scores[index].storageSamples ?? []) + [StorageSample(raw)]
+                            report.scores[index].storageSamples = (report.scores[index].storageSamples ?? []) + [StorageSample(raw, warmupMs: warmup)]
                             if raw.resource_limited != 0 && !report.qualityFlags.contains("storage_aio_resource_limited") { report.qualityFlags.append("storage_aio_resource_limited") }
                         }
                         report.scores[index].measurements.append(native)
@@ -154,7 +155,7 @@ enum BenchWorker {
                     if report.scores[index].values.count == rounds { report.scores[index].state = "completed" }
                     try await publish()
                     if round + 1 < rounds || index + 1 < report.scores.count {
-                        let interval = report.family == .memory ? ram.intervalMs : report.family == .storage ? config.storageSettings.intervalMs : 0
+                        let interval = report.family == .memory ? ram.intervalMs : report.family == .storage ? config.storageSettings.interval(afterRound: round, lastItem: index + 1 == report.scores.count) : 0
                         if interval > 0 { report.progress = "轮间休息"; await progress(report); try await rest(interval) }
                     }
                 }

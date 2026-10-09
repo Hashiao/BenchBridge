@@ -107,7 +107,7 @@ struct StorageCase: Codable, Equatable, Identifiable, Sendable {
         Self(id: "rnd4k-q1t1", random: true, blockKiB: 4, queueDepth: 1, threads: 1)]
 }
 struct StorageParameters: Codable, Equatable, Sendable {
-    var protocolId = "diskmark-default-v2-apple-aio"
+    var protocolId = "diskmark-mobile-v3-apple-aio"
     var fileMiB = 1024
     var repeats = 3
     var warmupMs = 1000
@@ -115,6 +115,13 @@ struct StorageParameters: Codable, Equatable, Sendable {
     var intervalMs = 1000
     var noCache = true
     var cases = StorageCase.standard
+    // 新协议每项/方向仅首轮预热、三轮结束后休息；保留旧记录的逐轮语义。
+    // Warm once per item/direction and rest after its rounds; preserve per-round timing for legacy reports.
+    func warmup(forRound round: Int) -> Int { protocolId == "diskmark-mobile-v3-apple-aio" && round > 0 ? 0 : warmupMs }
+    func interval(afterRound round: Int, lastItem: Bool) -> Int {
+        if protocolId == "diskmark-mobile-v3-apple-aio" { return round + 1 == repeats && !lastItem ? intervalMs : 0 }
+        return round + 1 < repeats || !lastItem ? intervalMs : 0
+    }
     var normalized: Self { var value = self; value.cases = cases.map(\.canonical); return value }
     func validate() throws {
         guard (1...65536).contains(fileMiB), (1...9).contains(repeats), (0...10000).contains(warmupMs),
@@ -198,10 +205,12 @@ struct StorageSample: Codable, Sendable {
     var errorPhase: Int?
     var startDelayNs: UInt64?
     var minimumWorkerOperations: UInt64?
+    var warmupMs: Int?
     var backend = "posix-aio"
     var dataPattern = "splitmix64-64mib-pool-v1"
     var timer = "submission-through-last-completion;flush-separate"
-    init(_ result: BBStorageResult) {
+    init(_ result: BBStorageResult, warmupMs: Int? = nil) {
+        self.warmupMs = warmupMs
         queueDepth = Int(result.queue_depth); blockBytes = Int(result.block_bytes); random = result.random_access != 0
         meanOutstandingPerThread = result.mean_outstanding; maxOutstandingPerThread = Int(result.max_outstanding)
         flushNsSeparate = result.flush_ns; prepareBytes = result.prepare_bytes; writtenBytesTotal = result.written_bytes_total
