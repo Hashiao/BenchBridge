@@ -32,7 +32,8 @@ object L10n {
     }
     @Synchronized fun initialize(context: Context) {
         application = context.applicationContext ?: context
-        localized.clear(); displayCache.clear()
+        localized.clear()
+        synchronized(displayCache) { displayCache.clear() }
     }
     fun wrap(context: Context): Context = context.createConfigurationContext(Configuration(context.resources.configuration).apply {
         setLocales(LocaleList.forLanguageTags(tag))
