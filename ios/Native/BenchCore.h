@@ -28,6 +28,18 @@ BBResult bb_cache_point(BBSession* session, uint64_t bytes, int32_t stride,
                         int32_t qos, uint64_t seed);
 BBResult bb_storage(BBSession* session, const char* path, int32_t write_test, int32_t random_access,
                     uint64_t file_bytes, int32_t block_bytes, int32_t duration_ms);
+typedef struct BBStorage BBStorage;
+typedef struct {
+    BBResult measurement;
+    int32_t queue_depth, block_bytes, random_access, max_outstanding, error_number;
+    double mean_outstanding;
+    uint64_t flush_ns, prepare_bytes, written_bytes_total;
+} BBStorageResult;
+// 文件仅初始化一次；销毁前必须等 run 返回、排空所有 I/O。 / Prepare once; drain all I/O before returning or destroying.
+BBStorage* bb_storage_create(BBSession* session, const char* path, uint64_t file_bytes, int32_t no_cache, BBStorageResult* result);
+BBStorageResult bb_storage_run(BBStorage* storage, int32_t write_test, int32_t random_access, int32_t block_bytes,
+                               int32_t queue_depth, int32_t threads, int32_t warmup_ms, int32_t duration_ms);
+void bb_storage_destroy(BBStorage* storage);
 BBResult bb_cpu_compute(BBSession* session, int32_t kind, int32_t duration_ms);
 int32_t bb_compute_reference(int32_t kind, uint32_t item, uint32_t iterations, uint32_t* words);
 int32_t bb_check_compute(int32_t kind, uint32_t item, uint32_t iterations, const uint32_t* words);

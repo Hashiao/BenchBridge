@@ -2,6 +2,58 @@ import XCTest
 @testable import BenchBridge
 
 final class BenchBridgeTests: XCTestCase {
+    func testAlignedDefaultsAndLegacyDecoding() throws {
+        let config = BenchConfig()
+        XCTAssertEqual(config.ramSettings.memoryMiB, 64); XCTAssertEqual(config.ramSettings.latencyMiB, 64)
+        XCTAssertEqual(config.cacheMaxMiB, 64); XCTAssertTrue(config.backgroundCurve)
+        XCTAssertEqual(config.storageSettings.fileMiB, 1024); XCTAssertEqual(config.storageSettings.repeats, 3)
+        XCTAssertEqual(config.storageSettings.cases.map(\.queueDepth), [8,1,32,1])
+        XCTAssertEqual(config.storageSettings.cases.map(\.threads), [1,1,1,1])
+        XCTAssertEqual(BenchWorker.initial(.storage, config: config).plannedRounds, 24)
+        XCTAssertEqual(BenchWorker.initial(.memory, config: config).plannedRounds, 14)
+        let old = """
+        {"memory_mi_b":64,"threads":1,"duration_ms":500,"repeats":3,"cache_max_mi_b":128,"steps_per_octave":8,
+         "include_curve":true,"background_curve":false,"storage_mi_b":64,"functional_test":false}
+        """.data(using: .utf8)!
+        let legacy = try ReportStore.decoder().decode(BenchConfig.self, from: old)
+        XCTAssertNil(legacy.ram); XCTAssertNil(legacy.storage); XCTAssertEqual(legacy.storageSettings.fileMiB, 64)
+        XCTAssertEqual(legacy.ramSettings.durationMs, 500); XCTAssertEqual(legacy.cacheMaxMiB, 128)
+        let decoded = try ReportStore.decoder().decode(BenchConfig.self, from: ReportStore.encoder().encode(config))
+        XCTAssertEqual(config, decoded)
+        var edited = config; edited.ramSettings.memoryMiB = 128
+        XCTAssertEqual(edited.ramSettings.latencyMiB, 64); XCTAssertEqual(edited.storageSettings, config.storageSettings)
+        XCTAssertEqual(edited.durationMs, 500)
+        var score = ScoreItem(id: "rom", title: "ROM", unit: "MB/s", values: [1,2,3])
+        XCTAssertEqual(score.score, 2); score.aggregation = "maximum_completed_round"; XCTAssertEqual(score.score, 3)
+    }
+    func testAppleCatalogIsExactAndKeepsBinnedVariants() {
+        XCTAssertEqual(AppleCatalog.lookup("iPhone19,2")?.soc, "A20 Pro")
+        XCTAssertEqual(AppleCatalog.lookup("iPad16,3")?.performanceCores, [3,4])
+        XCTAssertEqual(AppleCatalog.lookup("iPad16,8")?.efficiencyCores, [5])
+        XCTAssertTrue(AppleCatalog.lookup("iPad15,7")?.performanceCores.isEmpty == true)
+        XCTAssertNil(AppleCatalog.lookup("iPhone19,20")); XCTAssertNil(AppleCatalog.lookup("iPhone99,1"))
+    }
+    func testQueuedStorageAndCancellationDrain() throws {
+        let token = try CancellationToken()
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("QueueTest-" + UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let path = folder.appendingPathComponent("data.bin")
+        var prepared = BBStorageResult()
+        let handle = try XCTUnwrap(path.path.withCString { bb_storage_create(token.handle, $0, 8 * 1048576, 1, &prepared) })
+        for queue: Int32 in [1,8,32] {
+            for write: Int32 in [0,1] {
+                let raw = bb_storage_run(handle, write, 1, 4096, queue, 1, 5, 30)
+                XCTAssertEqual(raw.measurement.status, 0, "errno \(raw.error_number)"); XCTAssertEqual(raw.measurement.verified, 1)
+                XCTAssertEqual(raw.max_outstanding, queue); XCTAssertGreaterThan(raw.mean_outstanding, 0)
+                XCTAssertEqual(NativeMeasurement(raw.measurement).trials.first!.logicalBytes, NativeMeasurement(raw.measurement).trials.first!.operations * 4096)
+                let sample = StorageSample(raw)
+                XCTAssertEqual(try ReportStore.decoder().decode(StorageSample.self, from: ReportStore.encoder().encode(sample)).queueDepth, Int(queue))
+            }
+        }
+        token.cancel("test"); XCTAssertEqual(bb_storage_run(handle, 1, 1, 4096, 32, 1, 0, 5000).measurement.status, 1)
+        bb_storage_destroy(handle); XCTAssertFalse(FileManager.default.fileExists(atPath: path.path))
+    }
     func testNativeMemoryCountsAndCancellation() throws {
         let token = try CancellationToken()
         for kind: Int32 in [0, 1, 2, 5] {

@@ -17,7 +17,7 @@ enum class RamKind(val code: Int, val title: String, val explanation: String) {
 data class RamConfig(
     val kinds: List<Int> = RamKind.entries.map { it.code },
     val workingSetMiB: Int = 64,
-    val latencySetMiB: Int = 32,
+    val latencySetMiB: Int = 64,
     val threads: Int = 1,
     val warmupMs: Int = 250,
     val durationMs: Int = 1000,
@@ -30,9 +30,10 @@ data class RamConfig(
     val calibrationMs: Int = 150,
     val cacheCurve: Boolean = false,
     val curveIncludeRam: Boolean = true,
-    val curveMaxMiB: Int = 128,
+    val curveMaxMiB: Int = 64,
     val curveSteps: Int = 8,
     val curveProtocol: String = CacheProbe.METHOD,
+    val expandRamWorkingSet: Boolean = false,
 ) {
     val curveMode: Boolean get() = cacheMatrix && cacheCurve
     val scoredLevels: List<String> get() = if(curveMode&&!curveIncludeRam)emptyList()else if (cacheMatrix && !curveMode) MemoryPlanner.levels else listOf("RAM")
@@ -42,7 +43,7 @@ data class RamConfig(
     fun sameParameters(other: RamConfig): Boolean = copy(presetId = "") == other.copy(presetId = "")
     fun recognizedPresetId(): String = when {
         sameParameters(matrixQuick().copy(threads = threads)) -> "cache-curve-quick-v1"
-        sameParameters(aida64(threads)) -> "cache-curve-standard-v1"
+        sameParameters(aida64(threads)) -> "cache-curve-standard-v2"
         sameParameters(quick()) -> "ram-quick-dev-v1"
         else -> "ram-custom-v1"
     }
@@ -56,7 +57,7 @@ data class RamConfig(
         if (curveMode) add(if(curveProtocol==CacheProbe.METHOD)"4 KiB–$curveMaxMiB MiB · 每倍容量 $curveSteps 个间隔 · 正反两遍交叉验证 · 自动补测与多区间分析"
             else "旧版缓存曲线协议：$curveProtocol · 保留原始测量参数")
         else if (cacheMatrix) add("缓存每次 ${BenchmarkFormat.duration(minOf(durationMs, 1000))}；工作集按共享域分配。RAM 工作集至少为末级缓存的两倍，实际值见成绩。")
-        if(curveMode && curveIncludeRam)add("RAM 工作集会按末级缓存与线程数增大，实际工作集见各项成绩。")
+        if(curveMode && curveIncludeRam)add(if(expandRamWorkingSet) "RAM 工作集会按末级缓存与线程数增大，实际工作集见各项成绩。" else "RAM 使用设定的总工作集，不按缓存容量自动扩大；拷贝工作集为源与目标之和。")
     }.joinToString("\n")
     val totalRounds: Int get() = kinds.sumOf { if (it == RamKind.LATENCY.code) latencyRounds else rounds } * scoredLevels.size
     fun bytes(kind: Int): Long = (if (kind == RamKind.LATENCY.code) latencySetMiB else workingSetMiB) * 1048576L
@@ -104,19 +105,20 @@ data class RamConfig(
         if (curveMode) put("cache_probe_method", curveProtocol).put("curve_include_ram",curveIncludeRam)
             .put("curve_max_mib",curveMaxMiB).put("curve_steps",curveSteps)
         put("calibration_ms", calibrationMs)
+        put("expand_ram_working_set", expandRamWorkingSet)
         if (cacheMatrix) put("cache_duration_ms", minOf(durationMs, 1000)).put("cache_warmup_ms", minOf(warmupMs, 250))
     }
 
     companion object {
         fun aida64(allowedCpus: Int = 1) = standard().copy(kinds = listOf(0, 1, 2, 5),
-            threads = allowedCpus.coerceIn(1, 16), automaticThreads = true, cacheMatrix = true, cacheCurve = true, curveIncludeRam=true, presetId = "cache-curve-standard-v1")
+            threads = allowedCpus.coerceIn(1, 16), automaticThreads = true, cacheMatrix = true, cacheCurve = true, curveIncludeRam=true, presetId = "cache-curve-standard-v2")
         fun matrixQuick() = RamConfig(kinds = listOf(0, 1, 2, 5), workingSetMiB = 16, latencySetMiB = 8,
             warmupMs = 25, durationMs = 150, rounds = 1, latencyRounds = 1, cooldownMs = 0,
             automaticThreads = true, cacheMatrix = true, cacheCurve = true, curveIncludeRam=true, curveSteps=4, curveMaxMiB=64, calibrationMs = 50, presetId = "cache-curve-quick-v1")
         fun quick() = RamConfig()
-        fun standard() = RamConfig(workingSetMiB = 512, latencySetMiB = 256,
+        fun standard() = RamConfig(workingSetMiB = 64, latencySetMiB = 64,
             warmupMs = 1000, durationMs = 3000, rounds = 3, latencyRounds = 5,
-            cooldownMs = 2000, presetId = "ram-standard-v1")
+            cooldownMs = 2000, presetId = "ram-standard-v2")
 
         fun fromJson(value: String): RamConfig {
             require(value.length <= 8192) { "配置过长" }
@@ -136,6 +138,7 @@ data class RamConfig(
                 cacheCurve = json.optBoolean("cache_curve", false),
                 curveIncludeRam=json.optBoolean("curve_include_ram",true),curveMaxMiB=json.optInt("curve_max_mib",64),curveSteps=json.optInt("curve_steps",4),
                 curveProtocol=json.optString("cache_probe_method",if(json.optBoolean("cache_curve"))"legacy-curve"else CacheProbe.METHOD),
+                expandRamWorkingSet=json.optBoolean("expand_ram_working_set",true),
             ).also { it.validate() }
         }
     }

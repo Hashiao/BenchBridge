@@ -146,7 +146,7 @@ extern "C" BBSession* bb_session_create(){try{return new BBSession;}catch(...){r
 extern "C" void bb_session_cancel(BBSession* s){if(s)s->cancel.store(true);}
 extern "C" int32_t bb_session_cancelled(BBSession* s){return !s||s->cancel.load();}
 extern "C" void bb_session_destroy(BBSession* s){delete s;}
-extern "C" const char* bb_core_protocol(){return "apple-unpinned-index-v1";}
+extern "C" const char* bb_core_protocol(){return "apple-unpinned-index-v2";}
 extern "C" uint64_t bb_available_memory(){
 #if defined(__APPLE__) && TARGET_OS_IPHONE
     return os_proc_available_memory();
@@ -164,8 +164,8 @@ extern "C" BBResult bb_cache_point(BBSession* s,uint64_t bytes,int32_t stride,in
 extern "C" BBResult bb_memory(BBSession* s,int32_t kind,uint64_t bytes,int32_t threads,int32_t warm,int32_t duration,int32_t qos,uint64_t seed)try{
     if(kind==5){if(threads!=1){BBResult invalid{};invalid.status=2;return invalid;}return latency(s,bytes,64,qos,seed,warm,duration,1);}
     BBResult out{};out.kind=kind;out.threads=threads;out.qos=qos;
-    if(!s||kind<0||kind>2||bytes<4096||bytes>512ULL*1048576||bytes%256||threads<1||threads>8||duration<5||duration>5000||warm<0||warm>5000||qos<0||qos>1){out.status=2;return out;}
-    const uint64_t per=bytes/uint64_t(threads)/256*256;out.working_set_bytes=per*uint64_t(threads);
+    if(!s||kind<0||kind>2||bytes<4096||bytes>512ULL*1048576||bytes%256||threads<1||threads>16||duration<5||duration>5000||warm<0||warm>5000||qos<0||qos>1){out.status=2;return out;}
+    const uint64_t per=bytes/uint64_t(threads)/256*256;out.working_set_bytes=bytes;
     if(per<4096){out.status=2;return out;}
     const auto wall=now();
     std::mutex mutex;std::condition_variable ready;int arrived=0,finished=0;bool go=false,verifyGo=false;uint64_t measureStart=0,measureEnd=0;
@@ -173,7 +173,8 @@ extern "C" BBResult bb_memory(BBSession* s,int32_t kind,uint64_t bytes,int32_t t
     std::vector<std::thread> workers;
     try {
         for(int id=0;id<threads;++id)workers.emplace_back([&,id]{bool measured=false;try{
-            priority(qos);check(s);const auto words=size_t(per/8/(kind==2?2:1));const uint64_t value=seed+uint64_t(id)+1;
+            priority(qos);check(s);const auto workerBytes=per+(uint64_t(id)<bytes/256%uint64_t(threads)?256:0);
+            const auto words=size_t(workerBytes/8/(kind==2?2:1));const uint64_t value=seed+uint64_t(id)+1;
             std::vector<uint64_t> data(words,value),copy(kind==2?words:0,0);uint64_t sum=0;
             auto one=[&]{check(s);if(kind==0)sum^=bb_seq_read(data.data(),words);else if(kind==1)bb_seq_write(data.data(),words,value);else bb_copy(copy.data(),data.data(),words);};
             const auto warmStart=now();do{one();}while(now()-warmStart<uint64_t(warm)*1000000);

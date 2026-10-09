@@ -48,7 +48,7 @@ try:
     if metal.returncode:run(['xcodebuild','-downloadComponent','MetalToolchain'],'metal-toolchain.log')
     native=OUT/'core-tests'
     run(['xcrun','clang++','-std=c++20','-O2','-fno-lto','-Wall','-Wextra','-Werror',
-         'ios/Native/BenchCore.cpp','ios/Native/SharedKernels.cpp','ios/Native/SharedCompute.cpp','ios/Native/CoreTests.cpp','-o',str(native)],'native-build.log')
+         'ios/Native/BenchCore.cpp','ios/Native/StorageCore.cpp','ios/Native/SharedKernels.cpp','ios/Native/SharedCompute.cpp','ios/Native/CoreTests.cpp','-o',str(native)],'native-build.log')
     run([str(native),str(OUT/'native-files')],'native-tests.log');manifest['native_tests']='passed';save()
     base=['xcodebuild','-project','ios/BenchBridge.xcodeproj','-scheme','BenchBridge','-configuration','Release','CODE_SIGNING_ALLOWED=NO']
     run(base+['-sdk','iphoneos','-destination','generic/platform=iOS','-derivedDataPath',str(OUT/'device-build'),'build'],'device-build.log')

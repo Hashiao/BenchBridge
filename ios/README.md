@@ -4,33 +4,37 @@
 
 Native SwiftUI + C++20 + Metal application for iPhone and iPad, targeting iOS/iPadOS 18.0+. Memory and CPU arithmetic kernels are shared with Android; UI, storage calls, GPU backend and lifecycle are implemented for Apple platforms.
 
+默认值、苹果 SoC 型号/核心组识别与跨平台差异见 [协议对齐说明](../docs/CROSS_PLATFORM_DEFAULTS.md)。
+
+See [aligned defaults and platform differences](../docs/CROSS_PLATFORM_DEFAULTS.md), including Apple model/core-group discovery.
+
 ## 功能与范围 / Features and scope
 
-| 项目 / Area | 0.11.0 实现 / Implementation |
+| 项目 / Area | 0.12.0 实现 / Implementation |
 |---|---|
 | RAM | 先测读取、写入、延迟、拷贝，首页保留四项摘要；可配置工作集、线程、时长、重复次数。 / Read, write, latency and copy first, with a four-score dashboard row and configurable working set, threads, duration and repeats. |
-| 缓存曲线 / Cache curve | 默认 4 KiB–128 MiB、每倍容量 8 个间隔、正反扫描与有限复测；显示实测点和多个持续转换区间。 / Default 4 KiB–128 MiB, eight intervals per octave, forward/reverse sweeps and bounded rechecks; measured points and multiple sustained transitions. |
-| ROM | 1 MiB 顺序与 4 KiB 随机读写，Q1 T1，应用沙盒临时文件。 / 1 MiB sequential and 4 KiB random reads/writes, Q1 T1, owned temporary sandbox files. |
+| 缓存曲线 / Cache curve | 默认 4 KiB–64 MiB、每倍容量 8 个间隔、正反扫描与有限复测；显示实测点和多个持续转换区间。 / Default 4 KiB–64 MiB, eight intervals per octave, forward/reverse sweeps and bounded rechecks; measured points and multiple sustained transitions. |
+| ROM | 1 GiB 文件，SEQ 1 MiB Q8T1/Q1T1、RND 4 KiB Q32T1/Q1T1，支持块/Q/T 设置。 / 1 GiB file, SEQ 1 MiB Q8T1/Q1T1 and RND 4 KiB Q32T1/Q1T1 with configurable block/Q/T. |
 | CPU | 12 项，包括内存、浮点、整数、AES-256、SHA-1、Julia 与 Mandelbrot。 / Twelve tests covering memory, floating point, integers, AES-256, SHA-1, Julia and Mandelbrot. |
 | GPU | Metal 内存读写拷贝、FP32、INT24/32/64、Julia；FP64 与 Mandelbrot FP64 不支持，AES/SHA 首版未实现，界面和导出明确记录原因。 / Metal memory read/write/copy, FP32, INT24/32/64 and Julia; FP64/Mandelbrot FP64 unavailable and GPU AES/SHA not yet implemented, with explicit reasons in UI/export. |
 | 结果 / Reports | 每步原子保存、历史、JSON 分享、取消、上次中断恢复标记；切到后台或严重热状态时停止。 / Atomic checkpoints, history, JSON sharing, cancellation and interruption recovery; stop on backgrounding or serious thermal state. |
 
-本版不提供固定物理核心或锁定频率。默认高优先级，可选后台优先级对照；QoS 只是调度提示，不能把两条曲线命名为性能核和能效核。系统没有提供的 L1/L2/L3 容量保持未知，转换区间不自动当作缓存容量。
+本版不提供固定物理核心或锁定频率。默认高优先级和后台优先级对照；QoS 只是调度提示，不能把两条曲线命名为性能核和能效核。系统没有提供的 L1/L2/L3 容量保持未知，转换区间不自动当作缓存容量。
 
-This version does not pin physical cores or lock frequency. High priority is the default with an optional background-priority comparison. QoS is a scheduling hint, not proof of performance/efficiency core placement. Unreported L1/L2/L3 capacities remain unknown; measured transitions are not automatically labeled as cache capacities.
+This version does not pin physical cores or lock frequency. High and background priority comparisons are enabled by default. QoS is a scheduling hint, not proof of performance/efficiency core placement. Unreported L1/L2/L3 capacities remain unknown; measured transitions are not automatically labeled as cache capacities.
 
 ## 测量协议 / Measurement protocol
 
 - 缓存使用高熵缓冲区与随机 32 位依赖索引链；优先采用系统报告的缓存行粒度（32/64/128/256 B），缺失时显式采用 64 B，原始记录保存 `node_stride_bytes`。同一点保持内存与工作线程，预热至少两遍链和 40 ms，然后采集 7 次约 30 ms 正式采样；单独保留墙钟和线程 CPU 时间。
   Cache measurements use high-entropy buffers and a shuffled dependent 32-bit index chain. Use the reported cache line size when it is 32/64/128/256 B, otherwise a 64 B fallback, exported as `node_stride_bytes`. Keep allocation and worker for a point, warm for at least two chain cycles and 40 ms, then collect seven approximately 30 ms trials, retaining wall and thread CPU time separately.
-- 正反遍分别至少 5 次有效采样；MAD/中位数不超过 8%，至少 80% 采样在中位数的 ±15%，两遍中位数相差不超过合并中位数的 15%。未通过点最多重试至三批；边界加密后再次正反测量。不平滑原始中位数，不跨无效区间推断。
-  Each direction needs at least five accepted trials, MAD/median ≤8%, at least 80% within ±15%, and directional medians within 15% of the combined median. Failed points get at most three batches; refinement points are measured bidirectionally. Raw medians are not smoothed and invalid gaps are not bridged.
+- 正反遍分别至少 5 次有效采样；MAD/中位数不超过 6%，至少 80% 采样在中位数的 ±12%，两遍中位数相差不超过合并中位数的 12%。未通过点最多重试至三批；边界加密后再次正反测量。不平滑原始中位数，不跨无效区间推断。
+  Each direction needs at least five accepted trials, MAD/median ≤6%, at least 80% within ±12%, and directional medians within 12% of the combined median. Failed points get at most three batches; refinement points are measured bidirectionally. Raw medians are not smoothed and invalid gaps are not bridged.
 - RAM 带宽以 GB/s 表示，拷贝按读取与写入合计；延迟固定单线程、64 B 节点跨度，单位 ns。默认 64 MiB 工作集不保证绕过所有系统级缓存，因此不能把该值直接解释为裸 DRAM 极限。CPU 结果验证不计入正式时间。
   RAM bandwidth uses GB/s and copy counts reads plus writes. Latency uses one thread and a 64 B node stride in ns. The default 64 MiB working set is not guaranteed to bypass every system-level cache and is not a bare-DRAM peak claim. CPU validation is outside scored timing.
 - GPU 使用 `MTLCommandBuffer.gpuEndTime - gpuStartTime`，预热、CPU 编码和结果校验不混入主值；完整提交等待耗时另存。设备时间戳缺失则标记不可用，不用 CPU 耗时冒充 GPU 分数。检查输出样本后才接受成绩。
   GPU scoring uses `MTLCommandBuffer.gpuEndTime - gpuStartTime`, excluding warmup, CPU encoding and validation. Full submit/wait time is recorded separately. Missing device timestamps make the result unavailable instead of substituting CPU wall time. Scores require output validation.
-- 存储使用 `F_NOCACHE` 提示并记录是否成功，写入时间包含末次 `fsync`。不宣称绕过所有硬件缓存或等同安卓 Direct I/O。测试只清理自身创建的文件，累计读写量与文件大小分开记录。
-  Storage requests `F_NOCACHE` and records success; write timing includes the final `fsync`. This does not imply bypassing all hardware caches or equivalence to Android Direct I/O. Only owned test files are removed; I/O volume and file size are recorded separately.
+- 存储使用 `F_NOCACHE` 提示并记录是否成功，吞吐计时不包含末次 `fsync`，其耗时单独保存。不宣称绕过所有硬件缓存或等同安卓 Direct I/O。测试只清理自身创建的文件，累计读写量与文件大小分开记录。
+  Storage requests `F_NOCACHE` and records success; final `fsync` time is stored separately from throughput timing. This does not imply bypassing all hardware caches or equivalence to Android Direct I/O. Only owned test files are removed; I/O volume and file size are recorded separately.
 
 跨平台协议并非完全相同，不应直接据分数判断平台优劣。模拟器始终显示提示，并在 JSON 标记 `simulator`；缩短的 UI 验证另有 `functional_test` 标记。模拟器的缓存、GPU、存储数据不代表目标手机或平板。
 
@@ -75,6 +79,6 @@ GitHub Release 的 `BenchBridge-iOS-unsigned.ipa` 是真实 iPhoneOS ARM64 构�
 
 The Release asset `BenchBridge-iOS-unsigned.ipa` is a real iPhoneOS ARM64 build, not a simulator package. It has no Apple signature or provisioning profile and cannot be installed by simply opening it. Device installation requires signing/provisioning with your own Apple identity. No account, certificate or private key is included.
 
-没有 Mac 不影响 Windows 编辑与云端编译，但真机验收仍需要在自己的设备上运行签名后的应用。TestFlight/App Store 分发还需符合 Apple 开发者计划要求；当前没有发布到 TestFlight，也未宣称已在用户的 iPhone/iPad 上验证。
+没有 Mac 不影响 Windows 编辑与云端编译，但真机验收仍需要在自己的设备上运行签名后的应用。TestFlight/App Store 分发还需符合 Apple 开发者计划要求；当前没有发布到 TestFlight，0.11.0 已收到用户安装运行成功反馈；0.12.0 新内核仍待真机验收。
 
-A Mac is not required for Windows editing and cloud compilation, but device acceptance still requires a signed app running on your hardware. TestFlight/App Store distribution also requires meeting Apple's developer-program requirements. This project has not been distributed through TestFlight or validated on the user's physical devices.
+A Mac is not required for Windows editing and cloud compilation, but device acceptance still requires a signed app running on your hardware. TestFlight/App Store distribution also requires meeting Apple's developer-program requirements. This project has not been distributed through TestFlight ; 0.11.0 installation/launch was reported successful, while 0.12.0 kernels still need physical-device acceptance.

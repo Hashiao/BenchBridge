@@ -31,8 +31,11 @@ final class BenchBridgeUITests: XCTestCase {
     func testStorageAndCancellation() {
         let app = app(); tab("ROM", app: app); app.buttons["start-test"].tap()
         XCTAssertTrue(app.buttons["export-json"].waitForExistence(timeout: 60))
-        for id in ["seq-1048576-0", "seq-1048576-1", "random-4096-0", "random-4096-1"] {
-            XCTAssertNotEqual(app.staticTexts["value-\(id)"].label, "—")
+        for test in ["seq1m-q8t1", "seq1m-q1t1", "rnd4k-q32t1", "rnd4k-q1t1"] {
+            for direction in 0...1 {
+                let value = app.staticTexts["value-\(test)-\(direction)"]
+                XCTAssertTrue(value.exists); XCTAssertNotEqual(value.label, "—")
+            }
         }
         screenshot("Storage", app: app)
         tab("RAM", app: app); app.buttons["start-test"].tap()

@@ -39,7 +39,12 @@ object MemoryPlanner {
                 // 至少覆盖末级缓存两倍容量；按实际值报告扩大的工作集。
                 // Cover at least twice the last-level capacity and report any working-set expansion.
                 val perWorker = maxOf(requested, up((cache?.bytes ?: 0) * 2 / members.size))
-                members.forEach { sizes[it] = perWorker }
+                members.forEach { cpu ->
+                    // 按 256 B 分配余数，保持用户指定的总工作集。 / Distribute aligned remainders without changing the requested total.
+                    val units = config.bytes(kind) / 256
+                    sizes[cpu] = if(config.expandRamWorkingSet) perWorker
+                        else (units / cpus.size + if(cpus.indexOf(cpu) < units % cpus.size) 1 else 0) * 256
+                }
                 domains += id; sources += cache?.source ?: "last-level-size-unknown"
             }
         } else {

@@ -8,17 +8,21 @@ Android CPU、GPU、内存与存储基准测试工具，使用 Kotlin / Jetpack 
 
 An Android CPU, GPU, memory and storage benchmark with a Kotlin / Jetpack Compose interface, C++20 kernels and Vulkan compute shaders.
 
-本仓库公开当前 0.11.0 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
+本仓库公开当前 0.12.0 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
 
-This repository contains the current 0.11.0 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+This repository contains the current 0.12.0 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+
+0.12.0 对齐安卓与苹果的默认 RAM 64 MiB、单线程 4 KiB–64 MiB 曲线和 DiskMark ROM 配置，并统一主要操作布局。详见 [跨平台默认参数与能力边界](docs/CROSS_PLATFORM_DEFAULTS.md)。
+
+0.12.0 aligns Android/Apple RAM defaults at 64 MiB, single-thread 4 KiB–64 MiB curves, DiskMark storage settings and main UI layouts. See [defaults and platform capabilities](docs/CROSS_PLATFORM_DEFAULTS.md).
 
 ## iPhone / iPad
 
 **[下载 iPhone/iPad IPA（未签名） / Download unsigned IPA](https://github.com/Hashiao/BenchBridge/releases/latest/download/BenchBridge-iOS-unsigned.ipa)** · **[安装、真机测试与 App Store 上架指引 / Installation, device testing and App Store guide](docs/APPLE_DISTRIBUTION.md)**
 
-首次测试：将设备用 USB 接到身边的 Windows 电脑 → 按指引用自己的 Apple 账号签名安装 → 开启需要的开发者模式 → 在设备上分别跑 RAM、ROM、GPGPU → 导出 JSON。**下载 IPA 不等于已经能安装；当前没有 TestFlight 邀请。**免费个人签名有有效期；iOS 27 的实际侧载安装仍待真机确认。
+首次测试：将设备用 USB 接到身边的 Windows 电脑 → 按指引用自己的 Apple 账号签名安装 → 开启需要的开发者模式 → 在设备上分别跑 RAM、ROM、GPGPU → 导出 JSON。**下载 IPA 不等于已经能安装；当前没有 TestFlight 邀请。**免费个人签名有有效期；用户已反馈 0.11.0 在 iOS 27 真机安装运行成功；新测量内核仍需真机验收。
 
-First device test: connect the device to a nearby Windows PC over USB → sign/install using your own Apple account as described in the guide → enable Developer Mode when required → run RAM, ROM and GPGPU on-device → export JSON. **Downloading the IPA does not make it installable; there is no TestFlight invitation yet.** Free personal signing expires; actual sideload installation on iOS 27 remains unverified.
+First device test: connect the device to a nearby Windows PC over USB → sign/install using your own Apple account as described in the guide → enable Developer Mode when required → run RAM, ROM and GPGPU on-device → export JSON. **Downloading the IPA does not make it installable; there is no TestFlight invitation yet.** Free personal signing expires; the user reported successful 0.11.0 installation and launch on iOS 27; the new measurement kernels still require device acceptance.
 
 0.11.0 新增 [原生苹果端工程与构建说明](ios/README.md)，最低 iOS / iPadOS 18。包含 RAM 四项与缓存曲线、存储、CPU 和 Metal GPU 测试、历史与 JSON 导出。Windows 验证共享 C++ 核心，GitHub 的 macOS 环境编译并实跑 iPhone / iPad 模拟器；模拟器数值不代表真机性能。苹果端采用系统调度，不提供安卓式物理核心绑定。
 
@@ -30,8 +34,8 @@ Version 0.11.0 adds a [native Apple project and build guide](ios/README.md) for 
 
 ## 功能 / Features
 
-- **缓存与 RAM：**不同核心组在同一坐标叠加工作集大小—延迟曲线，默认 4 KiB–128 MiB、每倍容量 8 个间隔、正反扫描和自动补测。先测 RAM 读取、写入、延迟、拷贝四项，首页和详情均保留一行摘要；再扫描曲线并给出多个转换结论。可手动关闭 RAM；旧版纯曲线记录明确显示 RAM 未测，历史保持原协议。
-  **Cache and RAM:** overlay core-group size/latency curves on shared axes, normally covering 4 KiB–128 MiB with eight intervals per octave, reverse sweeps and automatic rechecks. Measure RAM read/write/latency/copy first and retain a four-score row on the dashboard and in details, then scan and analyze the curves. RAM can be disabled explicitly; historical curve-only records show RAM as unmeasured without rewriting history.
+- **缓存与 RAM：**不同核心组在同一坐标叠加工作集大小—延迟曲线，默认 4 KiB–64 MiB、每倍容量 8 个间隔、正反扫描和自动补测。先测 RAM 读取、写入、延迟、拷贝四项，首页和详情均保留一行摘要；再扫描曲线并给出多个转换结论。可手动关闭 RAM；旧版纯曲线记录明确显示 RAM 未测，历史保持原协议。
+  **Cache and RAM:** overlay core-group size/latency curves on shared axes, normally covering 4 KiB–64 MiB with eight intervals per octave, reverse sweeps and automatic rechecks. Measure RAM read/write/latency/copy first and retain a four-score row on the dashboard and in details, then scan and analyze the curves. RAM can be disabled explicitly; historical curve-only records show RAM as unmeasured without rewriting history.
 - **存储：**顺序和随机读写，可配置文件大小、块大小、队列深度、线程数与缓存模式。
   **Storage:** sequential and random I/O with configurable file size, block size, queue depth, thread count and cache mode.
 - **GPGPU：**独立分页，12 项 CPU / GPU 测试，包含各自内存读写、FP32 / FP64、整数运算、大块 AES-256 / SHA-1 与分形图像处理。成绩、单位和操作按钮同屏展示。

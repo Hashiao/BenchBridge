@@ -1,8 +1,8 @@
 # 苹果端安装、真机测试与上架 / Apple installation, device testing and distribution
 
-适用于 BenchBridge 0.11.0；资料核对日期 2026-10-08。应用最低 iOS/iPadOS 18.0，当前是供真机验收的首版，不是已经上架 App Store 的成品。
+适用于 BenchBridge 0.12.0；资料核对日期 2026-10-08。应用最低 iOS/iPadOS 18.0，当前是供真机验收的首版，不是已经上架 App Store 的成品。
 
-For BenchBridge 0.11.0; references checked on 2026-10-08. Minimum iOS/iPadOS 18.0. This first version is ready for device acceptance testing; it is not already an App Store release.
+For BenchBridge 0.12.0; references checked on 2026-10-08. Minimum iOS/iPadOS 18.0. This first version is ready for device acceptance testing; it is not already an App Store release.
 
 ## 1. 下载哪一个文件 / Choose the download
 
@@ -18,9 +18,9 @@ On Windows, run `Get-FileHash .\BenchBridge-iOS-unsigned.ipa -Algorithm SHA256` 
 
 ## 2. 今晚用 Windows 安装 / Install from Windows for testing
 
-Windows 可尝试第三方 [Sideloadly](https://sideloadly.io/)：按官网装好所需的 iTunes/iCloud，USB 配对后导入 IPA，用自己的 Apple 账号签名。免费签名通常有效 7 天；后续 Wi-Fi 安装需已配对且同网。官网写明支持 iOS 26+，本项目未验证 iOS 27 侧载。
+Windows 可尝试第三方 [Sideloadly](https://sideloadly.io/)：按官网装好所需的 iTunes/iCloud，USB 配对后导入 IPA，用自己的 Apple 账号签名。免费签名通常有效 7 天；后续 Wi-Fi 安装需已配对且同网。官网写明支持 iOS 26+，用户已反馈 0.11.0 在 iOS 27 安装运行成功；0.12.0 仍需重新验收。
 
-Windows users can try third-party [Sideloadly](https://sideloadly.io/): follow its iTunes/iCloud prerequisites, pair over USB, import the IPA and sign with their Apple account. Free signatures normally expire in seven days; Wi-Fi requires pairing and the same network. It advertises iOS 26+; iOS 27 sideloading remains unverified here.
+Windows users can try third-party [Sideloadly](https://sideloadly.io/): follow its iTunes/iCloud prerequisites, pair over USB, import the IPA and sign with their Apple account. Free signatures normally expire in seven days; Wi-Fi requires pairing and the same network. It advertises iOS 26+; the user reported successful 0.11.0 installation on iOS 27; 0.12.0 requires fresh acceptance.
 
 签名安装与应用模拟器验收是不同环节；当前远程电脑不能直接当作已配对设备。认证信息只在自己使用的签名工具中输入，不放进 JSON、聊天或仓库。
 
@@ -70,8 +70,12 @@ A personally owned Mac is not required: edit on Windows and sign/build/upload on
 
 Before store submission, resolve unimplemented feature entries, privacy/support pages, signing/upload configuration and physical-device stability/repeatability. These are remaining tasks, not a claim that submission has happened.
 
-## 5. 本次验证依据 / Evidence for this build
+## 5. 0.11.0 历史验证依据 / Historical 0.11.0 evidence
 
 苹果二进制来自提交 `5a3748fa967f41837622dd1a388c1a8162966610` 的 [成功 CI](https://github.com/Hashiao/BenchBridge/actions/runs/37755229929)：iOS 18.5 与 27.0 各自的 iPhone/iPad 模拟器，每组 6 项单元测试＋2 项界面测试，共 32 次通过，无跳过；两个工具链的 ARM64 iPhoneOS Release 编译通过。后续安装指引提交仅修改文档，不改变这份已验证二进制的应用源码。真机结果待用户回传。
 
 The Apple binary comes from commit `5a3748fa967f41837622dd1a388c1a8162966610` and its [successful CI](https://github.com/Hashiao/BenchBridge/actions/runs/37755229929): six unit plus two UI tests on each iPhone/iPad simulator for iOS 18.5 and 27.0, 32 passes with no skips, and successful ARM64 iPhoneOS Release builds on both toolchains. Subsequent installation-guide commits change documentation only, not this verified binary's application source. Physical-device results remain pending.
+
+0.12.0 的参数与能力见 [跨平台对齐说明](CROSS_PLATFORM_DEFAULTS.md)，构建/测试结果以对应新 Release 为准，不沿用上面的旧版通过记录。
+
+For 0.12.0, see [aligned defaults](CROSS_PLATFORM_DEFAULTS.md) and its matching Release for fresh build/test outcomes; the historical results above do not validate the new binary.

@@ -56,7 +56,7 @@ class MemoryMatrixTest {
 
     @Test fun sharedDomainsConstrainFootprintsAndRamExceedsLastLevel() {
         val topology = fixture()
-        val config = RamConfig.matrixQuick().copy(cacheCurve=false)
+        val config = RamConfig.matrixQuick().copy(cacheCurve=false, expandRamWorkingSet=true)
         val budget = 1024L * 1048576
         val l2 = MemoryPlanner.plan(topology,config,"L2",2,listOf(0,1),budget)!!
         assertEquals(786432L,l2.bytes)
@@ -67,6 +67,19 @@ class MemoryMatrixTest {
         assertNull(MemoryPlanner.plan(topology,config,"L2",5,listOf(0,1),budget))
         assertNull(MemoryPlanner.plan(topology.copy(caches=emptyList()),config,"L3",0,listOf(0),budget))
         assertNull(MemoryPlanner.plan(topology,config,"L1",0,listOf(0,0),budget))
+    }
+
+    @Test fun fixedDefaultsPreserve64MiBAcrossCorePlansAndLegacyRemainsReadable() {
+        val config=RamConfig.aida64(3)
+        assertEquals(64,config.workingSetMiB);assertEquals(64,config.latencySetMiB);assertEquals(64,config.curveMaxMiB)
+        val topology=fixture().copy(cores=(0..2).map(::cpu),caches=listOf(CpuCache("huge",3,128L*1048576,64,listOf(0,1,2),"test")))
+        for(kind in MemoryPlanner.columns) {
+            val plan=MemoryPlanner.plan(topology,config,"RAM",kind,if(kind==5)listOf(0)else listOf(0,1,2),1024L*1048576)!!
+            assertEquals(64L*1048576,plan.bytes)
+        }
+        assertEquals(config,RamConfig.fromJson(config.toJson().toString()))
+        val old=config.toJson().apply{remove("expand_ram_working_set");put("working_set_mib",512);put("latency_set_mib",256)}
+        val legacy=RamConfig.fromJson(old.toString());assertTrue(legacy.expandRamWorkingSet);assertEquals(512,legacy.workingSetMiB)
     }
 
     @Test fun catalogRequiresUnambiguousIdentityAndMatchingTopology() {

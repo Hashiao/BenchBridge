@@ -35,6 +35,29 @@ int main(int argc,char** argv){try{
         require(r.verified&&r.trials[0].logical_bytes==r.trials[0].operations*4096,"I/O byte accounting");require(!std::filesystem::exists(path),"owned file cleanup");
     }
     const auto original=root/"preexisting.txt";{std::ofstream file(original);file<<"preserve";}
+    BBStorageResult preparation{};
+    require(!bb_storage_create(s.get(),original.string().c_str(),1048576,0,&preparation)&&preparation.measurement.status==5,"queued storage preserves existing files");
+    const auto queuedPath=root/"queued.bin";
+    std::unique_ptr<BBStorage,decltype(&bb_storage_destroy)> storage(bb_storage_create(s.get(),queuedPath.string().c_str(),8*1048576,0,&preparation),bb_storage_destroy);
+    require(bool(storage)&&preparation.prepare_bytes==8*1048576,"storage prepares the complete file once");
+    uint64_t previousWrites=preparation.written_bytes_total;
+    for(auto queue:{1,8,32})for(auto write:{0,1}){
+        const auto result=bb_storage_run(storage.get(),write,1,4096,queue,1,5,30);
+        const auto& m=result.measurement;require(m.status==0&&m.verified&&m.trial_count==1,"asynchronous storage validation");
+        require(m.trials[0].logical_bytes==m.trials[0].operations*4096,"queued byte accounting");
+        require(result.max_outstanding==queue&&result.mean_outstanding>0&&result.mean_outstanding<=queue+0.01,"real outstanding I/O queue depth");
+        require(result.written_bytes_total>=previousWrites&&result.prepare_bytes==8*1048576,"file reused and writes accumulated");
+        if(write){require(result.flush_ns>0,"sync separately timed");require(result.written_bytes_total>=previousWrites+m.trials[0].logical_bytes,"writes counted including warmup");}
+        else require(result.written_bytes_total==previousWrites,"reads do not initialize another file");
+        previousWrites=result.written_bytes_total;
+    }
+    require(bb_storage_run(storage.get(),0,0,1048576,32,1,0,5).measurement.status==2,"reject file smaller than queue footprint");
+    const auto multi=bb_storage_run(storage.get(),1,0,4096,8,2,0,30);require(multi.measurement.verified&&multi.measurement.threads==2,"disjoint multi-thread regions");
+    BBStorageResult cancelledIO{};std::thread ioWorker([&]{cancelledIO=bb_storage_run(storage.get(),1,1,4096,32,1,0,5000);});
+    std::this_thread::sleep_for(std::chrono::milliseconds(30));bb_session_cancel(s.get());ioWorker.join();
+    require(cancelledIO.measurement.status==1&&!cancelledIO.measurement.verified,"cancel drains queued I/O without publishing a score");
+    storage.reset();require(!std::filesystem::exists(queuedPath),"queued file ownership cleanup");s.reset(bb_session_create());
+    require(bb_memory(s.get(),2,1048576,3,5,10,0,419).working_set_bytes==1048576,"unaligned thread counts preserve total RAM footprint");
     require(bb_storage(s.get(),original.string().c_str(),1,0,1048576,4096,5).status==5,"exclusive creation");
     std::ifstream originalFile(original);std::string contents;originalFile>>contents;require(contents=="preserve","never overwrite user file");originalFile.close();std::filesystem::remove(original);
     bb_session_cancel(s.get());require(bb_cache_point(s.get(),4096,64,0,1).status==1,"pre-cancelled point");

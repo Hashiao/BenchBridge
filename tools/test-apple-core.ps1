@@ -19,7 +19,7 @@ try {
     $env:INCLUDE="$benchVC\include;$benchKits\Include\$benchSDK\ucrt;$benchKits\Include\$benchSDK\shared;$benchKits\Include\$benchSDK\um"
     $env:LIB="$benchVC\lib\x64;$benchKits\Lib\$benchSDK\ucrt\x64;$benchKits\Lib\$benchSDK\um\x64"
     $benchObjects=@()
-    foreach($benchSource in @('BenchCore','SharedKernels','SharedCompute','CoreTests')) {
+    foreach($benchSource in @('BenchCore','StorageCore','SharedKernels','SharedCompute','CoreTests')) {
         $benchObject=Join-Path $benchOutput "$benchSource.obj"
         & $ClangPath --target=x86_64-pc-windows-msvc -std=c++20 -O2 -fno-lto -Wall -Wextra -Werror -c (Join-Path $benchRoot "ios/Native/$benchSource.cpp") -o $benchObject
         if($LASTEXITCODE -ne 0){throw "Native compilation failed: $benchSource"}

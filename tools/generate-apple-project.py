@@ -12,7 +12,7 @@ def settings(values):return '{'+''.join(f'{key} = {array([q(x) for x in val]) if
 groups=[];products=[];targets=[];configs={};buildRefs={}
 sources={
     'BenchBridge': sorted([str(p.relative_to(ROOT)).replace('\\','/') for p in (ROOT/'BenchBridge').glob('*.swift')])+
-        ['Native/BenchCore.cpp','Native/SharedKernels.cpp','Native/SharedCompute.cpp','BenchBridge/BenchKernels.metal'],
+        ['Native/BenchCore.cpp','Native/StorageCore.cpp','Native/SharedKernels.cpp','Native/SharedCompute.cpp','BenchBridge/BenchKernels.metal'],
     'BenchBridgeTests':['BenchBridgeTests/BenchBridgeTests.swift'],
     'BenchBridgeUITests':['BenchBridgeUITests/BenchBridgeUITests.swift']
 }

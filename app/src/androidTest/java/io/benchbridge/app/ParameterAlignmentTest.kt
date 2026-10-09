@@ -193,7 +193,7 @@ class ParameterAlignmentTest {
         node("ram_working_64", true).click()
         device.waitForIdle()
         assertEquals(64, model.state.value.config.workingSetMiB)
-        assertEquals("Changing bandwidth memory must not silently change latency memory", 256, model.state.value.config.latencySetMiB)
+        assertEquals("Changing bandwidth memory must not silently change latency memory", 64, model.state.value.config.latencySetMiB)
         assertEquals(1, model.state.value.config.rounds)
         assertEquals(3, model.state.value.config.latencyRounds)
     }
