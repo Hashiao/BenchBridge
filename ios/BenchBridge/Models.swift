@@ -333,5 +333,9 @@ enum Statistics {
         let valid = group.points.filter(\.stable).count
         group.summary = "\(valid)/\(group.plannedSizes.count) 点通过验证；\(group.regions.count) 个连续区间，\(group.transitions.count) 处持续转换。" + (valid == group.plannedSizes.count ? "" : "未通过范围不推断边界。")
     }
-    static func size(_ bytes: UInt64) -> String { bytes >= 1048576 ? String(format: "%.3g MiB", Double(bytes) / 1048576) : String(format: "%.3g KiB", Double(bytes) / 1024) }
+    static func size(_ bytes: UInt64) -> String {
+        if bytes >= 1073741824 { return String(format: "%.3g GiB", Double(bytes) / 1073741824) }
+        if bytes >= 1048576 { return String(format: "%.3g MiB", Double(bytes) / 1048576) }
+        return String(format: "%.3g KiB", Double(bytes) / 1024)
+    }
 }
