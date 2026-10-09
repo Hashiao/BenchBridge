@@ -36,6 +36,8 @@ typedef struct {
     int32_t queue_depth, block_bytes, random_access, max_outstanding, error_number, resource_limited, error_phase;
     double mean_outstanding;
     uint64_t flush_ns, prepare_bytes, written_bytes_total, start_delay_ns, minimum_worker_operations;
+    int32_t preparation_no_cache, buffer_alignment_bytes;
+    uint64_t submitted_operations, completed_bytes, completion_wall_ns;
 } BBStorageResult;
 // 文件仅初始化一次；销毁前必须等 run 返回、排空所有 I/O。 / Prepare once; drain all I/O before returning or destroying.
 BBStorage* bb_storage_create(BBSession* session, const char* path, uint64_t file_bytes, int32_t no_cache, BBStorageResult* result);

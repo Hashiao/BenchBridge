@@ -60,6 +60,8 @@ final class BenchBridgeTests: XCTestCase {
         let path = folder.appendingPathComponent("data.bin")
         var prepared = BBStorageResult()
         let handle = try XCTUnwrap(path.path.withCString { bb_storage_create(token.handle, $0, 8 * 1048576, 1, &prepared) })
+        XCTAssertEqual(prepared.preparation_no_cache, 1); XCTAssertEqual(prepared.measurement.no_cache, 1)
+        XCTAssertEqual(prepared.buffer_alignment_bytes, 65536)
         for queue: Int32 in [1,8,32] {
             for write: Int32 in [0,1] {
                 let raw = bb_storage_run(handle, write, 1, 4096, queue, 1, 5, 30)
@@ -67,9 +69,26 @@ final class BenchBridgeTests: XCTestCase {
                 XCTAssertGreaterThanOrEqual(raw.max_outstanding, queue == 1 ? 1 : 2); XCTAssertLessThanOrEqual(raw.max_outstanding, queue)
                 XCTAssertTrue(raw.max_outstanding == queue || raw.resource_limited != 0); XCTAssertGreaterThan(raw.mean_outstanding, 0)
                 XCTAssertEqual(NativeMeasurement(raw.measurement).trials.first!.logicalBytes, NativeMeasurement(raw.measurement).trials.first!.operations * 4096)
+                XCTAssertEqual(raw.submitted_operations, raw.measurement.trials.0.operations)
+                XCTAssertEqual(raw.completed_bytes, raw.measurement.trials.0.logical_bytes)
+                XCTAssertGreaterThanOrEqual(raw.completion_wall_ns, raw.measurement.trials.0.elapsed_ns)
+                XCTAssertEqual(raw.preparation_no_cache, 1); XCTAssertEqual(raw.measurement.no_cache, 1)
                 let sample = StorageSample(raw)
-                XCTAssertEqual(try ReportStore.decoder().decode(StorageSample.self, from: ReportStore.encoder().encode(sample)).queueDepth, Int(queue))
+                let decoded = try ReportStore.decoder().decode(StorageSample.self, from: ReportStore.encoder().encode(sample))
+                XCTAssertEqual(decoded.queueDepth, Int(queue)); XCTAssertEqual(decoded.completedBytes, raw.completed_bytes)
+                XCTAssertEqual(decoded.preparationNoCacheHint, true)
+                var legacy = try XCTUnwrap(JSONSerialization.jsonObject(with: ReportStore.encoder().encode(sample)) as? [String: Any])
+                for key in ["preparation_no_cache_hint","buffer_alignment_bytes","submitted_operations","completed_bytes","completion_wall_ns"] { legacy.removeValue(forKey: key) }
+                legacy["backend"] = "posix-aio"
+                let old = try ReportStore.decoder().decode(StorageSample.self, from: JSONSerialization.data(withJSONObject: legacy))
+                XCTAssertNil(old.preparationNoCacheHint); XCTAssertNil(old.completedBytes); XCTAssertEqual(old.backend, "posix-aio")
             }
+        }
+        for queue: Int32 in [8,1] {
+            let raw = bb_storage_run(handle, 0, 0, 1048576, queue, 1, 0, 100)
+            XCTAssertEqual(raw.measurement.status, 0); XCTAssertEqual(raw.measurement.verified, 1)
+            XCTAssertEqual(raw.completed_bytes, raw.measurement.trials.0.operations * 1048576)
+            XCTAssertEqual(raw.submitted_operations, raw.measurement.trials.0.operations)
         }
         let shortRun = bb_storage_run(handle, 0, 1, 4096, 1, 16, 1, 5)
         XCTAssertEqual(shortRun.measurement.status, 0); XCTAssertGreaterThan(shortRun.minimum_worker_operations, 0)

@@ -6,7 +6,24 @@
 #include <stdexcept>
 #include <thread>
 #include <memory>
+#include <vector>
+#if defined(__APPLE__)
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#endif
 void require(bool value,const char* message){if(!value)throw std::runtime_error(message);}
+#if defined(__APPLE__)
+// 只查询文件缓存驻留，不读映射页；对照缓存初始化与无缓存初始化。
+// Query file-page residency without touching mapped pages; compare buffered and no-cache preparation.
+uint64_t residentBytes(const std::filesystem::path& path,size_t bytes){
+    const int fd=open(path.c_str(),O_RDONLY);require(fd>=0,"open residency probe");
+    void* mapping=mmap(nullptr,bytes,PROT_READ,MAP_SHARED,fd,0);close(fd);require(mapping!=MAP_FAILED,"map residency probe");
+    const size_t page=size_t(sysconf(_SC_PAGESIZE));std::vector<char> pages((bytes+page-1)/page);
+    const int result=mincore(mapping,bytes,pages.data());munmap(mapping,bytes);require(result==0,"query residency probe");
+    uint64_t resident=0;for(char value:pages)if(value&1)resident+=page;return resident;
+}
+#endif
 int main(int argc,char** argv){try{
     require(argc==2,"provide an owned test directory");const auto root=std::filesystem::absolute(argv[1]);std::filesystem::create_directories(root);
     std::unique_ptr<BBSession,decltype(&bb_session_destroy)> s(bb_session_create(),bb_session_destroy);require(bool(s),"session");
@@ -42,11 +59,27 @@ int main(int argc,char** argv){try{
     const auto queuedPath=root/"queued.bin";
     std::unique_ptr<BBStorage,decltype(&bb_storage_destroy)> storage(bb_storage_create(s.get(),queuedPath.string().c_str(),8*1048576,0,&preparation),bb_storage_destroy);
     require(bool(storage)&&preparation.prepare_bytes==8*1048576,"storage prepares the complete file once");
+#if defined(__APPLE__)
+    const auto uncachedPath=root/"uncached.bin";BBStorageResult coldPreparation{};
+    std::unique_ptr<BBStorage,decltype(&bb_storage_destroy)> uncached(bb_storage_create(s.get(),uncachedPath.string().c_str(),8*1048576,1,&coldPreparation),bb_storage_destroy);
+    require(bool(uncached)&&coldPreparation.preparation_no_cache&&coldPreparation.measurement.no_cache,"no-cache applies before the first initialization write");
+    const auto cached=residentBytes(queuedPath,8*1048576),cold=residentBytes(uncachedPath,8*1048576);
+    std::cout<<"Preparation cache residency: buffered="<<cached<<" no-cache="<<cold<<'\n';
+    require(cached>=4*1048576&&cold<1048576,"no-cache preparation must not seed the first read with a resident file");
+    for(auto queue:{8,1}){
+        const auto read=bb_storage_run(uncached.get(),0,0,1048576,queue,1,0,100);
+        require(read.measurement.verified&&read.preparation_no_cache&&read.measurement.no_cache,"first and later sequential reads keep the no-cache policy");
+        require(read.submitted_operations==read.measurement.trials[0].operations&&read.completed_bytes==read.measurement.trials[0].logical_bytes,"Q8/Q1 count actual completed bytes once");
+    }
+#endif
     uint64_t previousWrites=preparation.written_bytes_total;
     for(auto queue:{1,8,32})for(auto write:{0,1}){
         const auto result=bb_storage_run(storage.get(),write,1,4096,queue,1,5,30);
         const auto& m=result.measurement;require(m.status==0&&m.verified&&m.trial_count==1,"asynchronous storage validation");
         require(m.trials[0].logical_bytes==m.trials[0].operations*4096,"queued byte accounting");
+        require(result.submitted_operations==m.trials[0].operations&&result.completed_bytes==m.trials[0].logical_bytes,"submitted/completed request ledger");
+        require(result.completion_wall_ns>=m.trials[0].elapsed_ns&&m.wall_ns>=result.completion_wall_ns,"independent completion timer contains the scored interval");
+        require(result.buffer_alignment_bytes==65536,"aligned initialization and I/O buffers");
         std::cout<<"I/O Q"<<queue<<" write="<<write<<" achieved="<<result.max_outstanding<<" mean="<<result.mean_outstanding<<" limited="<<result.resource_limited<<'\n';
         require(result.max_outstanding>=(queue==1?1:2)&&result.max_outstanding<=queue&&
                 (result.max_outstanding==queue||result.resource_limited)&&result.mean_outstanding>0&&result.mean_outstanding<=queue+0.01,"real outstanding I/O queue depth, with explicit kernel resource limits");

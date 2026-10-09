@@ -4,6 +4,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <memory>
 #include <mutex>
@@ -14,6 +15,7 @@
 #if defined(_WIN32)
 #define NOMINMAX
 #include <windows.h>
+#include <malloc.h>
 #else
 #include <aio.h>
 #include <fcntl.h>
@@ -23,6 +25,7 @@
 
 namespace {
 constexpr uint64_t PoolBytes=64ULL*1048576, Seed=0xB16B00B5ULL;
+constexpr size_t BufferAlignment=65536;
 uint64_t clockNs(){return uint64_t(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());}
 struct Failure { int status, error; };
 void ioError(){
@@ -39,6 +42,37 @@ struct Random {
     uint64_t next(){state+=0x9e3779b97f4a7c15ULL;return mix(state);}
     uint64_t bounded(uint64_t n){const uint64_t threshold=-n%n;uint64_t v;do{v=next();}while(v<threshold);return v%n;}
 };
+// 初始化、测量和校验使用相同的页对齐，避免无缓存 I/O 的未对齐回退。
+// Align preparation, measurement and validation buffers to avoid unaligned no-cache fallback.
+class Buffer {
+    uint64_t* pointer=nullptr;size_t words=0;
+public:
+    Buffer()=default;
+    explicit Buffer(size_t bytes){allocate(bytes);}
+    Buffer(const Buffer&)=delete;Buffer& operator=(const Buffer&)=delete;
+    void allocate(size_t bytes){
+        if(pointer||bytes%8)throw Failure{2,0};
+#if defined(_WIN32)
+        pointer=static_cast<uint64_t*>(_aligned_malloc(bytes,BufferAlignment));
+        if(!pointer)throw std::bad_alloc();
+#else
+        void* memory=nullptr;if(posix_memalign(&memory,BufferAlignment,bytes)!=0)throw std::bad_alloc();
+        pointer=static_cast<uint64_t*>(memory);
+#endif
+        words=bytes/8;
+    }
+    ~Buffer(){
+#if defined(_WIN32)
+        _aligned_free(pointer);
+#else
+        std::free(pointer);
+#endif
+    }
+    uint64_t* data(){return pointer;}
+    const uint64_t* data()const{return pointer;}
+    size_t size()const{return words;}
+    uint64_t& operator[](size_t index){return pointer[index];}
+};
 struct File {
 #if defined(_WIN32)
     HANDLE fd=INVALID_HANDLE_VALUE;
@@ -54,10 +88,17 @@ struct File {
 #else
         fd=open(path.c_str(),O_RDWR|(create?(O_CREAT|O_EXCL):0),0600);if(fd<0)ioError();
 #if defined(__APPLE__)
-        if(bypass){if(fcntl(fd,F_NOCACHE,1)!=0){const int code=errno;close(fd);fd=-1;throw Failure{5,code};}noCache=true;}
+        try{setNoCache(bypass);}catch(...){close(fd);fd=-1;throw;}
 #else
         (void)bypass;
 #endif
+#endif
+    }
+    void setNoCache(bool bypass){
+#if defined(__APPLE__)
+        if(bypass){if(fcntl(fd,F_NOCACHE,1)!=0)ioError();noCache=true;}
+#else
+        (void)bypass;
 #endif
     }
     ~File(){
@@ -74,7 +115,7 @@ struct File {
         if(fsync(fd)!=0)ioError();
 #endif
     }
-    void transfer(bool write,void* buffer,size_t bytes,uint64_t offset){
+    size_t transfer(bool write,void* buffer,size_t bytes,uint64_t offset){
         size_t done=0;while(done<bytes){
 #if defined(_WIN32)
             OVERLAPPED op{};const auto position=offset+done;op.Offset=DWORD(position);op.OffsetHigh=DWORD(position>>32);
@@ -89,36 +130,37 @@ struct File {
             if(count<0&&errno==EINTR)continue;if(count<=0)ioError();done+=size_t(count);
 #endif
         }
+        return done;
     }
 };
 struct Slot {
-    std::vector<uint64_t> buffer;
+    Buffer buffer;
     bool active=false, completed=false;
-    uint64_t offset=0;
+    uint64_t offset=0,transferred=0;
 #if defined(_WIN32)
     OVERLAPPED op{};
-    explicit Slot(size_t bytes):buffer(bytes/8){op.hEvent=CreateEventA(nullptr,TRUE,FALSE,nullptr);if(!op.hEvent)ioError();}
+    explicit Slot(size_t bytes):buffer(bytes){op.hEvent=CreateEventA(nullptr,TRUE,FALSE,nullptr);if(!op.hEvent)ioError();}
     ~Slot(){CloseHandle(op.hEvent);}
     bool submit(File& f,bool write){ResetEvent(op.hEvent);op.Offset=DWORD(offset);op.OffsetHigh=DWORD(offset>>32);
         const bool ok=write?WriteFile(f.fd,buffer.data(),DWORD(buffer.size()*8),nullptr,&op):ReadFile(f.fd,buffer.data(),DWORD(buffer.size()*8),nullptr,&op);
-        if(!ok&&GetLastError()!=ERROR_IO_PENDING)ioError();active=true;completed=false;return true;}
+        if(!ok&&GetLastError()!=ERROR_IO_PENDING)ioError();active=true;completed=false;transferred=0;return true;}
     bool finish(File& f,bool wait){DWORD count=0;if(!GetOverlappedResult(f.fd,&op,&count,wait)){
         const auto code=GetLastError();if(!wait&&code==ERROR_IO_INCOMPLETE)return false;active=false;throw Failure{5,int(code)};}
-        active=false;if(count!=buffer.size()*8)throw Failure{5,0};completed=true;return true;}
+        active=false;if(count!=buffer.size()*8)throw Failure{5,0};transferred=count;completed=true;return true;}
 #else
     aiocb op{};
-    explicit Slot(size_t bytes):buffer(bytes/8){}
+    explicit Slot(size_t bytes):buffer(bytes){}
     bool submit(File& f,bool write){op={};op.aio_fildes=f.fd;op.aio_offset=off_t(offset);op.aio_buf=buffer.data();op.aio_nbytes=buffer.size()*8;op.aio_sigevent.sigev_notify=SIGEV_NONE;
-        if((write?aio_write(&op):aio_read(&op))!=0){if(errno==EAGAIN)return false;ioError();}active=true;completed=false;return true;}
+        if((write?aio_write(&op):aio_read(&op))!=0){if(errno==EAGAIN)return false;ioError();}active=true;completed=false;transferred=0;return true;}
     bool finish(File&,bool wait){int code;while((code=aio_error(&op))==EINPROGRESS){if(!wait)return false;const aiocb* list[]={&op};timespec limit{0,10000000};aio_suspend(list,1,&limit);}
-        const auto count=aio_return(&op);active=false;if(code!=0||count!=ssize_t(buffer.size()*8))throw Failure{5,code};completed=true;return true;}
+        const auto count=aio_return(&op);active=false;if(code!=0||count!=ssize_t(buffer.size()*8))throw Failure{5,code};transferred=uint64_t(count);completed=true;return true;}
 #endif
 };
-struct WorkerResult {uint64_t operations=0,ended=0,startDelay=0;double queueArea=0;int maximum=0;bool limited=false;};
+struct WorkerResult {uint64_t submitted=0,operations=0,bytes=0,ended=0,startDelay=0;double queueArea=0;int maximum=0;bool limited=false;};
 }
 struct BBStorage {
     BBSession* session;std::string path;uint64_t bytes,written=0;bool bypass,owned=false;
-    std::vector<uint64_t> pattern;std::unique_ptr<File> file;
+    Buffer pattern;std::unique_ptr<File> file;
     BBStorage(BBSession* s,const char* p,uint64_t n,bool cache):session(s),path(p),bytes(n),bypass(cache){}
     ~BBStorage(){file.reset();if(owned)std::remove(path.c_str());}
     void fill(void* output,uint64_t offset,size_t count)const{
@@ -137,10 +179,14 @@ extern "C" BBStorage* bb_storage_create(BBSession* s,const char* path,uint64_t b
         check(s);auto storage=std::make_unique<BBStorage>(s,path,bytes,bypass!=0);
         // 独占创建和所有权先完成；后续失败只清理本次文件。 / Establish exclusive ownership before any fallible preparation.
         storage->file=std::make_unique<File>(storage->path,true,false);storage->owned=true;
-        storage->pattern.resize(PoolBytes/8);
+        // 必须在首次写入之前设置；fsync 不清除已有 UBC 页，后续 F_NOCACHE 读取仍可能命中它们。
+        // Set before the first write: fsync does not evict UBC pages that later F_NOCACHE reads can still hit.
+        storage->file->setNoCache(storage->bypass);
+        storage->pattern.allocate(PoolBytes);
         for(size_t i=0;i<storage->pattern.size();++i){if(i%65536==0)check(s);storage->pattern[i]=mix(Seed+(i+1)*0x9e3779b97f4a7c15ULL);}
         for(uint64_t offset=0;offset<bytes;offset+=1048576){check(s);storage->file->transfer(true,reinterpret_cast<char*>(storage->pattern.data())+offset%PoolBytes,1048576,offset);storage->written+=1048576;}
         storage->file->sync();check(s);result->prepare_bytes=bytes;result->written_bytes_total=storage->written;result->measurement.wall_ns=clockNs()-start;result->error_phase=0;
+        result->preparation_no_cache=storage->file->noCache;result->measurement.no_cache=storage->file->noCache;result->buffer_alignment_bytes=BufferAlignment;
         return storage.release();
     }catch(const Failure& e){result->measurement.status=e.status;result->error_number=e.error;}catch(...){result->measurement.status=3;}
     result->measurement.wall_ns=clockNs()-start;return nullptr;
@@ -152,10 +198,11 @@ extern "C" BBStorageResult bb_storage_run(BBStorage* storage,int32_t writeTest,i
     try{
         if(!storage||writeTest<0||writeTest>1||randomAccess<0||randomAccess>1||block<4096||block>4194304||(block&(block-1))||depth<1||depth>64||threads<1||threads>16||depth*threads>512||uint64_t(block)*depth*threads>256ULL*1048576||warm<0||warm>10000||duration<5||duration>30000||storage->bytes/uint64_t(block)/uint64_t(threads)<uint64_t(depth))throw Failure{2,0};
         measurement.working_set_bytes=storage->bytes;out.prepare_bytes=storage->bytes;check(storage->session);
+        out.preparation_no_cache=storage->file->noCache;out.buffer_alignment_bytes=BufferAlignment;
         auto stage=[&](int milliseconds,bool scored){
             if(milliseconds==0)return;
             out.error_phase=scored?3:2;
-            std::mutex mutex;std::condition_variable condition;bool go=false,verifyGo=false;int ready=0,measured=0;uint64_t start=0;
+            std::mutex mutex;std::condition_variable condition;bool go=false,verifyGo=false;int ready=0,measured=0;uint64_t start=0,ioFinished=0;
             std::atomic<bool> stop{false};std::vector<std::thread> workers;std::vector<WorkerResult> results(size_t(threads),WorkerResult{});
             std::vector<Failure> errors(size_t(threads),Failure{0,0});std::vector<int> hints(size_t(threads),0);
             try{for(int id=0;id<threads;++id)workers.emplace_back([&,id]{bool arrived=false,counted=false;try{
@@ -177,14 +224,15 @@ extern "C" BBStorageResult bb_storage_run(BBStorage* storage,int32_t writeTest,i
                                 slot->completed=false;
                                 slot->offset=(base+(randomAccess?rng.bounded(count):next))*uint64_t(block);next=(next+1)%count;
                                 if(writeTest)storage->fill(slot->buffer.data(),slot->offset,size_t(block));
-                                if(depth==1){const auto begin=clockNs();file.transfer(writeTest!=0,slot->buffer.data(),size_t(block),slot->offset);const auto end=clockNs();
+                                if(depth==1){const auto begin=clockNs();++result.submitted;
+                                    result.bytes+=file.transfer(writeTest!=0,slot->buffer.data(),size_t(block),slot->offset);const auto end=clockNs();
                                     result.queueArea+=double(end-begin);result.maximum=1;++result.operations;result.ended=end;slot->completed=true;finished=true;}
-                                else if(slot->submit(file,writeTest!=0)){account();++pending;result.maximum=std::max(result.maximum,pending);submitted=true;retryStart=0;}
+                                else if(slot->submit(file,writeTest!=0)){account();++pending;++result.submitted;result.maximum=std::max(result.maximum,pending);submitted=true;retryStart=0;}
                                 else {result.limited=true;if(!retryStart)retryStart=clockNs();if(pending==0&&clockNs()-retryStart>1000000000ULL)throw Failure{5,EAGAIN};break;}
                             }
                         }
                         if(submitted||finished)started=true;
-                        if(depth>1)for(auto& slot:slots)if(slot->active&&slot->finish(file,false)){account();--pending;++result.operations;result.ended=clockNs();finished=true;}
+                        if(depth>1)for(auto& slot:slots)if(slot->active&&slot->finish(file,false)){account();--pending;++result.operations;result.bytes+=slot->transferred;result.ended=clockNs();finished=true;}
                         if(started&&clockNs()>=deadline&&pending==0)break;
                         if(!submitted&&!finished){
 #if defined(_WIN32)
@@ -197,7 +245,7 @@ extern "C" BBStorageResult bb_storage_run(BBStorage* storage,int32_t writeTest,i
                     }
                 }catch(...){
                     // 即使取消/失败也必须取回所有请求，之后才释放缓冲与文件。 / Reap every submitted request before freeing its buffer or descriptor.
-                    for(auto& slot:slots)if(slot->active)try{if(slot->finish(file,true)){++result.operations;result.ended=clockNs();}}catch(...){}
+                    for(auto& slot:slots)if(slot->active)try{if(slot->finish(file,true)){++result.operations;result.bytes+=slot->transferred;result.ended=clockNs();}}catch(...){}
                     throw;
                 }
                 // 所有线程结束 I/O 后再校验，避免干扰仍在计时的线程。 / Validate only after every worker stops timed I/O.
@@ -207,16 +255,18 @@ extern "C" BBStorageResult bb_storage_run(BBStorage* storage,int32_t writeTest,i
                 {std::lock_guard lock(mutex);if(!arrived)++ready;if(!counted)++measured;condition.notify_all();}
             });
             {std::unique_lock lock(mutex);condition.wait(lock,[&]{return ready==threads;});start=clockNs();go=true;condition.notify_all();
-                condition.wait(lock,[&]{return measured==threads;});verifyGo=true;condition.notify_all();}
+                condition.wait(lock,[&]{return measured==threads;});ioFinished=clockNs();verifyGo=true;condition.notify_all();}
             }catch(...){stop=true;{std::lock_guard lock(mutex);go=true;verifyGo=true;condition.notify_all();}for(auto& worker:workers)worker.join();throw;}
             for(auto& worker:workers)worker.join();
-            uint64_t operations=0,ended=start;double area=0;int maximum=0;
-            for(const auto& r:results){operations+=r.operations;ended=std::max(ended,r.ended);area+=r.queueArea;maximum=std::max(maximum,r.maximum);}
-            if(writeTest)storage->written+=operations*uint64_t(block);
+            uint64_t submitted=0,operations=0,completedBytes=0,ended=start;double area=0;int maximum=0;
+            for(const auto& r:results){submitted+=r.submitted;operations+=r.operations;completedBytes+=r.bytes;ended=std::max(ended,r.ended);area+=r.queueArea;maximum=std::max(maximum,r.maximum);}
+            if(writeTest)storage->written+=completedBytes;
+            if(scored){out.submitted_operations=submitted;out.completed_bytes=completedBytes;out.completion_wall_ns=ioFinished-start;}
             check(storage->session);for(const auto& error:errors)if(error.status)throw error;
             if(!operations||ended<=start)throw Failure{7,0};
+            if(submitted!=operations||completedBytes!=operations*uint64_t(block)||ioFinished<ended)throw Failure{4,0};
             measurement.no_cache=std::all_of(hints.begin(),hints.end(),[](int value){return value!=0;});
-            if(scored){measurement.trials[0]={ended-start,0,operations,operations*uint64_t(block),1};
+            if(scored){measurement.trials[0]={ended-start,0,operations,completedBytes,1};
                 out.max_outstanding=maximum;out.mean_outstanding=area/double(ended-start)/threads;
                 out.resource_limited=std::any_of(results.begin(),results.end(),[](const auto& r){return r.limited;});
                 out.minimum_worker_operations=results.front().operations;
@@ -227,7 +277,7 @@ extern "C" BBStorageResult bb_storage_run(BBStorage* storage,int32_t writeTest,i
         stage(warm,false);stage(duration,true);
         // 独立校验跨文件样本，初始化和同步均不进入吞吐计时。 / Independently verify samples across the file outside throughput timing.
         out.error_phase=5;File verify(storage->path,false,storage->bypass);
-        std::vector<uint64_t> buffer(4096/8);for(uint64_t i=0;i<16;++i){check(storage->session);const auto at=(storage->bytes/4096-1)*i/15*4096;
+        Buffer buffer(4096);for(uint64_t i=0;i<16;++i){check(storage->session);const auto at=(storage->bytes/4096-1)*i/15*4096;
             verify.transfer(false,buffer.data(),4096,at);if(!storage->valid(buffer.data(),at,4096))throw Failure{4,0};}
         measurement.verified=1;measurement.trial_count=1;out.error_phase=0;
     }catch(const Failure& e){measurement.status=e.status;out.error_number=e.error;}catch(...){measurement.status=3;}

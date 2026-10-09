@@ -10,7 +10,7 @@ See [aligned defaults and platform differences](../docs/CROSS_PLATFORM_DEFAULTS.
 
 ## 功能与范围 / Features and scope
 
-| 项目 / Area | 0.12.1 实现 / Implementation |
+| 项目 / Area | 0.12.2 实现 / Implementation |
 |---|---|
 | RAM | 标准默认四项均为 64 MiB、T1，关闭自动线程，四项各测 3 次取算术平均值；先测读取、写入、延迟、拷贝，首页保留四项摘要；可配置工作集、线程、时长、重复次数。 / Standard defaults are 64 MiB/T1 for all four scores, with automatic threads off and the arithmetic mean of three rounds per score. Read, write, latency and copy first, with a four-score dashboard row and configurable working set, threads, duration and repeats. |
 | 缓存曲线 / Cache curve | 默认 4 KiB–64 MiB、每倍容量 8 个间隔，单遍、每块仅采样 1 次，无复测和补点；显示实测点和多个持续转换区间。 / Default 4 KiB–64 MiB, eight intervals per octave, one sweep/sample per block without rechecks or refinement; measured points and multiple sustained transitions. |
@@ -86,3 +86,7 @@ A Mac is not required for Windows editing and cloud compilation, but device acce
 0.12.1 将部署目标降低到 16.0，曲线选点使用 iOS 16 图表覆盖层手势，后台监听使用旧版兼容接口。CI 同时检查 IPA 的 MinimumOSVersion 和 Mach-O 的 minos 为 16.0；实际运行过的模拟器版本单独记录，部署目标不等于该版本真机已验收。
 
 0.12.1 lowers deployment to 16.0, uses iOS 16 chart-overlay selection and a compatible scene-phase callback. CI verifies both IPA MinimumOSVersion and Mach-O minos are 16.0. Executed simulator versions are recorded separately; a deployment target is not a claim of physical-device validation on that OS.
+
+0.12.2 的文件初始化、预热、测量和校验句柄均使用所请求的 F_NOCACHE 策略，缓冲区统一 64 KiB 对齐。`storage_samples` 新增初始化缓存请求、缓冲对齐、实际完成字节、提交次数及独立完成计时字段；历史字段缺失仍可读取。详情见 [缓存修复与回归](../docs/APPLE_STORAGE_CACHE.md)。
+
+In 0.12.2 preparation, warmup, measurement and validation honor the requested F_NOCACHE policy, with 64 KiB aligned buffers. New optional storage_samples fields record preparation cache policy, alignment, actual completed bytes, submissions and an independent completion clock; historical reports remain readable. See [cache fix and regression](../docs/APPLE_STORAGE_CACHE.md).

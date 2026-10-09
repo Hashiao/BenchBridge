@@ -206,7 +206,12 @@ struct StorageSample: Codable, Sendable {
     var startDelayNs: UInt64?
     var minimumWorkerOperations: UInt64?
     var warmupMs: Int?
-    var backend = "posix-aio"
+    var preparationNoCacheHint: Bool?
+    var bufferAlignmentBytes: Int?
+    var submittedOperations: UInt64?
+    var completedBytes: UInt64?
+    var completionWallNs: UInt64?
+    var backend = "posix-aio-nocache-init-v2"
     var dataPattern = "splitmix64-64mib-pool-v1"
     var timer = "submission-through-last-completion;flush-separate"
     init(_ result: BBStorageResult, warmupMs: Int? = nil) {
@@ -217,6 +222,8 @@ struct StorageSample: Codable, Sendable {
         errnoCode = Int(result.error_number)
         resourceLimited = result.resource_limited != 0
         errorPhase = Int(result.error_phase); startDelayNs = result.start_delay_ns; minimumWorkerOperations = result.minimum_worker_operations
+        preparationNoCacheHint = result.preparation_no_cache != 0; bufferAlignmentBytes = Int(result.buffer_alignment_bytes)
+        submittedOperations = result.submitted_operations; completedBytes = result.completed_bytes; completionWallNs = result.completion_wall_ns
     }
 }
 struct GPUSample: Codable, Sendable {

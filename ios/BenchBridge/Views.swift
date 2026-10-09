@@ -271,6 +271,12 @@ struct ReportDetails: View {
                     if let sample = item.storageSamples?.last {
                         Text("Q\(sample.queueDepth) · 实测每线程最大在途 \(sample.maxOutstandingPerThread)，平均 \(sample.meanOutstandingPerThread, specifier: "%.2f") · 同步 \(Double(sample.flushNsSeparate) / 1e6, specifier: "%.2f") ms（另计）").font(.caption)
                         Text("累计写入（含初始化与预热）\(Statistics.size(sample.writtenBytesTotal))").font(.caption)
+                        if let uncached = sample.preparationNoCacheHint {
+                            Text("初始化无缓存请求：\(uncached ? "已启用" : "未启用")").font(.caption)
+                        }
+                        if let bytes = sample.completedBytes, let submitted = sample.submittedOperations {
+                            Text("本轮实际完成 \(Statistics.size(bytes)) · 提交 \(submitted) 次").font(.caption)
+                        }
                         if sample.resourceLimited { Text("系统限制了异步请求资源；以实测在途深度为准。").font(.caption).foregroundStyle(.orange) }
                     }
                     if let reason = item.reason { Text(reason).font(.caption).foregroundStyle(.secondary) }

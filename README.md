@@ -8,9 +8,13 @@ Android、iPhone 与 iPad 的 CPU、GPU、内存与存储基准测试工具。�
 
 A CPU, GPU, memory and storage benchmark for Android, iPhone and iPad. Android uses Kotlin / Jetpack Compose and Vulkan; Apple uses SwiftUI and Metal, with C++20 measurement kernels.
 
-本仓库公开当前 0.12.1 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
+本仓库公开当前 0.12.2 实现。应用界面目前使用中文；项目说明和自有代码注释采用中英双语。
 
-This repository contains the current 0.12.1 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+This repository contains the current 0.12.2 implementation. The app interface is currently in Chinese; project documentation and project-authored code comments are bilingual.
+
+0.12.2 修复苹果 ROM 初始化仍使用文件缓存的问题：首次写入前即启用 F_NOCACHE，避免第一项顺序读取被准备阶段的缓存污染；I/O 缓冲统一对齐，并记录实际完成字节、提交次数与独立完成计时。旧成绩保留原值，需用新版重新测试，不对分数作倍率修正。详见 [苹果 ROM 缓存修复](docs/APPLE_STORAGE_CACHE.md)。
+
+0.12.2 applies F_NOCACHE before Apple storage initialization writes, preventing preparation from seeding the first sequential read with file-cache data. Aligned I/O buffers and completed-byte, submission-count and independent completion-time diagnostics are included. Historical scores are preserved and require a new run, without multiplying or dividing results. See the [Apple storage cache fix](docs/APPLE_STORAGE_CACHE.md).
 
 0.12.1 将安卓与苹果 RAM 的读取、写入、延迟、拷贝标准默认值统一为 **64 MiB、T1**，四项各测 **3 次取算术平均值**；曲线默认**单遍、每块 1 次**，关闭复测与加密补点。默认关闭带宽线程自动校准；手动多线程、自动校准及双向复核仍可选。
 
