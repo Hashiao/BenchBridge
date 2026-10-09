@@ -160,7 +160,9 @@ class MemoryMatrixTest {
         lateinit var model: RamViewModel
         scenario.scenario.onActivity { model=ViewModelProvider(it)[RamViewModel::class.java] }
         withTimeout(15000) { while(model.state.value.capabilities==null) delay(30) }
-        scenario.scenario.onActivity { model.configure(RamConfig.matrixQuick().copy(cacheCurve=false));model.start() }
+        // 模拟器调度噪声需要较长校准窗口；不放宽实际测量的稳定性标准。
+        // Give virtualized scheduling a longer calibration window without relaxing measurement acceptance.
+        scenario.scenario.onActivity { model.configure(RamConfig.matrixQuick().copy(cacheCurve=false,calibrationMs=250));model.start() }
         withTimeout(15000) { while(model.state.value.report==null) { check(model.state.value.error==null) { model.state.value.error!! };delay(30) } }
         val id=model.state.value.report!!.getString("run_id");owned+=id
         val report=terminal(id)
