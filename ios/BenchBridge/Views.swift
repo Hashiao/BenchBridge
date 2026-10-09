@@ -125,7 +125,7 @@ private struct StorageBoard: View {
                     if index + 1 < scores.count { ScoreCell(item: scores[index + 1]).frame(width: 85) }
                 }; Divider()
             }
-        }.accessibilityIdentifier("storage-board")
+        }
     }
 }
 private struct RAMRow: View {
