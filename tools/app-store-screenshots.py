@@ -39,6 +39,15 @@ def main():
     def save():
         (OUT / "verification.json").write_text(json.dumps(manifest, indent=2) + "\n")
     save()
+    ui_test = ROOT / "ios/BenchBridgeUITests/BenchBridgeUITests.swift"
+    original_test = ui_test.read_text()
+    capture_line = '        let attachment = XCTAttachment(screenshot: app.screenshot());'
+    if original_test.count(capture_line) != 1:
+        raise RuntimeError("Screenshot helper changed; review the capture preparation.")
+    # 只给截图辅助测试等待动画结束，应用源代码和测量协议不变。
+    # Let capture-only UI tests settle animations; app sources and measurement protocols stay unchanged.
+    ui_test.write_text(original_test.replace(capture_line, '        Thread.sleep(forTimeInterval: 1.0)\n' + capture_line))
+    manifest["capture_settle_seconds"] = 1.0
     try:
         manifest["xcode"] = run(["xcodebuild", "-version"], "xcode", True)
         run([sys.executable, "tools/check-localization.py"], "localization")
@@ -88,6 +97,7 @@ def main():
             save()
         manifest["status"] = "passed"
     finally:
+        ui_test.write_text(original_test)
         save()
         if build.exists():
             shutil.rmtree(build)
