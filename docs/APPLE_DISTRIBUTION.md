@@ -57,8 +57,8 @@ When required, follow [Apple's Developer Mode instructions](https://developer.ap
    **Enroll.** Join the [Apple Developer Program](https://developer.apple.com/programs/enroll/) as an individual or organization. Standard pricing is USD 99/year with regional pricing. Individual sellers display their legal name.
 2. **确认应用身份。**在自己的团队注册可用 Bundle ID，在 [App Store Connect 创建 App](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app)，使项目、签名配置和 App 记录一致。仓库当前使用 `io.benchbridge.ios`，不代表已在你的团队完成注册。
    **Set identity.** Register an available bundle ID in your team and [create the App Store Connect record](https://developer.apple.com/help/app-store-connect/create-an-app-record/add-a-new-app). Match project, signing and store identity. The repository's `io.benchbridge.ios` is not a claim of registration in your team.
-3. **生成分发构建。**在受控云端 Mac 配置分发签名、profile 和上传凭据，重新 Archive/导出并[上传 App Store Connect](https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds/)。每次上传递增 build 号。当前 CI 仅做无签名构建和模拟器验证，还没有接入你的 Apple 团队或商店上传流程；现有未签名 IPA 不能直接提交审核。
-   **Build for distribution.** Configure signing, profiles and upload credentials on a controlled cloud Mac, then archive/export and [upload](https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds/). Increment the build number for each upload. Current CI performs unsigned builds/tests only; no Apple team or store-upload integration is configured. The unsigned IPA cannot be submitted directly.
+3. **生成分发构建。**在受控云端 Mac 配置分发签名、profile 和上传凭据，重新 Archive/导出并[上传 App Store Connect](https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds/)。每次上传递增 build 号。`apple.yml` 保留无签名构建与模拟器验证；新增手动触发的 `app-store.yml` 使用 GitHub Secrets 中的分发证书、profile 和 API 授权归档、验证及上传。构建号不能重复；当前 GitHub 未签名 IPA 不能直接提交审核。
+   **Build for distribution.** Configure signing, profiles and upload credentials on a controlled cloud Mac, then archive/export and [upload](https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds/). Increment the build number for each upload. `apple.yml` retains unsigned builds/tests. The manually dispatched `app-store.yml` uses distribution signing, profiles and API credentials from GitHub Secrets to archive, validate and upload. Use a new build number; the unsigned GitHub IPA cannot be submitted directly.
 4. **先用 TestFlight 复验。**构建处理完成后，通过 [TestFlight](https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview) 安装分发签名版本并再次测试。内部/外部测试流程不同，外部测试可能需要 Beta 审核；开发侧载通过不等于商店构建已验收。
    **Recheck through TestFlight.** Once processing finishes, test the distribution-signed build through [TestFlight](https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview). Internal/external flows differ; external testing may require Beta Review. A sideload pass is not acceptance of the store build.
 5. **补齐商店资料。**准备名称、描述、分类、年龄分级、真实 iPhone/iPad 截图、支持网址、审核联系方式和测试步骤。所有 iOS App 需要[隐私政策网址与数据处理申报](https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy)。本项目也有 AES 测试，需要据实际用途填写[加密合规问卷](https://developer.apple.com/help/app-store-connect/manage-app-information/overview-of-export-compliance)，不预先编造豁免结论。
@@ -70,9 +70,9 @@ When required, follow [Apple's Developer Mode instructions](https://developer.ap
 
 A personally owned Mac is not required: edit on Windows and sign/build/upload on a cloud Mac, while managing metadata in a browser. The owner handles account enrollment/payment, team authorization and the final publication decision. Keep signing private keys and API keys out of source, public Releases and logs.
 
-正式上架前还需处理本版未实现的功能入口、隐私/支持页面、签名上传配置，以及真实设备上的稳定性和测量一致性。以上是待完成事项，不表示已经代为提交 App Store。
+0.13.1 已提供设备页免费声明、隐私/支持页面及签名上传流程。审核前仍应核对真实界面截图、实际支持项目、地区要求、隐私问卷与所选构建；上传成功不表示已经通过 App Store 审核。
 
-Before store submission, resolve unimplemented feature entries, privacy/support pages, signing/upload configuration and physical-device stability/repeatability. These are remaining tasks, not a claim that submission has happened.
+0.13.1 provides the Device-page free notice, privacy/support pages and signed-upload workflow. Before review, check actual screenshots, supported workloads, territory requirements, privacy answers and the selected build. Upload success does not mean App Store approval.
 
 ## 5. 0.11.0 历史验证依据 / Historical 0.11.0 evidence
 
@@ -125,3 +125,26 @@ Application source: `444f01ee57206c3c58b33cd66126ce693cc42695`; Apple CI commit 
 苹果 CI 实际运行时记录在本次构建附件，IPA 的 MinimumOSVersion 与主程序 minos 都检查为 16.0。没有提供 iOS 16 模拟器运行时，不将最低部署版本当作该版本真机验收。
 
 Actual Apple simulator runtimes are recorded in the CI artifacts. Both IPA MinimumOSVersion and executable minos were checked as 16.0. No iOS 16 simulator runtime was available; the deployment target is not a claim of physical-device validation on that OS.
+
+
+## 0.13.1 验收 / Acceptance
+
+安卓 Debug、Release、androidTest 构建及两种 Lint（0 项）通过；签名升级 0.13.0→0.13.1 保留 22 份历史文件摘要。简中、繁中、英文和法语首选语言回退的设备页通过；英文 360×640 dp / 130% 字体可滚动阅读，链接不截断。六个原生库与 0.13.0 逐字节相同。语言与 RAM/导出联动的 3 项既有测试在稳定启动后通过；初轮读取/写入未取得稳定校准导致其中 1 项失败，原始记录保留，不把那一轮写成通过。
+
+Android Debug/Release/androidTest builds and both Lints passed with zero issues. Signed upgrade from 0.13.0 to 0.13.1 preserved hashes of 22 history files. Device pages passed under Simplified Chinese, Traditional Chinese, English and French-to-English fallback. English at 360×640 dp with 130% fonts remains readable by scrolling without truncated links. Six native libraries are byte-identical to 0.13.0. Three existing language/RAM/export tests passed after startup settled; the initial run failed one test due to unstable read/write calibration, and its evidence remains preserved.
+
+[Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/38561111094) 在 Xcode 16.4 / iOS 18.5 与 Xcode 27.0 / iOS 27.0 的 iPhone/iPad 共执行 56 项用例，全部通过，无跳过；两套工具链的原生核心检查和 ARM64 iPhoneOS Release 构建通过，最低部署与二进制版本均为 16.0。本轮没有 iOS 16 运行时或新版本真机性能验收。当前 Apple 应用源代码与该 CI 提交一致，后续仅增加发布工具和文档。
+
+[Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/38561111094) passed 56 iPhone/iPad test executions across Xcode 16.4/iOS 18.5 and Xcode 27.0/iOS 27.0, with no skips. Native core checks and ARM64 iPhoneOS Release builds passed on both toolchains; deployment and executable minimum versions are 16.0. No iOS 16 runtime or fresh physical-device performance acceptance is claimed. Current Apple app sources match that CI commit; later changes add release tooling and documentation.
+
+[正式签名上传](https://github.com/Hashiao/BenchBridge/actions/runs/38570991125) 已完成 0.13.1 构建 9 的归档、签名验证、导出和上传，Apple 处理状态为 VALID。首次接入曾遇到 P12 封装不兼容与 profile 匹配失败，已修正后完整通过。凭据仅保存在本机忽略目录及 GitHub Secrets，不发布签名材料；GitHub Release 继续提供未签名 IPA。SMB 沿用用户此前暂缓的安排。
+
+[Signed upload](https://github.com/Hashiao/BenchBridge/actions/runs/38570991125) completed archive, signature verification, export and upload for 0.13.1 build 9; Apple processing is VALID. Initial P12 compatibility/profile lookup failures were corrected before the successful run. Credentials stay in ignored local configuration and GitHub Secrets; signing material is not published. GitHub Releases continue to provide unsigned IPAs. SMB remains deferred under the owner's earlier instruction.
+
+当前 iOS CPU AES-256/SHA-1 仅使用系统 CommonCrypto，按 [Apple 系统加密文稿豁免规则](https://developer.apple.com/help/app-store-connect/reference/app-information/export-compliance-documentation-for-encryption/) 为构建 9 填写 `usesNonExemptEncryption=false`；并非声称应用没有加密。未来自有/第三方实现需重新判断。
+
+The current iOS CPU AES-256/SHA-1 workloads use only system CommonCrypto. Build 9 uses `usesNonExemptEncryption=false` under [Apple's system-crypto documentation exemption](https://developer.apple.com/help/app-store-connect/reference/app-information/export-compliance-documentation-for-encryption/), not a claim of no encryption. Reassess if custom or third-party implementations are introduced.
+
+上架构建 9 锁定已完成回归验证的 Xcode 27.0；此前自动选到预览工具链的构建 8 已被替换，不作为本次审核包。GitHub 未签名 IPA 仍是同一应用源码在 Xcode 27.0 下生成的构建 8，二者的签名、构建编号和分发渠道不同。
+
+Store build 9 pins the regression-tested Xcode 27.0 toolchain, superseding an earlier build 8 that selected a preview toolchain. The GitHub unsigned IPA remains build 8 from Xcode 27.0 with the same app source; signatures, build numbers and distribution channels differ.

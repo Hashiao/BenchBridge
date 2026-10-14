@@ -1,10 +1,10 @@
 # App Store 上架准备 / App Store submission preparation
 
-核对日期 / Checked: 2026-10-14. 目标版本 / Target: 0.13.1, build 8, iOS/iPadOS 16+.
+核对日期 / Checked: 2026-10-14. 目标版本 / Target: 0.13.1, build 9, iOS/iPadOS 16+.
 
-本页区分仓库准备与 Apple 后台操作；保存文案或生成 IPA 不表示已上传、已审核或已上架。当前 GitHub Apple 工作流只构建未签名 IPA 并验证模拟器，尚未配置分发签名和 App Store Connect 上传。
+本页区分仓库准备与 Apple 后台操作；保存文案或生成 IPA 不表示已上传、已审核或已上架。`apple.yml` 构建未签名 IPA 并验证模拟器；`app-store.yml` 已接入私密分发签名与上传，0.13.1 构建 9 已上传并由 Apple 处理为 VALID。
 
-This guide separates repository preparation from Apple account operations. Saving metadata or generating an IPA does not mean upload, approval or publication. The current GitHub Apple workflow builds unsigned IPAs and tests simulators; distribution signing and App Store Connect upload are not configured yet.
+This guide separates repository preparation from Apple account operations. Saving metadata or generating an IPA does not mean upload, approval or publication. `apple.yml` builds unsigned IPAs and tests simulators. `app-store.yml` now performs private distribution signing/upload; Apple has processed 0.13.1 build 9 as VALID.
 
 ## 应用记录 / App record
 
@@ -30,9 +30,9 @@ The App ID Description is an internal developer-portal label; `BenchBridge App S
 - [繁體中文](app-store/zh-Hant.md) / [JSON](app-store/zh-Hant.json)
 - [English](app-store/en-US.md) / [JSON](app-store/en-US.json)
 
-在版本页右上角语言菜单添加本地化，然后分别填写推广文本、描述、关键词和支持网址；在“App 信息”填写名称、副标题和隐私网址。当前 JSON 是待填写文案，不是已实现的自动同步工具。英国、加拿大、澳大利亚英语本地化可沿用英文稿，仍需逐地区预览。
+在版本页右上角语言菜单添加本地化，然后分别填写推广文本、描述、关键词和支持网址；在“App 信息”填写名称、副标题和隐私网址。本次三语 JSON 文案已通过 API 保存并读回核对；这些文件本身不会自动向 Apple 同步。英国、加拿大、澳大利亚英语本地化可沿用英文稿，仍需逐地区预览。
 
-Add localizations using the version page's language menu, then enter promotional text, description, keywords and support URL per language. Set name, subtitle and privacy URL under App Information. The JSON files are prepared copy, not an implemented automatic synchronizer. Other English localizations may reuse the English copy, subject to storefront preview.
+Add localizations using the version page's language menu, then enter promotional text, description, keywords and support URL per language. Set name, subtitle and privacy URL under App Information. This release’s three localizations have been saved through the API and verified by readback; these files do not synchronize to Apple automatically. Other English localizations may reuse the English copy, subject to storefront preview.
 
 主要语言用于缺少适合本地化时的回退，不会限制上架国家。应用内语言选择与商店介绍本地化是两套独立设置。参见 [Apple 本地化说明](https://developer.apple.com/help/app-store-connect/manage-app-information/localize-app-information/)。
 
@@ -64,13 +64,13 @@ https://github.com/Hashiao/BenchBridge/blob/main/docs/SUPPORT.md
 
 Current code has no account, ads, analytics SDK or automatic report upload to maintainer servers. The policy explains local storage and user-initiated sharing. The owner should confirm these facts when completing App Privacy, and update declarations if analytics/accounts are introduced. A privacy-policy URL is required for iOS apps and is also accessible from Device. [Apple privacy guidance](https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy/).
 
-年龄分级按真实内容填写，不预设评级；加密问卷须说明存在自有 AES/SHA 基准内核、用途仅为本机计算测试，不自动填写“没有加密”或假定豁免。审核联系人的姓名、邮箱和电话由所有者提供；应用无需登录，不编造测试账号。
+年龄分级按真实内容填写，不预设评级；经核对，当前 iOS 的 AES-256/SHA-1 CPU 测试仅调用 Apple CommonCrypto（`CCCrypt` / `CC_SHA1`）；Android 的自有 `compute_crypto.cpp` 未编入 Apple 目标，GPU AES/SHA 未实现。本次按 Apple“仅使用操作系统加密”的文稿豁免规则，将构建 9 的 `usesNonExemptEncryption` 设为 `false`，并读回核对。这不是“没有加密”；以后若添加自有或第三方加密实现必须重新评估。审核联系人的姓名、邮箱和电话由所有者提供；应用无需登录，不编造测试账号。
 
-Complete age-rating questions from the actual content. Encryption questions must account for the app's own AES/SHA benchmark kernels used for local computation; do not automatically claim no encryption or exemption. The owner supplies a real review contact. No app login or fabricated demo account is needed.
+Complete age-rating questions from the actual content. The current iOS AES-256/SHA-1 CPU benchmarks exclusively call Apple CommonCrypto (`CCCrypt` / `CC_SHA1`). Android’s custom `compute_crypto.cpp` is not compiled into the Apple target; GPU AES/SHA are unimplemented. Build 9 uses `usesNonExemptEncryption=false` under Apple’s system-crypto documentation exemption, verified by API readback. This does not claim an absence of encryption; reassess if custom or third-party crypto is added. The owner supplies a real review contact. No app login or fabricated demo account is needed.
 
 审核备注建议 / Suggested review notes:
 
-> BenchBridge is a free, open-source on-device benchmark. No login, subscription or purchase is required. Open RAM, ROM or GPGPU, choose Quick in Settings, then Start test. Completed reports are under History; JSON export uses the system share sheet. The Device tab links to source code and the privacy policy. Unsupported GPU workloads are labeled rather than assigned fabricated scores. Benchmarks should remain in the foreground; Stop cancels a run. Source: https://github.com/Hashiao/BenchBridge . AES/SHA implementations are used as local computation benchmarks; export-compliance responses must be completed for the actual build.
+> BenchBridge is a free, open-source on-device benchmark. No login, subscription or purchase is required. Open RAM, ROM or GPGPU, choose Quick in Settings, then Start test. Completed reports are under History; JSON export uses the system share sheet. The Device tab links to source code and the privacy policy. Unsupported GPU workloads are labeled rather than assigned fabricated scores. Benchmarks should remain in the foreground; Stop cancels a run. Source: https://github.com/Hashiao/BenchBridge . AES-256/SHA-1 benchmarks exclusively use the Apple CommonCrypto system library. No custom or third-party crypto implementation is included in the iOS target.
 
 截图要来自当前版本真实界面，提供 iPhone 和 iPad 所需尺寸，避免使用旧版本成绩或其他手机的截图。商店截图不展示用户私人报告。截图语言应与对应商店文案一致。
 
@@ -95,3 +95,6 @@ Archive with signing → export for App Store Connect → upload → await proce
 官方版本永久免费。MIT 许可证允许第三方再分发和商业使用，本声明不修改许可证。设备页及商店介绍会引导用户辨认官方免费项目，提醒第三方下载/解锁收费不是本项目要求；不能保证阻止篡改后再分发。
 
 The official app is free forever. MIT permits redistribution and commercial use; the notice does not alter the license. Device and store copy identify the official free project and clarify that third-party download/unlock fees are not required. This cannot guarantee prevention of modified redistribution.
+
+
+系统加密依据 / System-crypto basis: [Apple export documentation table](https://developer.apple.com/help/app-store-connect/reference/app-information/export-compliance-documentation-for-encryption/), `ios/Native/BenchCore.cpp` and the generated Xcode target source list.

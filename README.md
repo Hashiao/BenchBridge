@@ -10,9 +10,13 @@
 
 [隐私政策 / Privacy policy](docs/PRIVACY.md) · [支持与官方渠道 / Support and official source](docs/SUPPORT.md) · [App Store 上架准备与三语介绍 / Store preparation and localized metadata](docs/APP_STORE_SUBMISSION.md)
 
-0.13.1 在两端设备页加入官方免费开源声明、项目地址、MIT 许可证与隐私政策链接。测量内核和默认参数保持原样。商店文案提供简中、繁中和英文；GitHub 的未签名 IPA 仍须签名，App Store 分发签名与上传尚待配置。
+0.13.1 在两端设备页加入官方免费开源声明、项目地址、MIT 许可证与隐私政策链接。测量内核和默认参数保持原样。商店文案提供简中、繁中和英文；GitHub 的未签名 IPA 仍须签名，App Store 私密签名上传已接入，0.13.1 构建 9 已上传并处理为有效，审核和正式上架仍是独立步骤。
 
-0.13.1 adds the official free/open-source notice, project URL, MIT license and privacy-policy links to both Device pages. Measurement kernels and defaults retain their behavior. Store copy is available in Simplified Chinese, Traditional Chinese and English. The GitHub IPA still needs signing; App Store distribution signing and upload remain to be configured.
+0.13.1 adds the official free/open-source notice, project URL, MIT license and privacy-policy links to both Device pages. Measurement kernels and defaults retain their behavior. Store copy is available in Simplified Chinese, Traditional Chinese and English. The GitHub IPA still needs signing; private App Store signing/upload is configured and build 9 has been uploaded and processed as valid; review and publication remain separate steps.
+
+0.13.1 验证：安卓构建与两种 Lint（0 项）、签名升级、四种系统语言和小屏大字体检查通过；稳定启动后 3 项既有语言/RAM/导出用例通过，初轮校准不稳定的失败仍保留。[Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/38561111094) 在四种 iPhone/iPad 模拟器配置上共通过 56 次用例执行，无跳过。详见 [本次验收与分发范围](docs/APPLE_DISTRIBUTION.md)。
+
+0.13.1 verification: Android builds, both Lints (zero issues), signed upgrade, four system-language cases and small-screen/large-font checks passed. Three existing language/RAM/export cases passed after startup settled; the initial calibration-instability failure remains recorded. [Apple CI](https://github.com/Hashiao/BenchBridge/actions/runs/38561111094) passed 56 test executions across four iPhone/iPad simulator configurations without skips. See [validation and distribution scope](docs/APPLE_DISTRIBUTION.md).
 
 
 Android、iPhone 与 iPad 的 CPU、GPU、内存与存储基准测试工具。安卓采用 Kotlin / Jetpack Compose 与 Vulkan，苹果采用 SwiftUI 与 Metal，底层测量使用 C++20。

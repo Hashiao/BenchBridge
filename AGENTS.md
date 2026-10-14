@@ -27,3 +27,6 @@
   Retain the prominent direct APK link in the README. Do not overwrite published tags or assets, or omit failed delivery steps.
 - 凭据和私有路径配置保留在本机，不提交源码；`assembleRelease` 通过 `.local/build.properties` 中的 `releaseDropDir` 执行可选交付。
   Keep credentials and private path settings local. `assembleRelease` uses `releaseDropDir` in ignored `.local/build.properties` for optional delivery.
+
+- Apple API 私钥、Key ID、Issuer ID、Team ID、签名材料和审核联系人的个人信息仅保存在忽略的 `.local` 私有目录或所需 GitHub Secrets；不得写入 Git、公开文档、发布附件或日志。提交前检查暂存文件和凭据忽略规则。
+  Keep Apple API private keys, key/issuer/team identifiers, signing materials and personal review-contact details only in ignored private `.local` configuration or required GitHub Secrets. Never place them in Git, public documents, release assets or logs. Check staged files and credential ignore rules before committing.
