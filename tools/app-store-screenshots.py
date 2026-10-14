@@ -47,8 +47,26 @@ def main():
         raise RuntimeError("Screenshot helper changed; review the capture preparation.")
     # 只给截图辅助测试等待动画结束，应用源代码和测量协议不变。
     # Let capture-only UI tests settle animations; app sources and measurement protocols stay unchanged.
-    ui_test.write_text(original_test.replace(capture_line, '        Thread.sleep(forTimeInterval: 1.0)\n' + capture_line))
+    prepared = original_test.replace(capture_line, '        Thread.sleep(forTimeInterval: 1.0)\n' + capture_line)
+    # 商店素材使用真实标准预设，不展示回归测试专用的短时参数。
+    # Store captures use the actual Standard preset, not shortened regression-test parameters.
+    locale_capture = '            screenshot("Locale " + name, app: app)'
+    device_capture = '            screenshot("Device " + name, app: app)'
+    if prepared.count(locale_capture) != 1 or prepared.count(device_capture) != 1:
+        raise RuntimeError("Locale capture changed; review standard-preset preparation.")
+    prepared = prepared.replace(locale_capture, '''            app.buttons["settings"].tap()
+            XCTAssertTrue(app.buttons["preset-standard"].waitForExistence(timeout: 10))
+            app.buttons["preset-standard"].tap()
+            app.buttons["settings-done"].tap()
+''' + locale_capture)
+    prepared = prepared.replace(device_capture, device_capture + '''
+            tab("ROM", app: app)
+            screenshot("Storage " + name, app: app)
+            tab("GPGPU", app: app)
+            screenshot("Compute " + name, app: app)''')
+    ui_test.write_text(prepared)
     manifest["capture_settle_seconds"] = 1.0
+    manifest["configuration"] = "Standard preset selected through the real settings UI; no benchmark results generated"
     try:
         manifest["xcode"] = run(["xcodebuild", "-version"], "xcode", True)
         run([sys.executable, "tools/check-localization.py"], "localization")
@@ -84,7 +102,7 @@ def main():
                 run(["xcrun", "xcresulttool", "export", "attachments", "--path", str(result), "--output-path", str(attachments)], family + "-export")
                 index = json.loads((attachments / "manifest.json").read_text())
                 for locale in ("en", "zh-Hans", "zh-Hant"):
-                    for order, title in enumerate(("Locale", "Settings", "Device"), 1):
+                    for order, title in enumerate(("Locale", "Storage", "Compute", "Settings", "Device"), 1):
                         matches = [a for entry in index for a in entry.get("attachments", []) if a.get("suggestedHumanReadableName", "").startswith(title + " " + locale + "_")]
                         if len(matches) != 1 or matches[0].get("isAssociatedWithFailure"):
                             raise RuntimeError("Expected one successful " + family + " " + title + " " + locale + " capture")
