@@ -63,3 +63,8 @@ DerivedData/
 /docs/PARAMETER_VERIFICATION.md
 /docs/RELEASE_TESTING.md
 /docs/RELEASE_*.md
+
+# Apple API 私钥及私有配置永不提交 / Never commit Apple API keys or private configuration
+AuthKey_*
+*.p8
+appstore.private.json

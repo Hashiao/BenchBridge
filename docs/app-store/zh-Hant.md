@@ -14,7 +14,7 @@ BenchBridge
 
 ## keywords
 
-效能測試,跑分,記憶體,儲存,處理器,顯示晶片,延遲,頻寬,快取,硬體,CPU,GPU,RAM,Metal
+效能測試,跑分,記憶體,儲存,處理器,顯示晶片,延遲,頻寬,快取,CPU,GPU,RAM,Metal
 
 ## description
 

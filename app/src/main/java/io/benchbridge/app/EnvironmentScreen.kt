@@ -4,7 +4,7 @@ import io.benchbridge.app.i18n.L10n
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.foundation.text.selection.SelectionContainer
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -180,7 +180,7 @@ private fun ProjectInfoCard() {
 
 private fun openProjectLink(context: Context, url: String) {
     try {
-        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
     } catch (_: ActivityNotFoundException) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("BenchBridge", url))
