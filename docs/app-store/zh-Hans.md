@@ -1,0 +1,55 @@
+# BenchBridge — zh-Hans
+
+## name
+
+BenchBridge
+
+## subtitle
+
+内存、存储与 CPU/GPU 性能测试
+
+## promotional_text
+
+永久免费、开放源代码。测试 iPhone 和 iPad 的内存、存储、CPU 及支持的 Metal GPU 项目，查看工作集大小—延迟曲线，并保存和导出测试结果。
+
+## keywords
+
+跑分,性能测试,内存,存储,处理器,显卡,延迟,带宽,缓存,硬件,CPU,GPU,RAM,Metal
+
+## description
+
+BenchBridge 是适用于 iPhone 和 iPad 的免费开源性能测试工具。官方版本永久免费，无广告、无内购、无订阅，无需购买或付费解锁。
+
+官方项目与源代码：
+https://github.com/Hashiao/BenchBridge
+源代码采用 MIT 许可证。
+
+你可以测试
+• RAM 连续读取、写入、拷贝和访问延迟，可设置工作集大小和线程数。
+• 从小块开始扫描工作集大小—访问延迟曲线，直观看到不同大小下的实测变化。
+• 存储顺序与随机读写，可设置测试文件大小、块大小和队列深度。
+• CPU 及支持的 Metal GPU 项目，包括内存访问、整数和浮点计算。
+
+保留自己的结果
+查看本地历史，通过系统分享菜单导出 JSON 报告。测试在设备本地执行，不需要 BenchBridge 账号，不会自动向开发者上传报告。
+
+理解测试结果
+温度、省电设置、系统调度和测试参数都会影响数值。iOS 由系统选择实际运行核心，优先级曲线不保证分别测到大核或小核；不支持的 GPU 项目会明确标注。不同工具、平台或协议的分数不一定能够直接比较。
+
+认准官方免费渠道
+通过上方项目地址核对来源。第三方收取的下载费或解锁费不属于 BenchBridge 的收费要求。官方免费承诺不改变 MIT 许可证。
+
+反馈支持：https://github.com/Hashiao/BenchBridge/issues
+隐私政策：https://github.com/Hashiao/BenchBridge/blob/main/docs/PRIVACY.md
+
+## support_url
+
+https://github.com/Hashiao/BenchBridge/blob/main/docs/SUPPORT.md
+
+## marketing_url
+
+https://github.com/Hashiao/BenchBridge
+
+## privacy_policy_url
+
+https://github.com/Hashiao/BenchBridge/blob/main/docs/PRIVACY.md

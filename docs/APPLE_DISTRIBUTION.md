@@ -1,8 +1,12 @@
 # 苹果端安装、真机测试与上架 / Apple installation, device testing and distribution
 
-适用于 BenchBridge 0.12.2；资料核对日期 2026-10-08。应用最低 iOS/iPadOS 16.0，当前是供真机验收的测试版，不是已经上架 App Store 的成品。
+适用于 BenchBridge 0.13.1；资料核对日期 2026-10-14。应用最低 iOS/iPadOS 16.0，当前是供真机验收的测试版，不是已经上架 App Store 的成品。
 
-For BenchBridge 0.12.2; references checked on 2026-10-08. Minimum iOS/iPadOS 16.0. This test build is ready for device acceptance testing; it is not already an App Store release.
+For BenchBridge 0.13.1; references checked on 2026-10-14. Minimum iOS/iPadOS 16.0. This test build is ready for device acceptance testing; it is not already an App Store release.
+
+已开通开发者会员：先按 [当前上架准备清单与三语文案](APP_STORE_SUBMISSION.md) 配置应用记录、地区、隐私和分发签名。
+
+With an active developer membership, follow the [current submission checklist and localized copy](APP_STORE_SUBMISSION.md) for the app record, territories, privacy and distribution signing.
 
 ## 1. 下载哪一个文件 / Choose the download
 

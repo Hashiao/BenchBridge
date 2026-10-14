@@ -4,13 +4,24 @@
 
 [全部版本与更新记录 / All releases and changes](https://github.com/Hashiao/BenchBridge/releases)
 
+**官方版本永久免费、开源，无广告、内购或订阅，无需购买或付费解锁。请认准 https://github.com/Hashiao/BenchBridge 。**
+
+**The official app is free forever and open source, with no ads, in-app purchases, subscriptions or paid unlocks. Official project: https://github.com/Hashiao/BenchBridge .**
+
+[隐私政策 / Privacy policy](docs/PRIVACY.md) · [支持与官方渠道 / Support and official source](docs/SUPPORT.md) · [App Store 上架准备与三语介绍 / Store preparation and localized metadata](docs/APP_STORE_SUBMISSION.md)
+
+0.13.1 在两端设备页加入官方免费开源声明、项目地址、MIT 许可证与隐私政策链接。测量内核和默认参数保持原样。商店文案提供简中、繁中和英文；GitHub 的未签名 IPA 仍须签名，App Store 分发签名与上传尚待配置。
+
+0.13.1 adds the official free/open-source notice, project URL, MIT license and privacy-policy links to both Device pages. Measurement kernels and defaults retain their behavior. Store copy is available in Simplified Chinese, Traditional Chinese and English. The GitHub IPA still needs signing; App Store distribution signing and upload remain to be configured.
+
+
 Android、iPhone 与 iPad 的 CPU、GPU、内存与存储基准测试工具。安卓采用 Kotlin / Jetpack Compose 与 Vulkan，苹果采用 SwiftUI 与 Metal，底层测量使用 C++20。
 
 A CPU, GPU, memory and storage benchmark for Android, iPhone and iPad. Android uses Kotlin / Jetpack Compose and Vulkan; Apple uses SwiftUI and Metal, with C++20 measurement kernels.
 
-本仓库公开当前 0.13.0 实现。Android 与 iPhone/iPad 根据手机首选语言自动显示简体中文或繁体中文，其他语言统一显示英文。繁中按语境使用「記憶體、快取、執行緒、頻寬、循序讀取、匯出」等术语；项目说明、关键代码注释和发布说明长期维护简体中文与英文双语。
+本仓库公开当前 0.13.1 实现。Android 与 iPhone/iPad 根据手机首选语言自动显示简体中文或繁体中文，其他语言统一显示英文。繁中按语境使用「記憶體、快取、執行緒、頻寬、循序讀取、匯出」等术语；项目说明、关键代码注释和发布说明长期维护简体中文与英文双语。
 
-This repository contains the current 0.13.0 implementation. Android and iPhone/iPad automatically use Simplified or Traditional Chinese for the corresponding primary device language, and English for every other language. Traditional Chinese uses reviewed terminology such as 記憶體, 快取, 執行緒, 頻寬, 循序讀取 and 匯出. Project guides, key authored comments and release notes remain bilingual in Simplified Chinese and English.
+This repository contains the current 0.13.1 implementation. Android and iPhone/iPad automatically use Simplified or Traditional Chinese for the corresponding primary device language, and English for every other language. Traditional Chinese uses reviewed terminology such as 記憶體, 快取, 執行緒, 頻寬, 循序讀取 and 匯出. Project guides, key authored comments and release notes remain bilingual in Simplified Chinese and English.
 
 0.13.0 覆盖导航、设置、成绩、曲线、提示、通知、历史显示与导出说明。三语资源随安装包完整提供，旧记录的原始分数和机器字段保持原样。新增文案须同步维护三种语言，自动检查缺译与插值参数；详见 [长期语言约定与维护方式](docs/LOCALIZATION.md)。
 

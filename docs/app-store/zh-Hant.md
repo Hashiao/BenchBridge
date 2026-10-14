@@ -1,0 +1,55 @@
+# BenchBridge — zh-Hant
+
+## name
+
+BenchBridge
+
+## subtitle
+
+記憶體、儲存與 CPU/GPU 效能測試
+
+## promotional_text
+
+永久免費、開放原始碼。測試 iPhone 與 iPad 的記憶體、儲存、CPU 及支援的 Metal GPU 項目，檢視工作集大小—延遲曲線，並儲存及匯出測試結果。
+
+## keywords
+
+效能測試,跑分,記憶體,儲存,處理器,顯示晶片,延遲,頻寬,快取,硬體,CPU,GPU,RAM,Metal
+
+## description
+
+BenchBridge 是適用於 iPhone 與 iPad 的免費開放原始碼效能測試工具。官方版本永久免費，無廣告、App 內購買或訂閱，無須購買或付費解鎖。
+
+官方專案與原始碼：
+https://github.com/Hashiao/BenchBridge
+原始碼採用 MIT 授權條款。
+
+你可以測試
+• RAM 循序讀取、寫入、複製與存取延遲，可設定工作集大小及執行緒數量。
+• 從小區塊開始掃描工作集大小—存取延遲曲線，檢視不同大小的實測變化。
+• 儲存裝置循序與隨機讀寫，可設定測試檔案大小、區塊大小及佇列深度。
+• CPU 及支援的 Metal GPU 項目，包括記憶體存取、整數與浮點運算。
+
+保留自己的結果
+檢視本機歷史紀錄，透過系統分享選單匯出 JSON 報告。測試在裝置本機執行，無須建立 BenchBridge 帳號，也不會自動上傳報告給開發者。
+
+理解測試結果
+溫度、省電設定、系統排程與測試參數都會影響數值。iOS 由系統選擇實際執行的核心，優先順序曲線不保證分別測到效能核心或節能核心；不支援的 GPU 項目會明確標示。不同工具、平台或測試協議的成績未必能直接比較。
+
+認明官方免費管道
+透過上方專案網址確認來源。第三方收取的下載費或解鎖費不是 BenchBridge 要求的費用。官方免費承諾不改變 MIT 授權條款。
+
+問題回報：https://github.com/Hashiao/BenchBridge/issues
+隱私權政策：https://github.com/Hashiao/BenchBridge/blob/main/docs/PRIVACY.md
+
+## support_url
+
+https://github.com/Hashiao/BenchBridge/blob/main/docs/SUPPORT.md
+
+## marketing_url
+
+https://github.com/Hashiao/BenchBridge
+
+## privacy_policy_url
+
+https://github.com/Hashiao/BenchBridge/blob/main/docs/PRIVACY.md
