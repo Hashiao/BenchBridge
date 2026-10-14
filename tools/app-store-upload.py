@@ -52,7 +52,7 @@ def main():
     os.chmod(temp, 0o700)
     keychain = temp / "signing.keychain-db"
     keychain_password = secrets.token_urlsafe(36)
-    installed_profile = None
+    installed_profiles = []
     api_file = None
     old_keychains = None
     step = 0
@@ -95,13 +95,16 @@ def main():
         if entitlements.get("get-task-allow") or "ProvisionedDevices" in profile or profile.get("ProvisionsAllDevices"):
             raise RuntimeError("An App Store distribution profile is required.")
         profile_uuid = str(uuid.UUID(profile["UUID"])).upper()
-        profile_dir = Path.home() / "Library/Developer/Xcode/UserData/Provisioning Profiles"
-        profile_dir.mkdir(parents=True, exist_ok=True)
-        profile_candidate = profile_dir / (profile_uuid + ".mobileprovision")
-        if profile_candidate.exists():
-            raise RuntimeError("Refusing to replace an existing runner profile.")
-        shutil.copyfile(temp / "profile.mobileprovision", profile_candidate)
-        installed_profile = profile_candidate
+        # 同时兼容 Xcode 的两种描述文件目录；仅清理本次创建的文件。
+        # Support both Xcode profile locations; clean only files created by this run.
+        for relative in ("Library/MobileDevice/Provisioning Profiles", "Library/Developer/Xcode/UserData/Provisioning Profiles"):
+            profile_dir = Path.home() / relative
+            profile_dir.mkdir(parents=True, exist_ok=True)
+            candidate = profile_dir / (profile_uuid + ".mobileprovision")
+            if candidate.exists():
+                raise RuntimeError("Refusing to replace an existing runner profile.")
+            shutil.copyfile(temp / "profile.mobileprovision", candidate)
+            installed_profiles.append(candidate)
 
         old_keychains = shlex.split(run(["security", "list-keychains", "-d", "user"], "Read runner keychain list", capture=True))
         run(["security", "create-keychain", "-p", keychain_password, str(keychain)], "Create temporary signing keychain")
@@ -125,7 +128,7 @@ def main():
         archive = temp / "BenchBridge.xcarchive"
         run(["xcodebuild", "-project", "ios/BenchBridge.xcodeproj", "-scheme", "BenchBridge", "-configuration", "Release",
              "-destination", "generic/platform=iOS", "-archivePath", str(archive), "archive", "CODE_SIGN_STYLE=Manual",
-             "DEVELOPMENT_TEAM=" + team, "CODE_SIGN_IDENTITY=Apple Distribution", "PROVISIONING_PROFILE_SPECIFIER=" + profile_uuid], "Archive signed iPhone/iPad build")
+             "DEVELOPMENT_TEAM=" + team, "CODE_SIGN_IDENTITY=Apple Distribution", "PROVISIONING_PROFILE_SPECIFIER=" + profile["Name"]], "Archive signed iPhone/iPad build")
         app = archive / "Products/Applications/BenchBridge.app"
         archived_info = plistlib.loads((app / "Info.plist").read_bytes())
         if (archived_info["CFBundleIdentifier"], archived_info["CFBundleShortVersionString"], archived_info["CFBundleVersion"]) != (BUNDLE, version, build):
@@ -161,8 +164,9 @@ def main():
         # Clean only credentials created here; do not publish keys, profiles, archives or signed IPAs as artifacts.
         if api_file and api_file.exists():
             api_file.unlink()
-        if installed_profile and installed_profile.exists():
-            installed_profile.unlink()
+        for installed_profile in installed_profiles:
+            if installed_profile.exists():
+                installed_profile.unlink()
         if old_keychains is not None:
             subprocess.run(["security", "list-keychains", "-d", "user", "-s", *old_keychains], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         if keychain.exists():
