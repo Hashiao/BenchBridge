@@ -94,7 +94,8 @@ def main():
             raise RuntimeError("The profile does not match the requested team and bundle.")
         if entitlements.get("get-task-allow") or "ProvisionedDevices" in profile or profile.get("ProvisionsAllDevices"):
             raise RuntimeError("An App Store distribution profile is required.")
-        profile_uuid = str(uuid.UUID(profile["UUID"])).upper()
+        uuid.UUID(profile["UUID"])
+        profile_uuid = profile["UUID"]
         # 同时兼容 Xcode 的两种描述文件目录；仅清理本次创建的文件。
         # Support both Xcode profile locations; clean only files created by this run.
         for relative in ("Library/MobileDevice/Provisioning Profiles", "Library/Developer/Xcode/UserData/Provisioning Profiles"):
@@ -136,7 +137,7 @@ def main():
         run(["codesign", "--verify", "--deep", "--strict", str(app)], "Verify the archive signature")
         export_options = temp / "ExportOptions.plist"
         export_options.write_bytes(plistlib.dumps({"method": "app-store-connect", "destination": "export", "teamID": team,
-            "signingStyle": "manual", "signingCertificate": "Apple Distribution", "provisioningProfiles": {BUNDLE: profile_uuid}, "uploadSymbols": True}))
+            "signingStyle": "manual", "signingCertificate": "Apple Distribution", "provisioningProfiles": {BUNDLE: profile["Name"]}, "uploadSymbols": True}))
         exported = temp / "export"
         run(["xcodebuild", "-exportArchive", "-archivePath", str(archive), "-exportOptionsPlist", str(export_options), "-exportPath", str(exported)], "Export App Store package")
         ipas = list(exported.glob("*.ipa"))
