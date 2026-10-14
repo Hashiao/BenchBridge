@@ -21,9 +21,10 @@ def main():
     build = ROOT / ".local/store-screenshot-build"
     versions = [(tuple(map(int, re.findall(r"\d+", p.name))), p) for p in Path("/Applications").glob("Xcode*.app")
                 if re.search(r"Xcode_\d", p.name) and "beta" not in p.name.lower()]
-    accepted = [v for v in versions if v[0][0] >= 27]
-    if accepted:
-        os.environ["DEVELOPER_DIR"] = str(max(accepted)[1] / "Contents/Developer")
+    accepted = [v for v in versions if v[0][:2] == (27, 0)]
+    if not accepted:
+        raise RuntimeError("The tested Xcode 27.0 toolchain is not installed.")
+    os.environ["DEVELOPER_DIR"] = str(max(accepted)[1] / "Contents/Developer")
 
     def run(args, label, capture=False):
         print(label, flush=True)

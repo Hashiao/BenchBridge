@@ -78,12 +78,15 @@ def main():
     try:
         candidates = [p for p in Path("/Applications").glob("Xcode*.app") if "beta" not in p.name.lower()]
         versions = [(tuple(map(int, re.findall(r"\d+", p.name))), p) for p in candidates if re.search(r"Xcode_\d", p.name)]
-        accepted = [entry for entry in versions if entry[0][0] >= 27]
-        if accepted:
-            os.environ["DEVELOPER_DIR"] = str(max(accepted)[1] / "Contents/Developer")
+        accepted = [entry for entry in versions if entry[0][:2] == (27, 0)]
+        # 与已验收 CI 固定到同一 Xcode 版本，不能仅按文件名排除 beta。
+        # Pin the tested CI toolchain; a preview bundle may omit "beta" from its filename.
+        if not accepted:
+            raise RuntimeError("The tested Xcode 27.0 toolchain is not installed.")
+        os.environ["DEVELOPER_DIR"] = str(max(accepted)[1] / "Contents/Developer")
         xcode = run(["xcodebuild", "-version"], "Check Xcode", capture=True)
-        if not re.search(r"Xcode (2[7-9]|[3-9][0-9])\.", xcode):
-            raise RuntimeError("This upload workflow requires a stable Xcode 27 or newer.")
+        if not xcode.startswith("Xcode 27.0\n"):
+            raise RuntimeError("This upload workflow requires the tested Xcode 27.0 toolchain.")
         for name, data in payloads.items():
             (temp / name).write_bytes(data)
             os.chmod(temp / name, 0o600)
