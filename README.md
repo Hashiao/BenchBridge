@@ -10,6 +10,10 @@
 
 [隐私政策 / Privacy policy](docs/PRIVACY.md) · [支持与官方渠道 / Support and official source](docs/SUPPORT.md) · [App Store 上架准备与三语介绍 / Store preparation and localized metadata](docs/APP_STORE_SUBMISSION.md)
 
+**App Store：0.13.1 已于 2026-10-14 提交，当前等待 Apple 审核；通过后自动发布，目前尚未公开上架。**
+
+**App Store: 0.13.1 was submitted on 2026-10-14 and is waiting for Apple review. Automatic release after approval is enabled; it is not publicly available yet.**
+
 0.13.1 在两端设备页加入官方免费开源声明、项目地址、MIT 许可证与隐私政策链接。测量内核和默认参数保持原样。商店文案提供简中、繁中和英文；GitHub 的未签名 IPA 仍须签名，App Store 私密签名上传已接入，0.13.1 构建 9 已上传并处理为有效，审核和正式上架仍是独立步骤。
 
 0.13.1 adds the official free/open-source notice, project URL, MIT license and privacy-policy links to both Device pages. Measurement kernels and defaults retain their behavior. Store copy is available in Simplified Chinese, Traditional Chinese and English. The GitHub IPA still needs signing; private App Store signing/upload is configured and build 9 has been uploaded and processed as valid; review and publication remain separate steps.

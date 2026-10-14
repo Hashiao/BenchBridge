@@ -2,6 +2,10 @@
 
 核对日期 / Checked: 2026-10-14. 目标版本 / Target: 0.13.1, build 9, iOS/iPadOS 16+.
 
+2026-10-14 22:04（北京时间），0.13.1 构建 9 已正式提交 App Store 审核，Apple 返回 WAITING_FOR_REVIEW；已设置审核通过后自动发布。三语介绍与 18 张 iPhone/iPad 真实界面截图已保存并核验。当前尚未公开上架，商店搜索可见性与各地区实际可用性须在审核通过后另行核对。
+
+At 2026-10-14 14:04 UTC, 0.13.1 build 9 was submitted to App Review and Apple returned WAITING_FOR_REVIEW. Automatic release after approval is enabled. Three metadata localizations and 18 actual iPhone/iPad UI screenshots were saved and verified. The app is not publicly released yet; search visibility and territory availability require verification after approval.
+
 本页区分仓库准备与 Apple 后台操作；保存文案或生成 IPA 不表示已上传、已审核或已上架。`apple.yml` 构建未签名 IPA 并验证模拟器；`app-store.yml` 已接入私密分发签名与上传，0.13.1 构建 9 已上传并由 Apple 处理为 VALID。
 
 This guide separates repository preparation from Apple account operations. Saving metadata or generating an IPA does not mean upload, approval or publication. `apple.yml` builds unsigned IPAs and tests simulators. `app-store.yml` now performs private distribution signing/upload; Apple has processed 0.13.1 build 9 as VALID.
@@ -98,3 +102,8 @@ The official app is free forever. MIT permits redistribution and commercial use;
 
 
 系统加密依据 / System-crypto basis: [Apple export documentation table](https://developer.apple.com/help/app-store-connect/reference/app-information/export-compliance-documentation-for-encryption/), `ios/Native/BenchCore.cpp` and the generated Xcode target source list.
+
+
+本次复用相同应用源码的三语模拟器原始截图，展示 RAM、设置和设备页的功能与开源说明。截图中的短时配置用于界面展示，不代表正式默认参数或真机性能；审核备注已说明。官方标准 RAM 仍为 64 MiB、T1、四项各 3 次取平均，曲线单遍。后续优先复用同版本、同语言、尺寸合格的已有素材；新增或改变界面后再按需更新截图，不为制作商店素材重复跑性能测试。
+
+This submission reuses original three-language simulator captures from identical application sources, showing RAM, settings and Device features/open-source information. Short screenshot configurations illustrate the interface, not production defaults or device performance; review notes explain this. Standard RAM remains 64 MiB/T1 with three averaged rounds per score and one curve sweep. Reuse matching-version/language/dimension assets when applicable; update screenshots for actual UI changes without rerunning performance benchmarks merely to create store artwork.
