@@ -48,6 +48,12 @@ def main():
     # 只给截图辅助测试等待动画结束，应用源代码和测量协议不变。
     # Let capture-only UI tests settle animations; app sources and measurement protocols stay unchanged.
     prepared = original_test.replace(capture_line, '        Thread.sleep(forTimeInterval: 1.0)\n' + capture_line)
+    # 保留隔离历史目录，禁用快速测试启动参数，使所有分页使用正式默认值。
+    # Keep isolated history, but remove quick-test launch mode so every page uses production defaults.
+    test_arguments = '["--uitest", "--uitest-store="'
+    if test_arguments not in prepared:
+        raise RuntimeError("UI-test launch arguments changed; review capture defaults.")
+    prepared = prepared.replace(test_arguments, '["--uitest-store="')
     # 商店素材使用真实标准预设，不展示回归测试专用的短时参数。
     # Store captures use the actual Standard preset, not shortened regression-test parameters.
     locale_capture = '            screenshot("Locale " + name, app: app)'
