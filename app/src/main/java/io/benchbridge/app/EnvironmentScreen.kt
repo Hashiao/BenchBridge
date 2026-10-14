@@ -2,6 +2,10 @@ package io.benchbridge.app
 
 import io.benchbridge.app.i18n.L10n
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.text.selection.SelectionContainer
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -95,6 +99,7 @@ internal fun EnvironmentScreen(state: DiagnosticsState, onRefresh: () -> Unit) {
                         }
                     }
                 }
+                item { ProjectInfoCard() }
                 item { IntroCard(state) }
                 item {
                     Button(
@@ -154,6 +159,32 @@ internal fun EnvironmentScreen(state: DiagnosticsState, onRefresh: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+// 官方免费声明不改变 MIT 授权；链接仅由用户点击后交给浏览器。
+// The official free notice does not change MIT terms; open links only on user action.
+@Composable
+private fun ProjectInfoCard() {
+    val context = LocalContext.current
+    val project = "https://github.com/Hashiao/BenchBridge"
+    InfoCard(L10n.t("m_831c8b3832c0")) {
+        Text(L10n.t("m_fcd24ef9d784"), style = MaterialTheme.typography.bodyMedium)
+        Text(L10n.t("m_db60a4c1c562"), style = MaterialTheme.typography.bodySmall)
+        SelectionContainer { Text(project, style = MaterialTheme.typography.bodySmall) }
+        TextButton(onClick = { openProjectLink(context, project) }) { Text(L10n.t("m_54953e600ce5")) }
+        TextButton(onClick = { openProjectLink(context, "$project/blob/main/LICENSE") }) { Text(L10n.t("m_93a26951ae9a")) }
+        TextButton(onClick = { openProjectLink(context, "$project/blob/main/docs/PRIVACY.md") }) { Text(L10n.t("m_e464b41fd5c4")) }
+    }
+}
+
+private fun openProjectLink(context: Context, url: String) {
+    try {
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    } catch (_: ActivityNotFoundException) {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("BenchBridge", url))
+        Toast.makeText(context, L10n.t("m_4d8f9c251590"), Toast.LENGTH_LONG).show()
     }
 }
 

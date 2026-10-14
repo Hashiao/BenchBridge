@@ -20,8 +20,8 @@ android {
         applicationId = "io.benchbridge.app"
         minSdk = 29
         targetSdk = 37
-        versionCode = 21
-        versionName = "0.13.0"
+        versionCode = 22
+        versionName = "0.13.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         shaders { glslcArgs += listOf("-O", "--target-env=vulkan1.0") }
 

@@ -388,6 +388,16 @@ private struct DevicePage: View {
     let info: DeviceInfo
     var body: some View {
         Form {
+            // 只说明官方渠道永久免费；不限制 MIT 允许的再分发。
+            // Identify the free official channel without restricting MIT redistribution.
+            Section(L10n.t("m_831c8b3832c0")) {
+                Text(L10n.t("m_fcd24ef9d784"))
+                Text(L10n.t("m_db60a4c1c562")).font(.footnote)
+                Text("https://github.com/Hashiao/BenchBridge").font(.footnote).textSelection(.enabled)
+                Link(L10n.t("m_54953e600ce5"), destination: URL(string: "https://github.com/Hashiao/BenchBridge")!)
+                Link(L10n.t("m_93a26951ae9a"), destination: URL(string: "https://github.com/Hashiao/BenchBridge/blob/main/LICENSE")!)
+                Link(L10n.t("m_e464b41fd5c4"), destination: URL(string: "https://github.com/Hashiao/BenchBridge/blob/main/docs/PRIVACY.md")!)
+            }
             Section(L10n.t("m_423f51a28678")) {
                 LabeledContent(L10n.t("m_322408c53bed"), value: info.displayName)
                 LabeledContent(L10n.t("m_db68f1777c59"), value: info.machine); LabeledContent(L10n.t("m_5b50d7c4b595"), value: info.osVersion)

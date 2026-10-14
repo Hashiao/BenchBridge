@@ -5547,5 +5547,75 @@
     "uses": [
       "ios/BenchBridge/Models.swift:Statistics.analyze (including legacy partial summaries)"
     ]
+  },
+  "m_831c8b3832c0": {
+    "source": "永久免费 · 开源项目",
+    "en": "Free forever · Open source",
+    "zh-Hans": "永久免费 · 开源项目",
+    "zh-Hant": "永久免費 · 開放原始碼專案",
+    "uses": [
+      "app/src/main/java/io/benchbridge/app/EnvironmentScreen.kt",
+      "ios/BenchBridge/Views.swift"
+    ]
+  },
+  "m_fcd24ef9d784": {
+    "source": "BenchBridge 官方版本永久免费，无广告、无内购，无需购买、订阅或付费解锁。",
+    "en": "The official BenchBridge app is free forever, with no ads, in-app purchases, subscriptions or paid unlocks.",
+    "zh-Hans": "BenchBridge 官方版本永久免费，无广告、无内购，无需购买、订阅或付费解锁。",
+    "zh-Hant": "BenchBridge 官方版本永久免費，無廣告、無 App 內購買，無須購買、訂閱或付費解鎖。",
+    "uses": [
+      "app/src/main/java/io/benchbridge/app/EnvironmentScreen.kt",
+      "ios/BenchBridge/Views.swift"
+    ]
+  },
+  "m_db60a4c1c562": {
+    "source": "请通过下方官方项目核对来源，勿将第三方收费下载或解锁服务当作本项目的收费要求。",
+    "en": "Check the official project below. Third-party download or unlocking fees are not required by this project.",
+    "zh-Hans": "请通过下方官方项目核对来源，勿将第三方收费下载或解锁服务当作本项目的收费要求。",
+    "zh-Hant": "請透過下方官方專案確認來源，勿將第三方付費下載或解鎖服務誤認為本專案的收費要求。",
+    "uses": [
+      "app/src/main/java/io/benchbridge/app/EnvironmentScreen.kt",
+      "ios/BenchBridge/Views.swift"
+    ]
+  },
+  "m_54953e600ce5": {
+    "source": "官方 GitHub 项目",
+    "en": "Official GitHub project",
+    "zh-Hans": "官方 GitHub 项目",
+    "zh-Hant": "官方 GitHub 專案",
+    "uses": [
+      "app/src/main/java/io/benchbridge/app/EnvironmentScreen.kt",
+      "ios/BenchBridge/Views.swift"
+    ]
+  },
+  "m_93a26951ae9a": {
+    "source": "开源许可证（MIT）",
+    "en": "Open-source license (MIT)",
+    "zh-Hans": "开源许可证（MIT）",
+    "zh-Hant": "開放原始碼授權條款（MIT）",
+    "uses": [
+      "app/src/main/java/io/benchbridge/app/EnvironmentScreen.kt",
+      "ios/BenchBridge/Views.swift"
+    ]
+  },
+  "m_e464b41fd5c4": {
+    "source": "隐私政策",
+    "en": "Privacy policy",
+    "zh-Hans": "隐私政策",
+    "zh-Hant": "隱私權政策",
+    "uses": [
+      "app/src/main/java/io/benchbridge/app/EnvironmentScreen.kt",
+      "ios/BenchBridge/Views.swift"
+    ]
+  },
+  "m_4d8f9c251590": {
+    "source": "无法打开浏览器，网址已复制",
+    "en": "Unable to open a browser. Link copied.",
+    "zh-Hans": "无法打开浏览器，网址已复制",
+    "zh-Hant": "無法開啟瀏覽器，網址已複製",
+    "uses": [
+      "app/src/main/java/io/benchbridge/app/EnvironmentScreen.kt",
+      "ios/BenchBridge/Views.swift"
+    ]
   }
 }

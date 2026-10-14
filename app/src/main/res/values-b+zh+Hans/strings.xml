@@ -178,6 +178,7 @@
     <string name="m_4c1ba2afa2fb" formatted="false">"曲线最大工作集"</string>
     <string name="m_4c74eca2037f" formatted="false">"累计写入（含初始化与预热）{0}"</string>
     <string name="m_4d0d5d853d24" formatted="false">"测试历史"</string>
+    <string name="m_4d8f9c251590" formatted="false">"无法打开浏览器，网址已复制"</string>
     <string name="m_4e44428bb127" formatted="false">"检查 I/O 支持"</string>
     <string name="m_4eedec34b59e" formatted="false">"扫描 CPU {0} · {1}"</string>
     <string name="m_4f5df723d99d" formatted="false">"间隔"</string>
@@ -194,6 +195,7 @@
     <string name="m_534cb3fa8fbf" formatted="false">"读取"</string>
     <string name="m_5393322e98bb" formatted="false">"点通过验证"</string>
     <string name="m_53f5039a31a0" formatted="false">"存储测试"</string>
+    <string name="m_54953e600ce5" formatted="false">"官方 GitHub 项目"</string>
     <string name="m_554ec133ab30" formatted="false">"准备文件"</string>
     <string name="m_557fa6af954e" formatted="false">"请求绕过系统数据缓存"</string>
     <string name="m_5594262a36ec" formatted="false">"应用进入后台，已保存完成的采样"</string>
@@ -319,6 +321,7 @@
     <string name="m_811e5f55f066" formatted="false">"运行一次轻量检查，确认应用与 C++ 库能够协同工作。"</string>
     <string name="m_821786e0cb91" formatted="false">"BenchBridge · {0} 测试中"</string>
     <string name="m_82eb5676f95d" formatted="false">"项目编号无效"</string>
+    <string name="m_831c8b3832c0" formatted="false">"永久免费 · 开源项目"</string>
     <string name="m_83781ae2b9f7" formatted="false">"本次参数"</string>
     <string name="m_83d947e93231" formatted="false">"最高完整轮次 · {0}"</string>
     <string name="m_83ea70933f67" formatted="false">"可用存储空间不足"</string>
@@ -354,6 +357,7 @@
     <string name="m_917e4ce511a4" formatted="false">"RAM_BUDGET：需要约 {0} MiB，当前预算 {1} MiB；请明确选择较小工作集"</string>
     <string name="m_91ecc525da78" formatted="false">"带宽 · 每项重复次数"</string>
     <string name="m_9249ca6c2aab" formatted="false">"顺序"</string>
+    <string name="m_93a26951ae9a" formatted="false">"开源许可证（MIT）"</string>
     <string name="m_95d6b7a416c4" formatted="false">"已保存 {0} / {1} 个扫描点次"</string>
     <string name="m_96c4fc9e110e" formatted="false">"块大小—延迟曲线"</string>
     <string name="m_96c5161042c7" formatted="false">"GPU 分形校验失败"</string>
@@ -512,6 +516,7 @@
     <string name="m_da4c2e8f7744" formatted="false">"无法固定核心，曲线未生成"</string>
     <string name="m_da5920919577" formatted="false">"测试文件大小"</string>
     <string name="m_da8e80927fd7" formatted="false">"请查看下方诊断信息。失败项会保留具体原因。"</string>
+    <string name="m_db60a4c1c562" formatted="false">"请通过下方官方项目核对来源，勿将第三方收费下载或解锁服务当作本项目的收费要求。"</string>
     <string name="m_db68f1777c59" formatted="false">"设备标识"</string>
     <string name="m_db7538b96322" formatted="false">"平均值"</string>
     <string name="m_dc0f66986fc4" formatted="false">"Apple 官方规格"</string>
@@ -541,6 +546,7 @@
     <string name="m_e396f936a371" formatted="false">"主结果为读取量 + 写入量；工作集是源与目标之和"</string>
     <string name="m_e3e42c6a76f1" formatted="false">"延迟 · 总工作集"</string>
     <string name="m_e44652e35e27" formatted="false">"FP32 浮点"</string>
+    <string name="m_e464b41fd5c4" formatted="false">"隐私政策"</string>
     <string name="m_e4801bd01531" formatted="false">"当前可用内存不足，请减小工作集后重试"</string>
     <string name="m_e4b60a443ba3" formatted="false">"逻辑核心"</string>
     <string name="m_e55f2ab3e631" formatted="false">"待测"</string>
@@ -591,6 +597,7 @@
     <string name="m_fb48367b485c" formatted="false">"导出 JSON"</string>
     <string name="m_fc0aae1e9699" formatted="false">"第 {0} 次："</string>
     <string name="m_fc107498ec60" formatted="false">"已完成 {0} / {1} 轮"</string>
+    <string name="m_fcd24ef9d784" formatted="false">"BenchBridge 官方版本永久免费，无广告、无内购，无需购买、订阅或付费解锁。"</string>
     <string name="m_fd522dbc2d5d" formatted="false">"GPU 访存校验失败"</string>
     <string name="m_fdf9f0908c5e" formatted="false">"文件大小或重复次数无效"</string>
     <string name="m_fe1c95c43e9e" formatted="false">"测试已停止"</string>

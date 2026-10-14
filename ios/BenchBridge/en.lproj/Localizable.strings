@@ -176,6 +176,7 @@
 "m_4c1ba2afa2fb" = "Maximum curve working set";
 "m_4c74eca2037f" = "Cumulative writes, including initialization and warmup: {0}";
 "m_4d0d5d853d24" = "Test history";
+"m_4d8f9c251590" = "Unable to open a browser. Link copied.";
 "m_4e44428bb127" = "Checking I/O support";
 "m_4eedec34b59e" = "Scanning CPU {0} · {1}";
 "m_4f5df723d99d" = "Interval";
@@ -192,6 +193,7 @@
 "m_534cb3fa8fbf" = "Read";
 "m_5393322e98bb" = "points verified";
 "m_53f5039a31a0" = "Storage test";
+"m_54953e600ce5" = "Official GitHub project";
 "m_554ec133ab30" = "Preparing file";
 "m_557fa6af954e" = "Request bypass of the system data cache";
 "m_5594262a36ec" = "App moved to the background; completed samples are saved.";
@@ -317,6 +319,7 @@
 "m_811e5f55f066" = "Run a lightweight check that the app and C++ library work together.";
 "m_821786e0cb91" = "BenchBridge · Testing {0}";
 "m_82eb5676f95d" = "Invalid test ID.";
+"m_831c8b3832c0" = "Free forever · Open source";
 "m_83781ae2b9f7" = "Run parameters";
 "m_83d947e93231" = "Best complete run · {0}";
 "m_83ea70933f67" = "Not enough available storage space.";
@@ -352,6 +355,7 @@
 "m_917e4ce511a4" = "RAM_BUDGET: About {0} MiB required; current budget is {1} MiB. Select a smaller working set explicitly.";
 "m_91ecc525da78" = "Bandwidth · Runs per test";
 "m_9249ca6c2aab" = "Sequential";
+"m_93a26951ae9a" = "Open-source license (MIT)";
 "m_95d6b7a416c4" = "Saved {0} / {1} scan samples";
 "m_96c4fc9e110e" = "Block-size/latency curve";
 "m_96c5161042c7" = "GPU fractal verification failed";
@@ -510,6 +514,7 @@
 "m_da4c2e8f7744" = "Core binding unavailable; no curve generated";
 "m_da5920919577" = "Test file size";
 "m_da8e80927fd7" = "See the diagnostics below for specific failure reasons.";
+"m_db60a4c1c562" = "Check the official project below. Third-party download or unlocking fees are not required by this project.";
 "m_db68f1777c59" = "Device identifier";
 "m_db7538b96322" = "Mean";
 "m_dc0f66986fc4" = "Apple specifications";
@@ -539,6 +544,7 @@
 "m_e396f936a371" = "The score counts reads plus writes; the working set includes source and destination.";
 "m_e3e42c6a76f1" = "Latency · Total working set";
 "m_e44652e35e27" = "FP32 floating point";
+"m_e464b41fd5c4" = "Privacy policy";
 "m_e4801bd01531" = "Not enough available memory. Reduce the working set and try again.";
 "m_e4b60a443ba3" = "Logical cores";
 "m_e55f2ab3e631" = "Pending";
@@ -589,6 +595,7 @@
 "m_fb48367b485c" = "Export JSON";
 "m_fc0aae1e9699" = "Run {0}: ";
 "m_fc107498ec60" = "Completed {0} / {1} runs";
+"m_fcd24ef9d784" = "The official BenchBridge app is free forever, with no ads, in-app purchases, subscriptions or paid unlocks.";
 "m_fd522dbc2d5d" = "GPU memory-access verification failed";
 "m_fdf9f0908c5e" = "Invalid file size or repeat count.";
 "m_fe1c95c43e9e" = "Test stopped";

@@ -26,6 +26,10 @@ final class BenchBridgeUITests: XCTestCase {
             XCTAssertTrue(app.buttons["settings-done"].isHittable)
             screenshot("Settings " + name, app: app)
             app.buttons["settings-done"].tap()
+            // 保留五种语言场景的设备页截图，检查免费开源说明的实际排版。
+            // Capture the Device page in all five locale cases to review the free/open-source notice.
+            tab(name == "zh-Hans" ? "设备" : name == "zh-Hant" ? "裝置" : "Device", app: app)
+            screenshot("Device " + name, app: app)
             app.terminate()
         }
     }

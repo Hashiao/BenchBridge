@@ -179,6 +179,7 @@
     <string name="m_4c1ba2afa2fb" formatted="false">"Maximum curve working set"</string>
     <string name="m_4c74eca2037f" formatted="false">"Cumulative writes, including initialization and warmup: {0}"</string>
     <string name="m_4d0d5d853d24" formatted="false">"Test history"</string>
+    <string name="m_4d8f9c251590" formatted="false">"Unable to open a browser. Link copied."</string>
     <string name="m_4e44428bb127" formatted="false">"Checking I/O support"</string>
     <string name="m_4eedec34b59e" formatted="false">"Scanning CPU {0} · {1}"</string>
     <string name="m_4f5df723d99d" formatted="false">"Interval"</string>
@@ -195,6 +196,7 @@
     <string name="m_534cb3fa8fbf" formatted="false">"Read"</string>
     <string name="m_5393322e98bb" formatted="false">"points verified"</string>
     <string name="m_53f5039a31a0" formatted="false">"Storage test"</string>
+    <string name="m_54953e600ce5" formatted="false">"Official GitHub project"</string>
     <string name="m_554ec133ab30" formatted="false">"Preparing file"</string>
     <string name="m_557fa6af954e" formatted="false">"Request bypass of the system data cache"</string>
     <string name="m_5594262a36ec" formatted="false">"App moved to the background; completed samples are saved."</string>
@@ -320,6 +322,7 @@
     <string name="m_811e5f55f066" formatted="false">"Run a lightweight check that the app and C++ library work together."</string>
     <string name="m_821786e0cb91" formatted="false">"BenchBridge · Testing {0}"</string>
     <string name="m_82eb5676f95d" formatted="false">"Invalid test ID."</string>
+    <string name="m_831c8b3832c0" formatted="false">"Free forever · Open source"</string>
     <string name="m_83781ae2b9f7" formatted="false">"Run parameters"</string>
     <string name="m_83d947e93231" formatted="false">"Best complete run · {0}"</string>
     <string name="m_83ea70933f67" formatted="false">"Not enough available storage space."</string>
@@ -355,6 +358,7 @@
     <string name="m_917e4ce511a4" formatted="false">"RAM_BUDGET: About {0} MiB required; current budget is {1} MiB. Select a smaller working set explicitly."</string>
     <string name="m_91ecc525da78" formatted="false">"Bandwidth · Runs per test"</string>
     <string name="m_9249ca6c2aab" formatted="false">"Sequential"</string>
+    <string name="m_93a26951ae9a" formatted="false">"Open-source license (MIT)"</string>
     <string name="m_95d6b7a416c4" formatted="false">"Saved {0} / {1} scan samples"</string>
     <string name="m_96c4fc9e110e" formatted="false">"Block-size/latency curve"</string>
     <string name="m_96c5161042c7" formatted="false">"GPU fractal verification failed"</string>
@@ -513,6 +517,7 @@
     <string name="m_da4c2e8f7744" formatted="false">"Core binding unavailable; no curve generated"</string>
     <string name="m_da5920919577" formatted="false">"Test file size"</string>
     <string name="m_da8e80927fd7" formatted="false">"See the diagnostics below for specific failure reasons."</string>
+    <string name="m_db60a4c1c562" formatted="false">"Check the official project below. Third-party download or unlocking fees are not required by this project."</string>
     <string name="m_db68f1777c59" formatted="false">"Device identifier"</string>
     <string name="m_db7538b96322" formatted="false">"Mean"</string>
     <string name="m_dc0f66986fc4" formatted="false">"Apple specifications"</string>
@@ -542,6 +547,7 @@
     <string name="m_e396f936a371" formatted="false">"The score counts reads plus writes; the working set includes source and destination."</string>
     <string name="m_e3e42c6a76f1" formatted="false">"Latency · Total working set"</string>
     <string name="m_e44652e35e27" formatted="false">"FP32 floating point"</string>
+    <string name="m_e464b41fd5c4" formatted="false">"Privacy policy"</string>
     <string name="m_e4801bd01531" formatted="false">"Not enough available memory. Reduce the working set and try again."</string>
     <string name="m_e4b60a443ba3" formatted="false">"Logical cores"</string>
     <string name="m_e55f2ab3e631" formatted="false">"Pending"</string>
@@ -592,6 +598,7 @@
     <string name="m_fb48367b485c" formatted="false">"Export JSON"</string>
     <string name="m_fc0aae1e9699" formatted="false">"Run {0}: "</string>
     <string name="m_fc107498ec60" formatted="false">"Completed {0} / {1} runs"</string>
+    <string name="m_fcd24ef9d784" formatted="false">"The official BenchBridge app is free forever, with no ads, in-app purchases, subscriptions or paid unlocks."</string>
     <string name="m_fd522dbc2d5d" formatted="false">"GPU memory-access verification failed"</string>
     <string name="m_fdf9f0908c5e" formatted="false">"Invalid file size or repeat count."</string>
     <string name="m_fe1c95c43e9e" formatted="false">"Test stopped"</string>
